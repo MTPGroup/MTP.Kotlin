@@ -19,5 +19,7 @@ sealed class LoginIntent {
 
 sealed class LoginSideEffect {
     data object NavigateToHome : LoginSideEffect()
+    data object NavigateToRegister : LoginSideEffect()
+    data object NavigateToForgotPassword : LoginSideEffect()
     data class ShowToast(val message: String) : LoginSideEffect()
 }

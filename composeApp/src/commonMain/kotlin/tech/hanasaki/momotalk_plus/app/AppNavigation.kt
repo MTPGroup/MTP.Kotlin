@@ -1,36 +1,78 @@
 package tech.hanasaki.momotalk_plus.app
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.serialization.Serializable
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import tech.hanasaki.momotalk_plus.features.login.presentation.ui.ForgotPasswordScreen
 import tech.hanasaki.momotalk_plus.features.login.presentation.ui.LoginScreen
+import tech.hanasaki.momotalk_plus.features.login.presentation.ui.RegisterScreen
 import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.LoginViewModel
 
-object AppDestinations {
-    const val LOGIN = "login"
-    const val HOME = "home"
-    const val SETTINGS = "settings"
-    const val PROFILE = "profile"
-    const val CHAT = "chat"
+@Serializable
+sealed interface NavigationRoute {
+    @Serializable
+    data object Login : NavigationRoute
+
+    @Serializable
+    data object Register : NavigationRoute
+
+    @Serializable
+    data object ForgotPassword : NavigationRoute
+
+    @Serializable
+    data object Home : NavigationRoute
+
+    @Serializable
+    data object Settings : NavigationRoute
+
+    @Serializable
+    data object Profile : NavigationRoute
+
+    @Serializable
+    data class Chat(val sessionId: String) : NavigationRoute
 }
+
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = AppDestinations.LOGIN) {
-        composable(AppDestinations.LOGIN) {
-            val loginViewModel = koinInject<LoginViewModel>()
+    NavHost(navController = navController, startDestination = NavigationRoute.Login) {
+        composable<NavigationRoute.Login> {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(AppDestinations.HOME) {
-                        popUpTo(AppDestinations.HOME) { inclusive = true }
+                    navController.navigate(NavigationRoute.Home) {
+                        popUpTo(NavigationRoute.Login) { inclusive = true }
                     }
                 },
-                loginViewModel = loginViewModel
+                onForgotPassword = {
+                    navController.navigate(NavigationRoute.ForgotPassword)
+                },
+                onRegister = {
+                    navController.navigate(NavigationRoute.Register)
+                },
             )
         }
+
+        composable<NavigationRoute.ForgotPassword> {
+            ForgotPasswordScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<NavigationRoute.Register> {
+            RegisterScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable<NavigationRoute.Home> { }
     }
 }

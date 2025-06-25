@@ -40,7 +40,9 @@ import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.LoginVi
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    loginViewModel: LoginViewModel  = koinViewModel()
+    onForgotPassword: () -> Unit,
+    onRegister: () -> Unit,
+    loginViewModel: LoginViewModel = koinViewModel(),
 ) {
     val uiState by loginViewModel.uiState.collectAsState()
 
@@ -50,6 +52,12 @@ fun LoginScreen(
                 LoginSideEffect.NavigateToHome -> {
                     onLoginSuccess()
                 }
+
+                LoginSideEffect.NavigateToForgotPassword ->
+                    onForgotPassword()
+
+                LoginSideEffect.NavigateToRegister ->
+                    onRegister()
 
                 is LoginSideEffect.ShowToast -> {
                     // TODO: 实现 Toast 显示逻辑

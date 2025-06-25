@@ -33,8 +33,11 @@ class LoginViewModel(private val loginUserUseCase: LoginUserUseCase) : ViewModel
                 is LoginIntent.PasswordChanged ->
                     _uiState.update { it.copy(password = intent.password) }
 
-                LoginIntent.ForgotPasswordClicked -> TODO()
-                LoginIntent.RegisterClicked -> TODO()
+                is LoginIntent.ForgotPasswordClicked ->
+                    _sideEffect.send(LoginSideEffect.NavigateToForgotPassword)
+
+                is LoginIntent.RegisterClicked ->
+                    _sideEffect.send(LoginSideEffect.NavigateToRegister)
             }
         }
     }
@@ -48,8 +51,9 @@ class LoginViewModel(private val loginUserUseCase: LoginUserUseCase) : ViewModel
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                 _sideEffect.send(LoginSideEffect.NavigateToHome)
             }
+
             is Result.Error -> {
-                val errorMessage = loginResult.error.message ?: "An unknown login error occurred"
+                val errorMessage = loginResult.error.message
                 _uiState.update {
                     it.copy(
                         isLoading = false,

@@ -15,6 +15,8 @@ import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.LoginVi
 import tech.hanasaki.momotalk_plus.features.login.data.datasource.remote.AuthRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.login.data.repository.AuthRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasource
+import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.ForgotPasswordViewModel
+import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.RegisterViewModel
 
 val commonModule = module {
     factoryOf(::LoginUserUseCase)
@@ -51,6 +53,8 @@ val repositoryModule = module {
 
 val viewModelModule = module {
     viewModelOf(::LoginViewModel)
+    viewModelOf(::ForgotPasswordViewModel)
+    viewModelOf(::RegisterViewModel)
 }
 
 val appModule =
