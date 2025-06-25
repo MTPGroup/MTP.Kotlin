@@ -9,6 +9,6 @@ import tech.hanasaki.momotalk_plus.features.login.presentation.ui.LoginScreen
 @Composable
 fun App() {
     MaterialTheme {
-        LoginScreen(onLoginSuccess = {})
+        AppNavigation()
     }
 }

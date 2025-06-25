@@ -31,6 +31,7 @@ import momotalkplus.composeapp.generated.resources.app_description
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginSideEffect
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginState
@@ -39,7 +40,7 @@ import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.LoginVi
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    loginViewModel: LoginViewModel = koinInject()
+    loginViewModel: LoginViewModel  = koinViewModel()
 ) {
     val uiState by loginViewModel.uiState.collectAsState()
 
