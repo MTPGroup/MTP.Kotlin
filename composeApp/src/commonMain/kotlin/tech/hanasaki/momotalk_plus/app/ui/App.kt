@@ -1,9 +1,8 @@
-package tech.hanasaki.momotalk_plus.app
+package tech.hanasaki.momotalk_plus.app.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import tech.hanasaki.momotalk_plus.features.login.presentation.ui.LoginScreen
 
 @Preview
 @Composable

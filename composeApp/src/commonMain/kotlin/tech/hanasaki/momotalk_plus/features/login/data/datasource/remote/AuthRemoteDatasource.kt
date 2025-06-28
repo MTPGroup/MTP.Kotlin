@@ -9,6 +9,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.util.logging.Logger
 import tech.hanasaki.momotalk_plus.features.login.data.model.*
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.data.model.FirebaseErrorResponse
@@ -18,7 +19,9 @@ import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
 
 class AuthRemoteDatasource(private val client: HttpClient) {
     private val apiKey = BuildKonfig.firebaseApiKey
-    private val endpoint = "https://identitytoolkit.googleapis.com/v1/accounts"
+//    private val endpoint = "https://identitytoolkit.googleapis.com/v1/accounts"
+//    private val endpoint = "http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts"
+    private val endpoint = "http://10.0.2.2:9099/identitytoolkit.googleapis.com/v1/accounts"
 
     private suspend inline fun <reified T : Any, reified R : Any> postAuthRequest(
         url: String,

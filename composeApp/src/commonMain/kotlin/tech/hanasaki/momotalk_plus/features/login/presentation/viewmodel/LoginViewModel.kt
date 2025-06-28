@@ -7,11 +7,15 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.features.login.domain.usecase.LoginUserUseCase
 import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.domain.usecase.SaveLoginStateUseCase
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginSideEffect
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginState
 
-class LoginViewModel(private val loginUserUseCase: LoginUserUseCase) : ViewModel() {
+class LoginViewModel(
+    private val loginUserUseCase: LoginUserUseCase,
+    private val saveLoginStateUseCase: SaveLoginStateUseCase,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginState())
     val uiState: StateFlow<LoginState> = _uiState.asStateFlow()
 
@@ -48,8 +52,15 @@ class LoginViewModel(private val loginUserUseCase: LoginUserUseCase) : ViewModel
 
         when (val loginResult = loginUserUseCase(currentState.email, currentState.password)) {
             is Result.Success -> {
+                val refreshInfo = loginResult.data
+                saveLoginStateUseCase(
+                    uid = refreshInfo.uid,
+                    idToken = refreshInfo.idToken,
+                    refreshToken = refreshInfo.refreshToken,
+                    expiresIn = refreshInfo.expiresIn,
+                )
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
-                _sideEffect.send(LoginSideEffect.NavigateToHome)
+                _sideEffect.send(LoginSideEffect.NavigateToHome(refreshInfo.uid))
             }
 
             is Result.Error -> {

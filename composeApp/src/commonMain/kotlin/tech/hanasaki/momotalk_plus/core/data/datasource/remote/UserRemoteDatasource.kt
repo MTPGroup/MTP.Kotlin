@@ -5,33 +5,31 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.parameters
 import tech.hanasaki.momotalk_plus.config.BuildKonfig
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.data.model.*
+import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.features.login.data.model.ChangePasswordRequest
 import tech.hanasaki.momotalk_plus.features.login.data.model.ChangePasswordResponse
 import tech.hanasaki.momotalk_plus.features.login.data.model.DeleteAccountRequest
 import tech.hanasaki.momotalk_plus.features.login.data.model.LinkEmailAndPasswordRequest
 import tech.hanasaki.momotalk_plus.features.login.data.model.LinkEmailAndPasswordResponse
 
-sealed class UserDatasourceError {
-    data class ApiError(val code: Int, val message: String) : UserDatasourceError()
-    data class NetworkError(val originalException: Exception) : UserDatasourceError()
-    data object Unknown : UserDatasourceError()
-}
 
 class UserRemoteDatasource(private val client: HttpClient) {
     private val apiKey = BuildKonfig.firebaseApiKey
     private val endpoint = "https://identitytoolkit.googleapis.com/v1/accounts"
 
-    private suspend inline fun <reified T : Any, reified R : Any> postAuthRequest(
+    private suspend inline fun <reified T : Any, reified R : Any> postRequest(
         url: String,
-        requestBody: T
-    ): Result<R, UserDatasourceError> {
+        requestBody: T,
+    ): Result<R, UserError> {
         return try {
             val response: R = client.post(url) {
                 contentType(ContentType.Application.Json)
@@ -42,14 +40,14 @@ class UserRemoteDatasource(private val client: HttpClient) {
             try {
                 val errorBody = e.response.body<FirebaseErrorResponse>()
                 Result.Error(
-                    UserDatasourceError.ApiError(
+                    UserError.ApiError(
                         errorBody.error.code,
                         errorBody.error.message
                     )
                 )
             } catch (parseEx: Exception) {
                 Result.Error(
-                    UserDatasourceError.ApiError(
+                    UserError.ApiError(
                         e.response.status.value,
                         "Client request failed, could not parse error."
                     )
@@ -57,22 +55,76 @@ class UserRemoteDatasource(private val client: HttpClient) {
             }
         } catch (e: ServerResponseException) {
             Result.Error(
-                UserDatasourceError.ApiError(
+                UserError.ApiError(
                     e.response.status.value,
                     "Server error: ${e.response.status}"
                 )
             )
         } catch (e: RedirectResponseException) {
             Result.Error(
-                UserDatasourceError.ApiError(
+                UserError.ApiError(
                     e.response.status.value,
                     "Redirect error: ${e.response.status}"
                 )
             )
         } catch (e: Exception) {
-            Result.Error(UserDatasourceError.NetworkError(e))
+            Result.Error(UserError.NetworkError(e))
         }
     }
+
+    /**
+     * 使用刷新令牌刷新ID令牌
+     *
+     * @param refreshToken 用户的刷新令牌
+     * @return Result<RefreshIdTokenResponse, UserError> 成功时返回刷新ID令牌响应，失败时返回错误信息
+     */
+    suspend fun refreshIdToken(
+        refreshToken: String,
+    ): Result<RefreshIdTokenResponse, UserError> =
+        try {
+            val refreshEndpoint = ""
+            val response: RefreshIdTokenResponse = client.submitForm(
+                url="$refreshEndpoint:token?key=$apiKey",
+                formParameters = parameters {
+                    append("grant_type", "refresh_token")
+                    append("refresh_token", refreshToken)
+                }
+            ).body()
+            Result.Success(response)
+        } catch (e: ClientRequestException) {
+            try {
+                val errorBody = e.response.body<FirebaseErrorResponse>()
+                Result.Error(
+                    UserError.ApiError(
+                        errorBody.error.code,
+                        errorBody.error.message
+                    )
+                )
+            } catch (parseEx: Exception) {
+                Result.Error(
+                    UserError.ApiError(
+                        e.response.status.value,
+                        "Client request failed, could not parse error."
+                    )
+                )
+            }
+        } catch (e: ServerResponseException) {
+            Result.Error(
+                UserError.ApiError(
+                    e.response.status.value,
+                    "Server error: ${e.response.status}"
+                )
+            )
+        } catch (e: RedirectResponseException) {
+            Result.Error(
+                UserError.ApiError(
+                    e.response.status.value,
+                    "Redirect error: ${e.response.status}"
+                )
+            )
+        } catch (e: Exception) {
+            Result.Error(UserError.NetworkError(e))
+        }
 
     /**
      * 设置用户账户信息
@@ -86,8 +138,8 @@ class UserRemoteDatasource(private val client: HttpClient) {
         idToken: String,
         displayName: String? = null,
         photoUrl: String? = null,
-    ): Result<SetAccountInfoResponse, UserDatasourceError> =
-        postAuthRequest(
+    ): Result<SetAccountInfoResponse, UserError> =
+        postRequest(
             "$endpoint:update?key=$apiKey",
             SetAccountInfoRequest(idToken, displayName, photoUrl),
         )
@@ -100,8 +152,8 @@ class UserRemoteDatasource(private val client: HttpClient) {
      */
     suspend fun getAccountInfo(
         idToken: String,
-    ): Result<GetAccountInfoResponse, UserDatasourceError> =
-        postAuthRequest(
+    ): Result<GetAccountInfoResponse, UserError> =
+        postRequest(
             "$endpoint:lookup?key=$apiKey",
             GetAccountInfoRequest(idToken),
         )
@@ -116,8 +168,8 @@ class UserRemoteDatasource(private val client: HttpClient) {
     suspend fun changePassword(
         idToken: String,
         password: String,
-    ): Result<ChangePasswordResponse, UserDatasourceError> =
-        postAuthRequest(
+    ): Result<ChangePasswordResponse, UserError> =
+        postRequest(
             "$endpoint:update?key=$apiKey",
             ChangePasswordRequest(idToken, password),
         )
@@ -135,8 +187,8 @@ class UserRemoteDatasource(private val client: HttpClient) {
         idToken: String,
         email: String,
         password: String,
-    ): Result<LinkEmailAndPasswordResponse, UserDatasourceError> =
-        postAuthRequest(
+    ): Result<LinkEmailAndPasswordResponse, UserError> =
+        postRequest(
             "$endpoint:link?key=$apiKey",
             LinkEmailAndPasswordRequest(idToken, email, password),
         )
@@ -149,8 +201,8 @@ class UserRemoteDatasource(private val client: HttpClient) {
      */
     suspend fun deleteAccount(
         idToken: String,
-    ): Result<Unit, UserDatasourceError> =
-        postAuthRequest(
+    ): Result<Unit, UserError> =
+        postRequest(
             "$endpoint:delete?key=$apiKey",
             DeleteAccountRequest(idToken),
         )

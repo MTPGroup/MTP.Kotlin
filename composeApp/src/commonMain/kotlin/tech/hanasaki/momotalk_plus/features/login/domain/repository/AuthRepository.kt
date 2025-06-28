@@ -3,6 +3,7 @@ package tech.hanasaki.momotalk_plus.features.login.domain.repository
 import tech.hanasaki.momotalk_plus.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
 import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.domain.model.RefreshInfo
 import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
 
 interface AuthRepository {
@@ -21,12 +22,13 @@ interface AuthRepository {
      * 通过电子邮件和密码登录用户。
      *
      * @param email 用户的电子邮件地址。
-     * @param password 用户的密码。
+     * @param password 用户的密码
+     * @return 返回一个 [Result]，成功时包含用户的 ID 令牌，失败时包含 [AuthError]。
      */
     suspend fun signInWithEmailPassword(
         email: String,
         password: String
-    ): Result<Unit, AuthError>
+    ): Result<RefreshInfo, AuthError>
 
     /**
      * 发送电子邮件重置用户密码。
@@ -49,13 +51,6 @@ interface AuthRepository {
      * @param newPassword 用户的新密码。
      */
     suspend fun resetPassword(oobCode: String, newPassword: String): Result<Unit, AuthError>
-
-    /**
-     * 检查用户是否已登录。
-     *
-     * @return 如果用户已登录则返回 true，否则返回 false。
-     */
-    fun isUserLoggedIn(): Boolean?
 
     /**
      * 获取用户的认证状态流。

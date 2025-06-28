@@ -1,7 +1,24 @@
 package tech.hanasaki.momotalk_plus.core.data.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import tech.hanasaki.momotalk_plus.features.login.data.model.UserInfo
+
+@Serializable
+data class RefreshIdTokenResponse(
+    @SerialName("id_token")
+    val idToken: String,
+    @SerialName("user_id")
+    val userId: String,
+    @SerialName("refresh_token")
+    val refreshToken: String,
+    @SerialName("expires_in")
+    val expiresIn: Long,
+    @SerialName("token_type")
+    val tokenType: String,
+    @SerialName("project_id")
+    val projectId: String,
+)
 
 @Serializable
 data class FirebaseErrorResponse(

@@ -2,6 +2,7 @@ package tech.hanasaki.momotalk_plus.features.login.data.model
 
 import kotlinx.serialization.Serializable
 
+
 @Serializable
 data class SignInWithPasswordRequest(
     val email: String,
@@ -14,7 +15,7 @@ data class SignInWithPasswordResponse(
     val idToken: String,
     val email: String,
     val refreshToken: String,
-    val expiresIn: String,
+    val expiresIn: Long,
     val localId: String,
     val displayName: String = "",
     val registered: Boolean,
@@ -32,7 +33,7 @@ data class SignUpResponse(
     val idToken: String,
     val email: String,
     val refreshToken: String,
-    val expiresIn: String,
+    val expiresIn: Long,
     val localId: String,
 )
 
@@ -174,7 +175,7 @@ data class ConfirmEmailVerificationResponse(
     val photoUrl: String,
     val passwordHash: String,
     val providerUserInfo: List<ProviderUserInfo>,
-    val emailVerified: Boolean
+    val emailVerified: Boolean,
 )
 
 @Serializable
