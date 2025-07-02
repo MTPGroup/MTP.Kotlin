@@ -1,61 +1,99 @@
 package tech.hanasaki.momotalk_plus.features.login.domain.repository
 
-import tech.hanasaki.momotalk_plus.core.domain.model.User
-import kotlinx.coroutines.flow.Flow
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.domain.model.RefreshInfo
+import tech.hanasaki.momotalk_plus.features.login.data.model.CaptchaIdResponse
+import tech.hanasaki.momotalk_plus.features.login.data.model.CaptchaResponse
+import tech.hanasaki.momotalk_plus.features.login.data.model.SignInWithPasswordResponse
 import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
 
 interface AuthRepository {
     /**
-     * 通过电子邮件和密码注册新用户。
+     * 注册新用户。
      *
-     * @param email 用户的电子邮件地址。
+     * @param email 用户的电子邮件地址（可选）。
+     * @param phoneNumber 用户的手机号码（可选）。
      * @param password 用户的密码。
      */
-    suspend fun signUpWithEmailPassword(
-        email: String,
-        password: String
+    suspend fun signUp(
+        email: String?,
+        phoneNumber: String?,
+        username: String,
+        password: String,
+        verificationToken: String,
     ): Result<Unit, AuthError>
 
     /**
-     * 通过电子邮件和密码登录用户。
+     * 通过密码登录用户。
      *
-     * @param email 用户的电子邮件地址。
+     * @param username 用户的电子邮件地址。
      * @param password 用户的密码
      * @return 返回一个 [Result]，成功时包含用户的 ID 令牌，失败时包含 [AuthError]。
      */
-    suspend fun signInWithEmailPassword(
-        email: String,
+    suspend fun signInWithPassword(
+        username: String,
         password: String
-    ): Result<RefreshInfo, AuthError>
+    ): Result<SignInWithPasswordResponse, AuthError>
 
     /**
-     * 发送电子邮件重置用户密码。
+     * 发送电子邮件/短信重置用户密码。
      *
-     * @param email 用户的电子邮件地址。
+     * @param email 用户的电子邮件地址（可选）。
+     * @param phoneNumber 用户的手机号码（可选）。
+     * @return 返回一个 [Result]，成功时包含 验证码id，失败时包含 [AuthError]。
      */
-    suspend fun sendResetPasswordEmail(email: String): Result<Unit, AuthError>
+    suspend fun sendResetPasswordCode(
+        email: String?,
+        phoneNumber: String?,
+        captchaId: String,
+    ): Result<String, AuthError>
 
     /**
      * 验证密码重置代码。
      *
-     * @param oobCode 从电子邮件中获取的操作代码。
+     * @param verificationId 从发送验证码的响应中获取的验证 ID。
+     * @param verificationCode 用户输入的验证码。
+     *
+     * @return 返回一个 [Result]，成功时包含验证 token，失败时包含 [AuthError]。
      */
-    suspend fun verifyPasswordResetCode(oobCode: String): Result<Unit, AuthError>
+    suspend fun verifyPasswordResetCode(
+        verificationId: String,
+        verificationCode: String
+    ): Result<String, AuthError>
 
     /**
-     * 使用验证码确认新密码。
+     * 设置新密码。
      *
-     * @param oobCode 从电子邮件中获取的操作代码。
+     * @param email 用户的电子邮件地址（可选）。
+     * @param phoneNumber 用户的手机号码（可选）。
      * @param newPassword 用户的新密码。
+     * @param verificationToken 验证 token，用于验证用户身份。
+     *
+     * @return 返回一个 [Result]，成功时包含 Unit，失败时包含 [AuthError]。
      */
-    suspend fun resetPassword(oobCode: String, newPassword: String): Result<Unit, AuthError>
+    suspend fun resetPassword(
+        email: String?,
+        phoneNumber: String?,
+        newPassword: String,
+        verificationToken: String,
+    ): Result<Unit, AuthError>
 
     /**
-     * 获取用户的认证状态流。
+     * 获取图形验证码。
      *
-     * @return 返回一个 [Flow]，流中的值为当前用户的 [User] 对象或 null（如果用户未登录）。
+     * @return 返回一个 [Result]，成功时包含图形验证码的 URL，失败时包含 [AuthError]。
      */
-    fun getAuthStateFlow(): Flow<User?>
+    suspend fun getImageCaptcha(): Result<CaptchaResponse, AuthError>
+
+    /**
+     * 验证图形验证码。
+     *
+     * @param captchaToken 图形验证码的令牌。
+     * @param captchaInput 用户输入的验证码内容。
+     *
+     * @return 返回一个 [Result]，成功时包含验证码 ID 响应，失败时包含 [AuthError]。
+     */
+    suspend fun verifyImageCaptcha(
+        captchaToken: String,
+        captchaInput: String
+    ): Result<CaptchaIdResponse, AuthError>
 }

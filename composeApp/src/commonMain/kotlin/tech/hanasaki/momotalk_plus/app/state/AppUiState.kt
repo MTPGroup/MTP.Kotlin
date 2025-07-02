@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.app.state
 
-import tech.hanasaki.momotalk_plus.core.domain.model.User
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 
 /**
  * 代表整个应用的全局UI状态
@@ -8,7 +8,7 @@ import tech.hanasaki.momotalk_plus.core.domain.model.User
  * @param isLoading 是否正在加载用户信息
  */
 data class AppUiState(
-    val currentUser: User? = null,
+    val currentUser: UserProfile? = null,
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false
 )

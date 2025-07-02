@@ -10,12 +10,14 @@ import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.app.state.AppUiState
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.RefreshIdTokenUseCase
 
 class AppViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getLoginStateUseCase: GetLoginStateUseCase,
     private val refreshIdTokenUseCase: RefreshIdTokenUseCase,
+    private val logoutUserUseCase: LogoutUserUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
@@ -32,7 +34,6 @@ class AppViewModel(
                     _uiState.update { it.copy(isLoading = false, isLoggedIn = false) }
                 } else {
                     // 如果用户已登录，先刷新ID令牌，再使用ID令牌获取用户信息
-                    refreshIdTokenUseCase()
                     getUserInfoUseCase(idToken).fold(
                         onSuccess = { user ->
                             _uiState.update {
@@ -68,6 +69,18 @@ class AppViewModel(
                     _uiState.update { it.copy(isLoading = false) }
                 }
             )
+        }
+    }
+
+    /**
+     * 登出用户（临时测试方法）
+     */
+    fun logout() {
+        viewModelScope.launch {
+            // 清除当前用户状态
+            _uiState.update { it.copy(currentUser = null, isLoggedIn = false) }
+            // 这里可以添加更多的登出逻辑，比如清除缓存等
+            logoutUserUseCase()
         }
     }
 }

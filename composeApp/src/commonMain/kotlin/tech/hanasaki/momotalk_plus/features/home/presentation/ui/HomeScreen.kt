@@ -2,7 +2,13 @@ package tech.hanasaki.momotalk_plus.features.home.presentation.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,8 +27,8 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeIntent
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeSideEffect
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeTab
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeBottomNavigationBar
-import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeTopAppBar
+import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(
@@ -64,23 +70,25 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Text(text = "<UNK>", color = MaterialTheme.colorScheme.onPrimaryContainer,)
+                Text(text = "<UNK>", color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         },
     ) {
         Scaffold(
             topBar = {
                 HomeTopAppBar(
-                    title = when(uiState.currentTab) {
+                    title = when (uiState.currentTab) {
                         HomeTab.Chats -> ""
                         HomeTab.Contacts -> "联系人"
                     },
-                    avatarUrl = currentUser?.avatar,
+                    avatarUrl = currentUser?.picture,
                     username = currentUser?.name ?: "未登录",
                     onIntent = onIntent,
                     onAvatarClick = {
                         scope.launch {
-                            drawerState.open()
+                            // 临时登出
+                            appViewModel.logout()
+//                            drawerState.open()
                         }
                     },
                 )

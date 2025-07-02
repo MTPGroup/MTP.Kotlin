@@ -1,8 +1,13 @@
 package tech.hanasaki.momotalk_plus.features.login.presentation.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -11,14 +16,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,11 +35,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import momotalkplus.composeapp.generated.resources.Res
-import momotalkplus.composeapp.generated.resources.text_logo
 import momotalkplus.composeapp.generated.resources.app_description
+import momotalkplus.composeapp.generated.resources.text_logo
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
@@ -51,7 +59,7 @@ fun LoginScreen(
     LaunchedEffect(key1 = loginViewModel.sideEffect) {
         loginViewModel.sideEffect.collect { effect ->
             when (effect) {
-               is LoginSideEffect.NavigateToHome -> {
+                is LoginSideEffect.NavigateToHome -> {
                     appViewModel.onLoginSuccess(effect.uid)
                     onLoginSuccess()
                 }
@@ -103,9 +111,9 @@ fun LoginContent(
         )
 
         OutlinedTextField(
-            value = uiState.email,
-            onValueChange = { onIntent(LoginIntent.EmailChanged(it)) },
-            label = { Text("邮箱") },
+            value = uiState.username,
+            onValueChange = { onIntent(LoginIntent.UsernameChanged(it)) },
+            label = { Text("用户名") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             isError = uiState.loginError != null
@@ -158,7 +166,7 @@ fun LoginContent(
         Button(
             onClick = { onIntent(LoginIntent.LoginClicked) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isLoading && uiState.email.isNotBlank() && uiState.password.isNotBlank()
+            enabled = !uiState.isLoading && uiState.username.isNotBlank() && uiState.password.isNotBlank()
         ) {
             Text("登录")
         }

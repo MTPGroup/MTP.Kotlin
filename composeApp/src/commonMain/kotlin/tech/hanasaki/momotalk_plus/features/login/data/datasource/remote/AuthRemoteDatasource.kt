@@ -1,49 +1,65 @@
 package tech.hanasaki.momotalk_plus.features.login.data.datasource.remote
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.RedirectResponseException
-import io.ktor.client.plugins.ServerResponseException
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.util.logging.Logger
-import tech.hanasaki.momotalk_plus.features.login.data.model.*
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import kotlinx.serialization.json.Json
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.data.model.FirebaseErrorResponse
-import tech.hanasaki.momotalk_plus.config.BuildKonfig
+import tech.hanasaki.momotalk_plus.features.login.data.model.*
 import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
 
 
 class AuthRemoteDatasource(private val client: HttpClient) {
-    private val apiKey = BuildKonfig.firebaseApiKey
-//    private val endpoint = "https://identitytoolkit.googleapis.com/v1/accounts"
-//    private val endpoint = "http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts"
-    private val endpoint = "http://10.0.2.2:9099/identitytoolkit.googleapis.com/v1/accounts"
+    private val endpoint = "https://cloud1-4gdmg8xt1b179a1c.api.tcloudbasegateway.com/auth/v1"
 
-    private suspend inline fun <reified T : Any, reified R : Any> postAuthRequest(
+    private val json = Json { ignoreUnknownKeys = true }
+
+    private suspend inline fun <reified R : Any> postAuthRequest(
         url: String,
-        requestBody: T
+        requestBody: Any? = null,
+        headers: Headers? = null,
     ): Result<R, AuthError> {
         return try {
             val response: R = client.post(url) {
                 contentType(ContentType.Application.Json)
-                setBody(requestBody)
+                if (requestBody != null) {
+                    setBody(requestBody)
+                }
+                headers {
+                    if (headers != null) {
+                        appendAll(headers)
+                    }
+                }
             }.body()
             Result.Success(response)
         } catch (e: ClientRequestException) {
             try {
-                val errorBody = e.response.body<FirebaseErrorResponse>()
-                Result.Error(AuthError.ApiError(errorBody.error.code, errorBody.error.message))
-            } catch (parseEx: Exception) {
-                Result.Error(AuthError.ApiError(e.response.status.value, "Client request failed, could not parse error."))
+                val errorBody = e.response.body<Any>()
+                Result.Error(AuthError.ApiError(-1, "Error occurred: ${errorBody.toString()}"))
+            } catch (_: Exception) {
+                Result.Error(
+                    AuthError.ApiError(
+                        e.response.status.value,
+                        "Client request failed, could not parse error."
+                    )
+                )
             }
         } catch (e: ServerResponseException) {
-            Result.Error(AuthError.ApiError(e.response.status.value, "Server error: ${e.response.status}"))
+            Result.Error(
+                AuthError.ApiError(
+                    e.response.status.value,
+                    "Server error: ${e.response.status}"
+                )
+            )
         } catch (e: RedirectResponseException) {
-            Result.Error(AuthError.ApiError(e.response.status.value, "Redirect error: ${e.response.status}"))
+            Result.Error(
+                AuthError.ApiError(
+                    e.response.status.value,
+                    "Redirect error: ${e.response.status}"
+                )
+            )
         } catch (e: Exception) {
             Result.Error(AuthError.NetworkError(e))
         }
@@ -53,121 +69,126 @@ class AuthRemoteDatasource(private val client: HttpClient) {
      * 使用电子邮件和密码注册新用户
      *
      * @param email 用户的电子邮件地址
+     * @param username 用户名
      * @param password 用户的密码
+     * @param verificationToken 验证令牌
      * @return Result<SignUpResponse> 成功时返回注册响应，失败时返回错误信息
      */
     suspend fun signUpWithPassword(
-        email: String,
+        email: String? = null,
+        phoneNumber: String? = null,
+        username: String,
         password: String,
+        verificationToken: String
     ): Result<SignUpResponse, AuthError> =
         postAuthRequest(
-            "$endpoint:signUp?key=$apiKey",
-            SignUpRequest(email, password),
+            "$endpoint/signup",
+            SignUpRequest(email, phoneNumber, username, password, verificationToken),
         )
 
     /**
-     * 使用电子邮件和密码登录用户
+     * 使用密码登录用户
      *
-     * @param email 用户的电子邮件地址
      * @param password 用户的密码
      * @return Result<SignInWithPasswordResponse> 成功时返回登录响应，失败时返回错误信息
      */
     suspend fun signInWithPassword(
-        email: String,
+        username: String,
         password: String,
     ): Result<SignInWithPasswordResponse, AuthError> =
         postAuthRequest(
-            "$endpoint:signInWithPassword?key=$apiKey",
-            SignInWithPasswordRequest(email, password),
+            "$endpoint/signin",
+            SignInWithPasswordRequest(username, password),
         )
 
     /**
-     * 发送重置密码邮件
+     * 发送电子邮件或短信验证码
      *
-     * @param email 用户的电子邮件地址
-     * @return Result<SendResetPasswordEmailResponse> 成功时返回发送邮件响应，失败时返回错误信息
+     * @param email 用户的电子邮件地址（可选）
+     * @param phoneNumber 用户的手机号码（可选）
+     * @param target 验证目标，默认为 "ANY"
      */
-    suspend fun sendResetPasswordEmail(
-        email: String,
-    ): Result<SendResetPasswordEmailResponse, AuthError> =
-        postAuthRequest(
-            "$endpoint:sendOobCode?key=$apiKey",
-            SendResetPasswordEmailRequest(email),
-        )
+    suspend fun sendVerificationCode(
+        email: String? = null,
+        phoneNumber: String? = null,
+        captchaId: String,
+        target: String = "ANY",
+    ): Result<String, AuthError> =
+        postAuthRequest<SendVerificationCodeResponse>(
+            "$endpoint/verification",
+            SendVerificationCodeRequest(email, phoneNumber, target),
+            headers = io.ktor.http.headers { append("x-captcha-token", captchaId) }
+        ).map { it.verificationId }
 
     /**
-     * 验证重置密码代码
+     * 获取验证令牌
      *
-     * @param oobCode 重置密码的操作码
-     * @return Result<VerifyResetPasswordCodeResponse> 成功时返回验证响应，失败时返回错误信息
+     * @param verificationId 从发送验证码的响应中获取的验证 ID
+     * @param verificationCode 用户输入的验证码
+     *
+     * @return Result<String, AuthError> 成功时返回验证令牌，失败时返回错误信息
      */
-    suspend fun verifyResetPasswordCode(
-        oobCode: String,
-    ): Result<VerifyResetPasswordCodeResponse, AuthError> =
+    suspend fun getVerificationToken(
+        verificationId: String,
+        verificationCode: String,
+    ): Result<String, AuthError> =
+        postAuthRequest<VerifyCodeResponse>(
+            "$endpoint/verification/verify",
+            VerifyCodeRequest(
+                verificationId = verificationId,
+                verificationCode = verificationCode,
+            )
+        ).map { it.verificationToken }
+
+    /**
+     * 获取图片验证码
+     *
+     * @return Result<CaptchaResponse, AuthError> 成功时返回图片验证码响应，失败时返回错误信息
+     */
+    suspend fun getImageCaptcha(): Result<CaptchaResponse, AuthError> =
+        postAuthRequest("$endpoint/captcha/data")
+
+    /**
+     * 获取图片验证码的验证令牌
+     *
+     * @param token 图片验证码的令牌
+     * @param key 图片验证码的密钥
+     *
+     * @return Result<CaptchaIdResponse, AuthError> 成功时返回验证码 ID 响应，失败时返回错误信息
+     */
+    suspend fun getCaptchaId(token: String, key: String): Result<CaptchaIdResponse, AuthError> =
         postAuthRequest(
-            "$endpoint:resetPassword?key=$apiKey",
-            VerifyResetPasswordCodeRequest(oobCode),
+            "$endpoint/captcha/data/verify",
+            CaptchaIdRequest(token, key)
         )
 
     /**
-     * 重置密码
+     * 重置用户密码
      *
-     * @param oobCode 重置密码的操作码
-     * @param newPassword 新密码
-     * @return Result<ResetPasswordResponse> 成功时返回重置密码响应，失败时返回错误信息
+     * @param email 用户的电子邮件地址（可选）
+     * @param phoneNumber 用户的手机号码（可选）
+     * @param newPassword 用户的新密码
+     * @param verificationToken 验证令牌，用于验证用户身份
+     *
+     * @return Result<Unit, AuthError> 成功时返回 Unit，失败时返回错误信息
      */
     suspend fun resetPassword(
-        oobCode: String,
+        email: String?,
+        phoneNumber: String?,
         newPassword: String,
-    ): Result<ResetPasswordResponse, AuthError> =
-        postAuthRequest(
-            "$endpoint:resetPassword?key=$apiKey",
-            ResetPasswordRequest(oobCode, newPassword),
-        )
-
-    /**
-     * 更改用户电子邮件地址
-     *
-     * @param idToken 用户的身份验证令牌
-     * @param email 新的电子邮件地址
-     * @return Result<ChangeEmailResponse> 成功时返回更改电子邮件响应，失败时返回错误信息
-     */
-    suspend fun changeEmail(
-        idToken: String,
-        email: String,
-    ): Result<ChangeEmailResponse, AuthError> =
-        postAuthRequest(
-            "$endpoint:update?key=$apiKey",
-            ChangeEmailRequest(idToken, email),
-        )
+        verificationToken: String,
+    ): Result<Unit, AuthError> =
+        postAuthRequest<Any>(
+            "$endpoint/reset",
+            ResetPasswordRequest(
+                email = email,
+                phoneNumber = phoneNumber,
+                newPassword = newPassword,
+                verificationToken = verificationToken,
+            )
+        ).map { }
 
 
-    /**
-     * 发送电子邮件验证
-     *
-     * @param idToken 用户的身份验证令牌
-     * @return Result<SendEmailVerificationResponse> 成功时返回发送验证邮件响应，失败时返回错误信息
-     */
-    suspend fun sendEmailVerification(
-        idToken: String,
-    ): Result<SendEmailVerificationResponse, AuthError> =
-        postAuthRequest(
-            "$endpoint:sendOobCode?key=$apiKey",
-            SendEmailVerificationRequest(idToken),
-        )
-
-    /**
-     * 验证电子邮件地址
-     *
-     * @param oobCode 验证操作码
-     * @return Result<ConfirmEmailVerificationResponse> 成功时返回验证响应，失败时返回错误信息
-     */
-    suspend fun confirmEmailVerification(
-        oobCode: String,
-    ): Result<ConfirmEmailVerificationResponse, AuthError> =
-        postAuthRequest(
-            "$endpoint:resetPassword?key=$apiKey",
-            ConfirmEmailVerificationRequest(oobCode),
-        )
-
+    // TODO: 添加手机号码注册/登录支持
 }
+

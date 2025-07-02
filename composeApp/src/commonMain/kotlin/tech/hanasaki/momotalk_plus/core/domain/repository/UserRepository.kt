@@ -2,9 +2,10 @@ package tech.hanasaki.momotalk_plus.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.RefreshInfo
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 
 interface UserRepository {
@@ -21,7 +22,7 @@ interface UserRepository {
      * @param idToken Firebase ID Token，用于验证用户身份
      * @return 返回用户信息或错误
      */
-    suspend fun getCurrentUser(idToken: String): Result<User?, UserError>
+    suspend fun getCurrentUser(idToken: String): Result<UserProfile, UserError>
 
     /**
      * 更新用户信息
@@ -44,7 +45,7 @@ interface UserRepository {
      *
      * @return 成功时返回 [Result.Success]，失败时返回 [Result.Error]。
      */
-    suspend fun logout(): Result<Unit, UserError>
+    fun logout(): Result<Unit, UserError>
 
 
     /**

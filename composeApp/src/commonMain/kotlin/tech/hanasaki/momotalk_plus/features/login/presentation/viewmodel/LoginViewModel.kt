@@ -3,18 +3,21 @@ package tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.features.login.domain.usecase.LoginUserUseCase
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.domain.usecase.SaveLoginStateUseCase
+import tech.hanasaki.momotalk_plus.features.login.domain.usecase.LoginUserUseCase
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginSideEffect
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginState
 
 class LoginViewModel(
     private val loginUserUseCase: LoginUserUseCase,
-    private val saveLoginStateUseCase: SaveLoginStateUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginState())
     val uiState: StateFlow<LoginState> = _uiState.asStateFlow()
@@ -25,8 +28,8 @@ class LoginViewModel(
     fun processIntent(intent: LoginIntent) {
         viewModelScope.launch {
             when (intent) {
-                is LoginIntent.EmailChanged ->
-                    _uiState.update { it.copy(email = intent.email) }
+                is LoginIntent.UsernameChanged ->
+                    _uiState.update { it.copy(username = intent.username) }
 
                 is LoginIntent.ErrorDismissed ->
                     _uiState.update { it.copy(loginError = null) }
@@ -50,17 +53,11 @@ class LoginViewModel(
         _uiState.update { it.copy(isLoading = true, loginError = null) }
         val currentState = _uiState.value
 
-        when (val loginResult = loginUserUseCase(currentState.email, currentState.password)) {
+        when (val loginResult =
+            loginUserUseCase(currentState.username, currentState.password)) {
             is Result.Success -> {
-                val refreshInfo = loginResult.data
-                saveLoginStateUseCase(
-                    uid = refreshInfo.uid,
-                    idToken = refreshInfo.idToken,
-                    refreshToken = refreshInfo.refreshToken,
-                    expiresIn = refreshInfo.expiresIn,
-                )
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
-                _sideEffect.send(LoginSideEffect.NavigateToHome(refreshInfo.uid))
+                _sideEffect.send(LoginSideEffect.NavigateToHome(loginResult.data))
             }
 
             is Result.Error -> {

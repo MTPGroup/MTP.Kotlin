@@ -1,22 +1,37 @@
 package tech.hanasaki.momotalk_plus.features.login.domain.usecase
 
+import io.ktor.client.plugins.auth.providers.BearerTokens
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.features.login.domain.repository.AuthRepository
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.domain.model.RefreshInfo
+import tech.hanasaki.momotalk_plus.core.data.datasource.local.TokenStorage
 import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
+import tech.hanasaki.momotalk_plus.features.login.domain.repository.AuthRepository
 
-class LoginUserUseCase(private val authRepository: AuthRepository) {
-    suspend operator fun invoke(email: String, password: String): Result<RefreshInfo, AppError> {
-        if (email == "" || password == "") {
-            return Result.Error(AppError("Email and password cannot be empty"))
+class LoginUserUseCase(
+    private val authRepository: AuthRepository,
+    private val tokenStorage: TokenStorage
+) {
+    suspend operator fun invoke(username: String, password: String): Result<String, AppError> {
+        if (username == "" || password == "") {
+            return Result.Error(AppError("Username and password cannot be empty"))
         }
-        return authRepository.signInWithEmailPassword(email, password).mapError { error ->
-            when (error) {
-                is AuthError.NetworkError -> AppError("Network error occurred. Please try again.")
-                is AuthError.ApiError -> AppError("Invalid email or password.")
-                else -> AppError("An unexpected error occurred")
+        return authRepository.signInWithPassword(username, password)
+            .map { signInWithPasswordResponse ->
+                // 保存用户的 ID 令牌到本地存储
+                tokenStorage.saveTokens(
+                    BearerTokens(
+                        signInWithPasswordResponse.accessToken,
+                        signInWithPasswordResponse.refreshToken
+                    )
+                )
+                signInWithPasswordResponse.sub
             }
-        }
+            .mapError { error ->
+                when (error) {
+                    is AuthError.NetworkError -> AppError("Network error occurred. Please try again.")
+                    is AuthError.ApiError -> AppError("Invalid email or password.")
+                    else -> AppError("An unexpected error occurred")
+                }
+            }
     }
 }
