@@ -6,20 +6,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
 import tech.hanasaki.momotalk_plus.features.login.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.RegisterIntent
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.RegisterSideEffect
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.RegisterState
 
-private fun isValidEmail(email: String): Boolean {
-    val emailRegex = Regex(
-        "[a-zA-Z0-9+._%\\-]{1,256}" +
-                "@" +
-                "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
-                "(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+"
-    )
-    return emailRegex.matches(email)
-}
 
 class RegisterViewModel(
     private val registerUserUseCase: SignUpUserUseCase,

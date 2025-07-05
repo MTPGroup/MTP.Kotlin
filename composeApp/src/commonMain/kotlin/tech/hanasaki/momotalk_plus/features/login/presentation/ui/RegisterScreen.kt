@@ -129,7 +129,7 @@ fun RegisterScreen(
                         onNavigateToLogin = onNavigateBack
                     )
 
-                    2 -> RegistrationSuccessStep(
+                    2 -> ResetSuccessStep(
                         onNavigateToLogin = onNavigateBack,
                     )
                 }
@@ -381,7 +381,7 @@ private fun CaptchaDialog(
  * 注册成功页面
  */
 @Composable
-private fun RegistrationSuccessStep(onNavigateToLogin: () -> Unit) {
+private fun ResetSuccessStep(onNavigateToLogin: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
