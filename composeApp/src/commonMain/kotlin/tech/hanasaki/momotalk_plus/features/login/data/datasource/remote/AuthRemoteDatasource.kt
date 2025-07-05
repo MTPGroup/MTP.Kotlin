@@ -5,7 +5,6 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.serialization.json.Json
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.features.login.data.model.*
 import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
@@ -13,8 +12,6 @@ import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
 
 class AuthRemoteDatasource(private val client: HttpClient) {
     private val endpoint = "https://cloud1-4gdmg8xt1b179a1c.api.tcloudbasegateway.com/auth/v1"
-
-    private val json = Json { ignoreUnknownKeys = true }
 
     private suspend inline fun <reified R : Any> postAuthRequest(
         url: String,
@@ -42,7 +39,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
                 Result.Error(
                     AuthError.ApiError(
                         e.response.status.value,
-                        "Client request failed, could not parse error."
+                        "客户端请求失败，无法解析错误信息。",
                     )
                 )
             }
@@ -50,14 +47,14 @@ class AuthRemoteDatasource(private val client: HttpClient) {
             Result.Error(
                 AuthError.ApiError(
                     e.response.status.value,
-                    "Server error: ${e.response.status}"
+                    "服务器响应错误: ${e.response.status.description}",
                 )
             )
         } catch (e: RedirectResponseException) {
             Result.Error(
                 AuthError.ApiError(
                     e.response.status.value,
-                    "Redirect error: ${e.response.status}"
+                    "重定向错误: ${e.response.status.description}",
                 )
             )
         } catch (e: Exception) {
@@ -117,7 +114,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
         postAuthRequest<SendVerificationCodeResponse>(
             "$endpoint/verification",
             SendVerificationCodeRequest(email, phoneNumber, target),
-            headers = io.ktor.http.headers { append("x-captcha-token", captchaId) }
+            headers = headers { append("x-captcha-token", captchaId) }
         ).map { it.verificationId }
 
     /**

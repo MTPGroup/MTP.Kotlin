@@ -55,7 +55,7 @@ fun RegisterScreen(
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             message = effect.message,
-                            withDismissAction = true
+                            withDismissAction = true,
                         )
                     }
                 }

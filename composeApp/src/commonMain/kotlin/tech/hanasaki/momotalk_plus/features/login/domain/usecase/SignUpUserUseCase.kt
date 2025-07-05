@@ -14,20 +14,23 @@ class SignUpUserUseCase(private val authRepository: AuthRepository) {
         verificationToken: String,
     ): Result<Unit, AppError> {
         if (email.isNullOrEmpty() && phoneNumber.isNullOrEmpty()) {
-            return Result.Error(AppError("Email or phone number must be provided"))
+            return Result.Error(AppError("邮箱或手机号不能为空"))
         }
         if (username.isBlank()) {
-            return Result.Error(AppError("Username cannot be empty"))
+            return Result.Error(AppError("用户名不能为空"))
         }
         if (password.length < 6) {
-            return Result.Error(AppError("Password must be at least 6 characters long"))
+            return Result.Error(AppError("密码长度不能少于6位"))
         }
         return authRepository.signUp(email, phoneNumber, username, password, verificationToken)
             .mapError { error ->
                 when (error) {
-                    is AuthError.NetworkError -> AppError("Network error occurred. Please try again.")
-                    is AuthError.ApiError -> AppError("Failed to sign up. Please check your details.")
-                    else -> AppError("An unexpected error occurred")
+                    is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")
+                    is AuthError.ApiError -> AppError(
+                        "注册失败，请检查您的信息",
+                    )
+
+                    else -> AppError("未知错误")
                 }
             }
     }

@@ -22,15 +22,13 @@ class SendVerificationCodeUseCase(private val authRepository: AuthRepository) {
         return authRepository.sendResetPasswordCode(email, phoneNumber, captchaId)
             .mapError { error ->
                 when (error) {
-                    is AuthError.NetworkError -> AppError(
-                        error.originalException.message ?: "Network error occurred"
-                    )
-
+                    is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")
                     is AuthError.ApiError -> AppError(
-                        "Failed to reset password. Please check your email."
+                        "发送验证码失败。请重试。"
                     )
 
-                    else -> AppError("An unexpected error occurred")
+                    else -> AppError("未知错误")
+
                 }
             }
     }

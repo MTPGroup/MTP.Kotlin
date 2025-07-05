@@ -40,6 +40,7 @@ fun ForgotPasswordScreen(
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
@@ -50,13 +51,18 @@ fun ForgotPasswordScreen(
                     }
 
                 is ForgotPasswordSideEffect.ShowToast -> {
-                    // TODO: 实现一个更美观的 Toast 或 Snackbar
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(message = effect.message, withDismissAction = true)
+                    }
                 }
             }
         }
     }
 
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             TopAppBar(
                 title = { Text("忘记密码") },
@@ -73,7 +79,7 @@ fun ForgotPasswordScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
-        }
+        },
     ) { paddingValues ->
         HorizontalPager(
             state = pagerState,

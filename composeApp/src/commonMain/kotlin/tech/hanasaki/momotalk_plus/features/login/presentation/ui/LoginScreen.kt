@@ -1,31 +1,13 @@
 package tech.hanasaki.momotalk_plus.features.login.presentation.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -34,6 +16,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import momotalkplus.composeapp.generated.resources.Res
 import momotalkplus.composeapp.generated.resources.app_description
 import momotalkplus.composeapp.generated.resources.text_logo
@@ -55,6 +38,8 @@ fun LoginScreen(
     appViewModel: AppViewModel = koinViewModel(),
 ) {
     val uiState by loginViewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(key1 = loginViewModel.sideEffect) {
         loginViewModel.sideEffect.collect { effect ->
@@ -71,22 +56,34 @@ fun LoginScreen(
                     onRegister()
 
                 is LoginSideEffect.ShowToast -> {
-                    // TODO: 实现 Toast 显示逻辑
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = effect.message, withDismissAction = true)
+                    }
                 }
             }
         }
     }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            LoginContent(
-                uiState = uiState,
-                onIntent = loginViewModel::processIntent
-            )
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(), contentAlignment = Alignment.Center
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                LoginContent(
+                    uiState = uiState,
+                    onIntent = loginViewModel::processIntent
+                )
+            }
         }
     }
+
 }
 
 @Composable
@@ -171,14 +168,4 @@ fun LoginContent(
             Text("登录")
         }
     }
-    // TODO: 处理登录错误信息
-    /*if (uiState.loginError != null) {
-        Text(
-            text = uiState.loginError,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-    }*/
-
 }

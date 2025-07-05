@@ -10,5 +10,5 @@ import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 data class AppUiState(
     val currentUser: UserProfile? = null,
     val isLoading: Boolean = false,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
 )

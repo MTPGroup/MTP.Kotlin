@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.login.domain.usecase
 
-import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.*
 import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.TokenStorage
@@ -13,7 +13,7 @@ class LoginUserUseCase(
 ) {
     suspend operator fun invoke(username: String, password: String): Result<String, AppError> {
         if (username == "" || password == "") {
-            return Result.Error(AppError("Username and password cannot be empty"))
+            return Result.Error(AppError("用户名或密码不能为空"))
         }
         return authRepository.signInWithPassword(username, password)
             .map { signInWithPasswordResponse ->
@@ -28,9 +28,9 @@ class LoginUserUseCase(
             }
             .mapError { error ->
                 when (error) {
-                    is AuthError.NetworkError -> AppError("Network error occurred. Please try again.")
-                    is AuthError.ApiError -> AppError("Invalid email or password.")
-                    else -> AppError("An unexpected error occurred")
+                    is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")
+                    is AuthError.ApiError -> AppError("用户名或密码错误")
+                    else -> AppError("未知错误")
                 }
             }
     }

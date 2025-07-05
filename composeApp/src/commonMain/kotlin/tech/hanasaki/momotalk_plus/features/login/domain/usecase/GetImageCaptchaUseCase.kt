@@ -13,9 +13,9 @@ class GetImageCaptchaUseCase(
         authRepository.getImageCaptcha()
             .mapError { error ->
                 when (error) {
-                    is AuthError.NetworkError -> AppError("Network error occurred. Please try again.")
-                    is AuthError.ApiError -> AppError("Invalid email or password.")
-                    else -> AppError("An unexpected error occurred")
+                    is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")
+                    is AuthError.ApiError -> AppError(error.message)
+                    else -> AppError("未知错误")
                 }
             }
 }

@@ -11,12 +11,10 @@ import tech.hanasaki.momotalk_plus.app.state.AppUiState
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
-import tech.hanasaki.momotalk_plus.core.domain.usecase.RefreshIdTokenUseCase
 
 class AppViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getLoginStateUseCase: GetLoginStateUseCase,
-    private val refreshIdTokenUseCase: RefreshIdTokenUseCase,
     private val logoutUserUseCase: LogoutUserUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
@@ -33,7 +31,6 @@ class AppViewModel(
                 if (idToken == null) {
                     _uiState.update { it.copy(isLoading = false, isLoggedIn = false) }
                 } else {
-                    // 如果用户已登录，先刷新ID令牌，再使用ID令牌获取用户信息
                     getUserInfoUseCase(idToken).fold(
                         onSuccess = { user ->
                             _uiState.update {

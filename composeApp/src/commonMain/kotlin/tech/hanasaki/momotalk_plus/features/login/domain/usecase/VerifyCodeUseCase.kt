@@ -11,14 +11,14 @@ class VerifyCodeUseCase(private val authRepository: AuthRepository) {
         verificationCode: String,
     ): Result<String, AppError> {
         if (verificationId.isEmpty() || verificationCode.isEmpty()) {
-            return Result.Error(AppError("Verification ID and code cannot be empty."))
+            return Result.Error(AppError("验证码不能为空"))
         }
         return authRepository.verifyPasswordResetCode(verificationId, verificationCode)
             .mapError { error ->
                 when (error) {
-                    is AuthError.NetworkError -> AppError("Network error occurred. Please try again.")
-                    is AuthError.ApiError -> AppError("Failed to verify code. It might be invalid or expired.")
-                    else -> AppError("An unexpected error occurred")
+                    is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")
+                    is AuthError.ApiError -> AppError("验证码错误或已过期")
+                    else -> AppError("未知错误")
                 }
             }
     }
