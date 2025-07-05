@@ -3,12 +3,7 @@ package tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.features.login.domain.usecase.LoginUserUseCase
@@ -57,7 +52,7 @@ class LoginViewModel(
             loginUserUseCase(currentState.username, currentState.password)) {
             is Result.Success -> {
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
-                _sideEffect.send(LoginSideEffect.NavigateToHome(loginResult.data))
+                _sideEffect.send(LoginSideEffect.NavigateToHome)
             }
 
             is Result.Error -> {

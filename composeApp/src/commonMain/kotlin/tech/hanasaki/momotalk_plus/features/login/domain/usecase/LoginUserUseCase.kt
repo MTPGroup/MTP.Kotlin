@@ -9,7 +9,7 @@ import tech.hanasaki.momotalk_plus.features.login.domain.repository.AuthReposito
 
 class LoginUserUseCase(
     private val authRepository: AuthRepository,
-    private val tokenStorage: TokenStorage
+    private val tokenStorage: TokenStorage,
 ) {
     suspend operator fun invoke(username: String, password: String): Result<String, AppError> {
         if (username == "" || password == "") {

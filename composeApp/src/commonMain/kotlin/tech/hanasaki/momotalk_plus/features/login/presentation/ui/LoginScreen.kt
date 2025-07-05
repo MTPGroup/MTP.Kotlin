@@ -23,7 +23,6 @@ import momotalkplus.composeapp.generated.resources.text_logo
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginSideEffect
 import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginState
@@ -35,7 +34,6 @@ fun LoginScreen(
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit,
     loginViewModel: LoginViewModel = koinViewModel(),
-    appViewModel: AppViewModel = koinViewModel(),
 ) {
     val uiState by loginViewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
@@ -44,10 +42,8 @@ fun LoginScreen(
     LaunchedEffect(key1 = loginViewModel.sideEffect) {
         loginViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is LoginSideEffect.NavigateToHome -> {
-                    appViewModel.onLoginSuccess(effect.uid)
+                is LoginSideEffect.NavigateToHome ->
                     onLoginSuccess()
-                }
 
                 LoginSideEffect.NavigateToForgotPassword ->
                     onForgotPassword()

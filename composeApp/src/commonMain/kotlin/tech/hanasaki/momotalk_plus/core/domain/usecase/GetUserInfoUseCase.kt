@@ -10,9 +10,9 @@ class GetUserInfoUseCase(private val userRepository: UserRepository) {
     suspend operator fun invoke(uid: String): Result<UserProfile, AppError> =
         userRepository.getCurrentUser(uid).mapError { error ->
             when (error) {
-                is UserError.ApiError -> AppError("Failed to fetch user information. Please try again later.")
-                is UserError.NetworkError -> AppError("Network error. Please try again later.")
-                UserError.Unknown -> AppError("Unknown error")
+                is UserError.ApiError -> AppError("获取用户信息失败: ${error.message}")
+                is UserError.NetworkError -> AppError("网络错误: ${error.originalException.message ?: "无法连接到服务器"}")
+                UserError.Unknown -> AppError("未知错误")
             }
         }
 }

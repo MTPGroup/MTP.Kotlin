@@ -51,6 +51,7 @@ fun AppNavigation(
 ) {
     val navController = rememberNavController()
     val appState by appViewModel.uiState.collectAsState()
+
     NavHost(
         navController = navController,
         startDestination = if (appState.isLoggedIn) NavigationRoute.Home else NavigationRoute.Login,
@@ -92,6 +93,12 @@ fun AppNavigation(
                 },
                 onNavigateToProfile = {
                     TODO("Navigate to profile not implemented yet")
+                },
+                onLogout = {
+                    appViewModel.logout()
+                    navController.navigate(NavigationRoute.Login) {
+                        popUpTo(NavigationRoute.Home) { inclusive = true }
+                    }
                 }
             )
         }

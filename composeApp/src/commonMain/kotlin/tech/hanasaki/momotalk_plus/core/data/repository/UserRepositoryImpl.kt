@@ -30,7 +30,8 @@ class UserRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override fun logout(): Result<Unit, UserError> {
+    override suspend fun logout(): Result<Unit, UserError> {
+        userRemoteDatasource.clearToken()
         tokenStorage.clear()
         return Result.Success(Unit)
     }

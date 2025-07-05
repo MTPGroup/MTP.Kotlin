@@ -1,19 +1,11 @@
 package tech.hanasaki.momotalk_plus.features.home.presentation.ui
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,6 +19,7 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeIntent
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeSideEffect
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeTab
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeBottomNavigationBar
+import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeDrawerContent
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeTopAppBar
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
 
@@ -34,6 +27,7 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeView
 fun HomeScreen(
     onNavigateToChat: (String) -> Unit,
     onNavigateToProfile: () -> Unit,
+    onLogout: () -> Unit,
     homeViewModel: HomeViewModel = koinViewModel(),
     appViewModel: AppViewModel = koinViewModel(),
 ) {
@@ -51,6 +45,12 @@ fun HomeScreen(
             when (effect) {
                 is HomeSideEffect.NavigateToNewChat -> onNavigateToChat
                 HomeSideEffect.NavigateToProfile -> onNavigateToProfile
+                HomeSideEffect.NavigateToLogin -> {
+                    scope.launch {
+                        drawerState.close()
+                        onLogout()
+                    }
+                }
             }
         }
     }
@@ -66,12 +66,13 @@ fun HomeScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Text(text = "<UNK>", color = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
+            HomeDrawerContent(
+                currentUser = currentUser,
+                onProfileClick = { onIntent(HomeIntent.ProfileClicked) },
+                onLogoutClick = {
+                    onIntent(HomeIntent.LogoutClicked)
+                }
+            )
         },
     ) {
         Scaffold(
@@ -86,9 +87,7 @@ fun HomeScreen(
                     onIntent = onIntent,
                     onAvatarClick = {
                         scope.launch {
-                            // 临时登出
-                            appViewModel.logout()
-//                            drawerState.open()
+                            drawerState.open()
                         }
                     },
                 )

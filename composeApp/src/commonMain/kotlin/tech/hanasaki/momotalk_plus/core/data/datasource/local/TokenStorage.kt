@@ -1,8 +1,9 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.local
 
+import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
-import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.*
 import kotlinx.coroutines.flow.Flow
 
 class TokenStorage(private val settings: ObservableSettings) {
@@ -22,6 +23,7 @@ class TokenStorage(private val settings: ObservableSettings) {
         }
     }
 
+    @OptIn(ExperimentalSettingsApi::class)
     fun getAccessTokenFlow(): Flow<String?> {
         return settings.getStringOrNullFlow(KEY_ACCESS_TOKEN)
     }

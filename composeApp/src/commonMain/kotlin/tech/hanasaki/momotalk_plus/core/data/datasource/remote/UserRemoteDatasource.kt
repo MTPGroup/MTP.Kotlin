@@ -1,17 +1,14 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.remote
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.RedirectResponseException
-import io.ktor.client.plugins.ServerResponseException
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.auth.providers.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.data.model.*
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 
 class UserRemoteDatasource(private val client: HttpClient) {
@@ -68,10 +65,12 @@ class UserRemoteDatasource(private val client: HttpClient) {
     ): Result<T, UserError> {
         return try {
             val response: T = client.get(url).body()
+            println("收到响应: $response")
             Result.Success(response)
         } catch (e: ClientRequestException) {
             try {
                 val errorBody = e.response.body<Any>()
+                println(errorBody)
                 Result.Error(
                     UserError.ApiError(
                         -1,
@@ -82,7 +81,7 @@ class UserRemoteDatasource(private val client: HttpClient) {
                 Result.Error(
                     UserError.ApiError(
                         e.response.status.value,
-                        "Client request failed, could not parse error."
+                        "客户端请求失败，无法解析错误信息。"
                     )
                 )
             }
@@ -90,19 +89,26 @@ class UserRemoteDatasource(private val client: HttpClient) {
             Result.Error(
                 UserError.ApiError(
                     e.response.status.value,
-                    "Server error: ${e.response.status}"
+                    "服务器错误: ${e.response.status}"
                 )
             )
         } catch (e: RedirectResponseException) {
             Result.Error(
                 UserError.ApiError(
                     e.response.status.value,
-                    "Redirect error: ${e.response.status}"
+                    "重定向错误: ${e.response.status}"
                 )
             )
         } catch (e: Exception) {
             Result.Error(UserError.NetworkError(e))
         }
+    }
+
+    /**
+     * 清除用户令牌缓存
+     */
+    suspend fun clearToken(): Unit {
+        client.authProviders.filterIsInstance<BearerAuthProvider>().firstOrNull()?.clearToken()
     }
 
     /**

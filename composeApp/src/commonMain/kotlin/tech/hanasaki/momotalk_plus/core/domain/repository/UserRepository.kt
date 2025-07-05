@@ -45,7 +45,7 @@ interface UserRepository {
      *
      * @return 成功时返回 [Result.Success]，失败时返回 [Result.Error]。
      */
-    fun logout(): Result<Unit, UserError>
+    suspend fun logout(): Result<Unit, UserError>
 
 
     /**

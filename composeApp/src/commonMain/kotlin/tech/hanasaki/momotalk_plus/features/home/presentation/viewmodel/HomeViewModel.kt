@@ -19,11 +19,17 @@ class HomeViewModel : ViewModel() {
     fun processIntent(intent: HomeIntent) {
         viewModelScope.launch {
             when (intent) {
-                is HomeIntent.TabSelected -> {
+                is HomeIntent.TabSelected ->
                     _uiState.update { it.copy(currentTab = intent.tab) }
-                }
-                is HomeIntent.NewChatClicked -> _sideEffect.send(HomeSideEffect.NavigateToNewChat)
-                HomeIntent.ProfileClicked -> _sideEffect.send(HomeSideEffect.NavigateToProfile)
+
+                is HomeIntent.NewChatClicked ->
+                    _sideEffect.send(HomeSideEffect.NavigateToNewChat)
+
+                HomeIntent.ProfileClicked ->
+                    _sideEffect.send(HomeSideEffect.NavigateToProfile)
+
+                HomeIntent.LogoutClicked ->
+                    _sideEffect.send(HomeSideEffect.NavigateToLogin)
             }
         }
     }
