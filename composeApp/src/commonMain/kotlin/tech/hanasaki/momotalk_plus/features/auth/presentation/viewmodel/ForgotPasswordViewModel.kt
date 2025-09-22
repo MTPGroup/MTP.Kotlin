@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel
+package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
-import tech.hanasaki.momotalk_plus.features.login.domain.usecase.*
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.ForgotPasswordIntent
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.ForgotPasswordSideEffect
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.ForgotPasswordState
+import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.*
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordSideEffect
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordState
 
 class ForgotPasswordViewModel(
     private val getImageCaptchaUseCase: GetImageCaptchaUseCase,

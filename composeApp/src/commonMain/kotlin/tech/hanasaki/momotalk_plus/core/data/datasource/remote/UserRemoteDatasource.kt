@@ -12,7 +12,7 @@ import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 
 class UserRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "https://cloud1-4gdmg8xt1b179a1c.api.tcloudbasegateway.com/auth/v1"
+    private val endpoint = "http://localhost:3001/api"
 
     private suspend inline fun <reified T : Any, reified R : Any> postRequest(
         url: String,

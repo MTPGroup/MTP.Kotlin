@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.login.presentation.ui
+package tech.hanasaki.momotalk_plus.features.auth.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -26,10 +26,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.core.utils.decodeBase64ToBitmap
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.ForgotPasswordIntent
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.ForgotPasswordSideEffect
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.ForgotPasswordState
-import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.ForgotPasswordViewModel
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordSideEffect
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordState
+import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.ForgotPasswordViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

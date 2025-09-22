@@ -5,12 +5,8 @@ import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.observable.makeObservable
 import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -25,15 +21,15 @@ import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasou
 import tech.hanasaki.momotalk_plus.core.data.repository.UserRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
+import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
+import tech.hanasaki.momotalk_plus.features.auth.data.repository.AuthRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
+import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.*
+import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.ForgotPasswordViewModel
+import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.LoginViewModel
+import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.RegisterViewModel
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
-import tech.hanasaki.momotalk_plus.features.login.data.datasource.remote.AuthRemoteDatasource
-import tech.hanasaki.momotalk_plus.features.login.data.repository.AuthRepositoryImpl
-import tech.hanasaki.momotalk_plus.features.login.domain.repository.AuthRepository
-import tech.hanasaki.momotalk_plus.features.login.domain.usecase.*
-import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.ForgotPasswordViewModel
-import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.LoginViewModel
-import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.RegisterViewModel
 
 @Serializable
 data class RefreshTokenResponse(
@@ -44,18 +40,18 @@ data class RefreshTokenResponse(
 )
 
 val commonModule = module {
-    factoryOf(::LoginUserUseCase)
-    factoryOf(::ResetPasswordUseCase)
-    factoryOf(::SendVerificationCodeUseCase)
+    factoryOf(::SignInUserUseCase)
     factoryOf(::SignUpUserUseCase)
-    factoryOf(::VerifyCodeUseCase)
+    factoryOf(::SignOutUserUseCase)
+    factoryOf(::SendEmailVerificationUseCase)
+    factoryOf(::SendPasswordResetEmailUseCase)
+    factoryOf(::VerifyEmailUseCase)
+    factoryOf(::ResetPasswordUseCase)
     factoryOf(::GetUserInfoUseCase)
     factoryOf(::GetLoginStateUseCase)
     factoryOf(::LogoutUserUseCase)
     factoryOf(::RefreshIdTokenUseCase)
     factoryOf(::SaveLoginStateUseCase)
-    factoryOf(::GetImageCaptchaUseCase)
-    factoryOf(::VerifyCaptchaUseCase)
 }
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -80,9 +76,6 @@ val networkModule = module {
     }
 
     single(named("authClient")) {
-        val noAuthClient: HttpClient = get(named("noAuthClient"))
-        val tokenStorage: TokenStorage = get()
-
         HttpClient {
             install(ContentNegotiation) {
                 json(Json {
@@ -91,30 +84,7 @@ val networkModule = module {
                     ignoreUnknownKeys = true
                 })
             }
-            install(Auth) {
-                bearer {
-                    loadTokens {
-                        tokenStorage.getTokens()
-                    }
-                    refreshTokens {
-                        val oldTokens = tokenStorage.getTokens()
-                        val response: RefreshTokenResponse =
-                            noAuthClient.post("https://cloud1-4gdmg8xt1b179a1c.api.tcloudbasegateway.com/auth/v1/refresh") {
-                                contentType(ContentType.Application.Json)
-                                setBody(
-                                    mapOf(
-                                        "refresh_token" to oldTokens?.refreshToken,
-                                        "grant_type" to "refresh_token"
-                                    ),
-                                )
-                            }.body<RefreshTokenResponse>()
-
-                        val newTokens = BearerTokens(response.accessToken, response.refreshToken)
-                        tokenStorage.saveTokens(newTokens)
-                        newTokens
-                    }
-                }
-            }
+            install(HttpCookies)
         }
     }
 }

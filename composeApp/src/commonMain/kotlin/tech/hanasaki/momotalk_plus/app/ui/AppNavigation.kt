@@ -16,9 +16,9 @@ import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.HomeScreen
-import tech.hanasaki.momotalk_plus.features.login.presentation.ui.ForgotPasswordScreen
-import tech.hanasaki.momotalk_plus.features.login.presentation.ui.LoginScreen
-import tech.hanasaki.momotalk_plus.features.login.presentation.ui.RegisterScreen
+import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.ForgotPasswordScreen
+import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.LoginScreen
+import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.RegisterScreen
 
 @Serializable
 sealed interface NavigationRoute {

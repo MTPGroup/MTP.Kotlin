@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.login.presentation.state
+package tech.hanasaki.momotalk_plus.features.auth.presentation.state
 
 data class ForgotPasswordState(
     val email: String = "",

@@ -1,19 +1,17 @@
-package tech.hanasaki.momotalk_plus.features.login.domain.usecase
+package tech.hanasaki.momotalk_plus.features.auth.domain.usecase
 
 import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.features.login.domain.model.AuthError
-import tech.hanasaki.momotalk_plus.features.login.domain.repository.AuthRepository
+import tech.hanasaki.momotalk_plus.features.auth.domain.model.AuthError
+import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
 
 class SignUpUserUseCase(private val authRepository: AuthRepository) {
     suspend operator fun invoke(
-        email: String?,
-        phoneNumber: String?,
+        email: String,
         username: String,
         password: String,
-        verificationToken: String,
     ): Result<Unit, AppError> {
-        if (email.isNullOrEmpty() && phoneNumber.isNullOrEmpty()) {
+        if (email.isBlank()) {
             return Result.Error(AppError("邮箱或手机号不能为空"))
         }
         if (username.isBlank()) {
@@ -22,7 +20,7 @@ class SignUpUserUseCase(private val authRepository: AuthRepository) {
         if (password.length < 6) {
             return Result.Error(AppError("密码长度不能少于6位"))
         }
-        return authRepository.signUp(email, phoneNumber, username, password, verificationToken)
+        return authRepository.signUp(email, username, password)
             .mapError { error ->
                 when (error) {
                     is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")

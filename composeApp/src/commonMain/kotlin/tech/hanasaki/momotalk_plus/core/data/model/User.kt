@@ -5,29 +5,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserProfile(
-    val name: String? = null,
-    val picture: String? = null,
-    val username: String? = null,
-    val email: String? = null,
-    @SerialName("email_verified")
-    val emailVerified: Boolean? = null,
-    @SerialName("phone_number")
-    val phoneNumber: String? = null,
-    val providers: List<UserProfileProvider> = emptyList(),
-    val gender: String? = null,
-    val birthdate: String? = null,
-    val zoneinfo: String? = null,
-    val locale: String? = null,
-    @SerialName("created_from")
-    val createdFrom: String? = null,
-    val sub: String? = null,
-    val uid: String? = null,
-    val address: UserAddress? = null,
-    @SerialName("last_login_at")
-    val nickName: String? = null,
-    val province: String? = null,
-    val country: String? = null,
-    val city: String? = null,
+    val id: String,
+    val email: String,
+    val name: String,
+    val image: String?,
+    val emailVerified: Boolean,
+    val createdAt: String,
+    val updatedAt: String,
 )
 
 @Serializable
