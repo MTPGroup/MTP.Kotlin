@@ -13,3 +13,9 @@ data class Session(
     val userAgent: String,
     val userId: String,
 )
+
+@Serializable
+data class GetSessionResponse(
+    val session: Session,
+    val user: UserProfile,
+)

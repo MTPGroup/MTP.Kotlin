@@ -41,7 +41,7 @@ fun RegisterScreen(
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 3 }
-    val tabTitles = listOf("1. 验证账户", "2. 设置信息")
+    val tabTitles = listOf("1. 注册账号", "2. 验证邮箱")
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.sideEffect) {
@@ -117,12 +117,13 @@ fun RegisterScreen(
             ) { page ->
                 // 根据页面索引显示不同内容
                 when (page) {
-                    0 -> VerificationStep(uiState = uiState, onIntent = viewModel::processIntent)
-                    1 -> UserInfoStep(
+                    0 -> UserInfoStep(
                         uiState = uiState,
                         onIntent = viewModel::processIntent,
                         onNavigateToLogin = onNavigateBack
                     )
+
+                    1 -> VerificationStep(uiState = uiState, onIntent = viewModel::processIntent)
 
                     2 -> ResetSuccessStep(
                         onNavigateToLogin = onNavigateBack,
@@ -144,65 +145,64 @@ private fun VerificationStep(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("输入邮箱", style = MaterialTheme.typography.titleLarge)
+        // 1. 添加标题和描述
         Text(
-            "我们将向您发送验证码以验证您的身份。",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = "验证您的邮箱",
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "我们已向您的邮箱发送了验证码，请输入以完成验证。",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(32.dp))
 
+        // 2. 优化输入框和按钮布局
         OutlinedTextField(
-            value = uiState.email,
-            onValueChange = { onIntent(RegisterIntent.EmailChanged(it)) },
-            label = { Text("请输入邮箱") },
+            value = uiState.otpCode,
+            onValueChange = { onIntent(RegisterIntent.OTPCodeChanged(it)) },
+            label = { Text("6位验证码") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
-            isError = uiState.error?.contains("邮箱") == true,
+            leadingIcon = { Icon(Icons.Outlined.MailOutline, contentDescription = null) },
+            isError = uiState.error?.contains("验证码") == true,
             supportingText = { if (uiState.error != null) Text(uiState.error) },
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedTextField(
-                value = uiState.otpCode,
-                onValueChange = { onIntent(RegisterIntent.OTPCodeChanged(it)) },
-                label = { Text("验证码") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Outlined.MailOutline, contentDescription = null) },
-                isError = uiState.error?.contains("验证码") == true,
-                shape = MaterialTheme.shapes.medium
-            )
-            Button(
-                onClick = { onIntent(RegisterIntent.SendOTPCodeClicked) }, // 点击发送时触发邮件发送
-                enabled = uiState.email.isNotBlank() && !uiState.isLoading,
-                modifier = Modifier.height(56.dp),
-                shape = MaterialTheme.shapes.medium
+        Box(modifier = Modifier.fillMaxWidth()) {
+            TextButton(
+                onClick = { onIntent(RegisterIntent.ResendOTPCodeClicked) },
+                enabled = !uiState.isLoading,
+                modifier = Modifier.align(Alignment.CenterEnd)
             ) {
-                Text("发送")
+                Text("没有收到？重新发送")
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
 
+        // 3. 修改按钮文本和样式
         Button(
             onClick = { onIntent(RegisterIntent.VerifyEmailClicked) },
-            enabled = !uiState.isLoading,
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            enabled = uiState.otpCode.isNotBlank() && !uiState.isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
             shape = MaterialTheme.shapes.medium
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
             } else {
-                Text("下一步")
+                Text("验证") // 文本更贴切
             }
         }
     }
@@ -229,6 +229,17 @@ private fun UserInfoStep(
         Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
+            value = uiState.email,
+            onValueChange = { onIntent(RegisterIntent.EmailChanged(it)) },
+            label = { Text("请输入邮箱") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+            isError = uiState.error?.contains("邮箱") == true,
+            shape = MaterialTheme.shapes.medium
+        )
+
+        OutlinedTextField(
             value = uiState.username,
             onValueChange = { onIntent(RegisterIntent.UsernameChanged(it)) },
             label = { Text("用户名") },
@@ -242,7 +253,7 @@ private fun UserInfoStep(
         OutlinedTextField(
             value = uiState.password,
             onValueChange = { onIntent(RegisterIntent.PasswordChanged(it)) },
-            label = { Text("密码 (至少6位)") },
+            label = { Text("密码 (至少8位)") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
@@ -276,8 +287,6 @@ private fun UserInfoStep(
             shape = MaterialTheme.shapes.medium
         )
 
-        Spacer(Modifier.height(8.dp))
-
         Button(
             onClick = { onIntent(RegisterIntent.RegisterClicked) },
             enabled = !uiState.isLoading,
@@ -287,7 +296,7 @@ private fun UserInfoStep(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             } else {
-                Text("完成注册")
+                Text("下一步")
             }
         }
 

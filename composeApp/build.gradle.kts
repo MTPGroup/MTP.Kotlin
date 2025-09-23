@@ -11,25 +11,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
-//    alias(libs.plugins.buildKonfig)
 }
-
-/*val localProperties = Properties()
-val localPropertiesFile = project.rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(localPropertiesFile.inputStream())
-}
-
-buildkonfig {
-    packageName = "tech.hanasaki.momotalk_plus.config"
-    defaultConfigs {
-        buildConfigField(
-            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
-            "firebaseApiKey",
-            localProperties.getProperty("firebaseApiKey", "")
-        )
-    }
-}*/
 
 kotlin {
     androidTarget {
@@ -100,6 +82,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.cio)
             implementation(libs.ktor.client.auth)
+            implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.coil.compose)

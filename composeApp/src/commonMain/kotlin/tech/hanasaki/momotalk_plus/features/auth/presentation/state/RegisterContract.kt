@@ -17,7 +17,8 @@ sealed class RegisterIntent {
     data class UsernameChanged(val username: String) : RegisterIntent()
     data class PasswordChanged(val password: String) : RegisterIntent()
     data class ConfirmPasswordChanged(val confirmPassword: String) : RegisterIntent()
-    data object SendOTPCodeClicked : RegisterIntent()
+
+    data object ResendOTPCodeClicked : RegisterIntent()
     data object VerifyEmailClicked : RegisterIntent()
     data object RegisterClicked : RegisterIntent()
 }

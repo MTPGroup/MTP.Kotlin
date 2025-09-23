@@ -12,13 +12,13 @@ class SignUpUserUseCase(private val authRepository: AuthRepository) {
         password: String,
     ): Result<Unit, AppError> {
         if (email.isBlank()) {
-            return Result.Error(AppError("邮箱或手机号不能为空"))
+            return Result.Error(AppError("邮箱不能为空"))
         }
         if (username.isBlank()) {
             return Result.Error(AppError("用户名不能为空"))
         }
-        if (password.length < 6) {
-            return Result.Error(AppError("密码长度不能少于6位"))
+        if (password.length < 8) {
+            return Result.Error(AppError("密码长度不能少于8位"))
         }
         return authRepository.signUp(email, username, password)
             .mapError { error ->

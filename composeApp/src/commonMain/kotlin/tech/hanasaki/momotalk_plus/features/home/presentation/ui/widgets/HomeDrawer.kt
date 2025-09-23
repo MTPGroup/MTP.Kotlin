@@ -74,7 +74,7 @@ private fun DrawerHeader(user: UserProfile?) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = user?.picture,
+            model = user?.image,
             contentDescription = "用户头像",
             modifier = Modifier
                 .size(64.dp)

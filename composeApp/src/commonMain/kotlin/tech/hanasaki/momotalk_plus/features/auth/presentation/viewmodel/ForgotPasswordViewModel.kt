@@ -6,7 +6,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.ResetPasswordUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendPasswordResetEmailUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
@@ -64,12 +63,8 @@ class ForgotPasswordViewModel(
 
     private suspend fun resetPassword() {
         val currentState = uiState.value
-        if (isValidEmail(currentState.email)) {
-            _uiState.update { it.copy(error = "请输入有效的邮箱地址") }
-            return
-        }
-        if (currentState.newPassword.length < 6) {
-            _uiState.update { it.copy(error = "密码长度至少为6位") }
+        if (currentState.newPassword.length < 8) {
+            _uiState.update { it.copy(error = "密码长度至少为8位") }
             return
         }
         if (currentState.otpCode.isBlank()) {

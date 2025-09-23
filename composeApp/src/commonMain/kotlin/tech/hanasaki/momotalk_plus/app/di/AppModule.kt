@@ -7,6 +7,7 @@ import com.russhwolf.settings.observable.makeObservable
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.factoryOf
@@ -18,7 +19,9 @@ import tech.hanasaki.momotalk_plus.core.data.datasource.local.TokenStorage
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.data.repository.UserRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
-import tech.hanasaki.momotalk_plus.core.domain.usecase.*
+import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.auth.data.repository.AuthRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
@@ -40,8 +43,6 @@ val commonModule = module {
     factoryOf(::GetUserInfoUseCase)
     factoryOf(::GetLoginStateUseCase)
     factoryOf(::LogoutUserUseCase)
-    factoryOf(::RefreshIdTokenUseCase)
-    factoryOf(::SaveLoginStateUseCase)
 }
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -53,18 +54,6 @@ val storageModule = module {
 }
 
 val networkModule = module {
-    single(named("noAuthClient")) {
-        HttpClient {
-            install(ContentNegotiation) {
-                json(Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                })
-            }
-        }
-    }
-
     single(named("authClient")) {
         HttpClient {
             install(ContentNegotiation) {
@@ -75,12 +64,13 @@ val networkModule = module {
                 })
             }
             install(HttpCookies)
+            install(Logging)
         }
     }
 }
 
 val datasourceModule = module {
-    factory<AuthRemoteDatasource> { AuthRemoteDatasource(get(named("noAuthClient"))) }
+    factory<AuthRemoteDatasource> { AuthRemoteDatasource(get(named("authClient"))) }
     factory<UserRemoteDatasource> { UserRemoteDatasource(get(named("authClient"))) }
 }
 
@@ -88,6 +78,7 @@ val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     single<UserRepository> { UserRepositoryImpl(get(), get()) }
 }
+
 
 val viewModelModule = module {
     viewModelOf(::AppViewModel)

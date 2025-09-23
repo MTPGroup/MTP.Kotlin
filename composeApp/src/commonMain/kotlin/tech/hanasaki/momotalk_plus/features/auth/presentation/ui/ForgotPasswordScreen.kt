@@ -135,7 +135,7 @@ private fun RequestEmailStep(
             singleLine = true,
             leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = "邮箱图标") },
             supportingText = {
-                if (uiState.error != null) {
+                if (uiState.error != null && uiState.error.contains("邮箱")) {
                     Text(uiState.error)
                 }
             }
@@ -161,7 +161,7 @@ private fun RequestEmailStep(
                 }
             },
             supportingText = {
-                if (uiState.error != null) {
+                if (uiState.error != null && uiState.error.contains("密码")) {
                     Text(uiState.error)
                 }
             }
@@ -179,7 +179,7 @@ private fun RequestEmailStep(
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = "验证码图标") },
                 supportingText = {
-                    if (uiState.error != null) {
+                    if (uiState.error != null && uiState.error.contains("验证码")) {
                         Text(uiState.error)
                     }
                 }

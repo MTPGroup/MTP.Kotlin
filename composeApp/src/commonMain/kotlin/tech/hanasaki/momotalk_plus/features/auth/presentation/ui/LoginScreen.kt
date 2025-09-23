@@ -106,7 +106,7 @@ fun LoginContent(
         OutlinedTextField(
             value = uiState.email,
             onValueChange = { onIntent(LoginIntent.EmailChanged(it)) },
-            label = { Text("用户名") },
+            label = { Text("邮箱") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             isError = uiState.loginError != null

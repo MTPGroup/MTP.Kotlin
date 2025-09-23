@@ -12,7 +12,7 @@ import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
 
 
 class AuthRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "http://localhost:3001/api/auth"
+    private val endpoint = "http://127.0.0.1:3001/api/auth"
 
     private suspend inline fun <reified R : Any> postAuthRequest(
         url: String,
@@ -35,7 +35,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
         } catch (e: ClientRequestException) {
             try {
                 val errorBody = e.response.body<Any>()
-                Result.Error(AuthError.ApiError(-1, "Error occurred: ${errorBody.toString()}"))
+                Result.Error(AuthError.ApiError(-1, "发生错误: $errorBody"))
             } catch (_: Exception) {
                 Result.Error(
                     AuthError.ApiError(

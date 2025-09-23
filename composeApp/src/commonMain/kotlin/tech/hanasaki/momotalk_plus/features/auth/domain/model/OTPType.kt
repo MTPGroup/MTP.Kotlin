@@ -5,12 +5,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class OTPType {
-    @SerialName("sign_in")
+    @SerialName("sign-in")
     SIGN_IN,
 
-    @SerialName("reset_password")
+    @SerialName("reset-password")
     RESET_PASSWORD,
 
-    @SerialName("email_verification")
+    @SerialName("email-verification")
     VERIFY_EMAIL,
 }

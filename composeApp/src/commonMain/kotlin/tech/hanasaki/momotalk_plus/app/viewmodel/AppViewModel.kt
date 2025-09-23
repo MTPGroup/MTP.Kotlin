@@ -27,8 +27,8 @@ class AppViewModel(
     private fun checkUserLoginStatus() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            getLoginStateUseCase().collect { accessToken ->
-                if (accessToken == null) {
+            getLoginStateUseCase().collect { token ->
+                if (token == null) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -37,7 +37,7 @@ class AppViewModel(
                         )
                     }
                 } else {
-                    getUserInfoUseCase(accessToken).fold(
+                    getUserInfoUseCase().fold(
                         onSuccess = { user ->
                             println("User info retrieved: $user")
                             _uiState.update {

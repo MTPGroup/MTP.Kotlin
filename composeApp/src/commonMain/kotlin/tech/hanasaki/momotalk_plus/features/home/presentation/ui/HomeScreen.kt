@@ -82,7 +82,7 @@ fun HomeScreen(
                         HomeTab.Chats -> ""
                         HomeTab.Contacts -> "联系人"
                     },
-                    avatarUrl = currentUser?.picture,
+                    avatarUrl = currentUser?.image,
                     username = currentUser?.name ?: "未登录",
                     onIntent = onIntent,
                     onAvatarClick = {

@@ -8,7 +8,7 @@ import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.data.model.GetSessionResponse
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 
 class UserRemoteDatasource(private val client: HttpClient) {
@@ -37,7 +37,7 @@ class UserRemoteDatasource(private val client: HttpClient) {
                 Result.Error(
                     UserError.ApiError(
                         e.response.status.value,
-                        "Client request failed, could not parse error."
+                        "客户端请求失败，无法解析错误信息。"
                     )
                 )
             }
@@ -45,14 +45,14 @@ class UserRemoteDatasource(private val client: HttpClient) {
             Result.Error(
                 UserError.ApiError(
                     e.response.status.value,
-                    "Server error: ${e.response.status}"
+                    "服务器错误: ${e.response.status}"
                 )
             )
         } catch (e: RedirectResponseException) {
             Result.Error(
                 UserError.ApiError(
                     e.response.status.value,
-                    "Redirect error: ${e.response.status}"
+                    "重定向错误: ${e.response.status}"
                 )
             )
         } catch (e: Exception) {
@@ -136,11 +136,9 @@ class UserRemoteDatasource(private val client: HttpClient) {
      * @param idToken 用户的身份验证令牌
      * @return Result<GetAccountInfoResponse> 成功时返回账户信息响应，失败时返回错误信息
      */
-    suspend fun getUserInfo(
-        idToken: String,
-    ): Result<UserProfile, UserError> =
-        getRequest<UserProfile>(
-            "$endpoint/user/me",
+    suspend fun getUserInfo(): Result<GetSessionResponse, UserError> =
+        getRequest<GetSessionResponse>(
+            "$endpoint/get-session",
         )
 
 
@@ -158,25 +156,6 @@ class UserRemoteDatasource(private val client: HttpClient) {
         postRequest(
             "$endpoint:update?key=$apiKey",
             ChangePasswordRequest(idToken, password),
-        )*/
-
-
-    /**
-     * 链接电子邮件和密码到现有用户账户
-     *
-     * @param idToken 用户的身份验证令牌
-     * @param email 用户的电子邮件地址
-     * @param password 用户的密码
-     * @return Result<LinkEmailAndPasswordResponse> 成功时返回链接响应，失败时返回错误信息
-     */
-    /*suspend fun linkEmailAndPassword(
-        idToken: String,
-        email: String,
-        password: String,
-    ): Result<LinkEmailAndPasswordResponse, UserError> =
-        postRequest(
-            "$endpoint:link?key=$apiKey",
-            LinkEmailAndPasswordRequest(idToken, email, password),
         )*/
 
 

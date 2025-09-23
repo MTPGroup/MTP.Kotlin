@@ -28,7 +28,7 @@ data class SignUpRequest(
 
 @Serializable
 data class SignUpResponse(
-    val token: String,
+    val token: String?,
     val user: UserProfile,
 )
 
@@ -69,7 +69,7 @@ data class VerifyOTPRequest(
 
 @Serializable
 data class VerifyOTPResponse(
-    val token: String,
+    val token: String?,
     val user: UserProfile,
 )
 

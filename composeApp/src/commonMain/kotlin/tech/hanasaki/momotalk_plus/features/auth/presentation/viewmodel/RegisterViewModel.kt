@@ -45,7 +45,7 @@ class RegisterViewModel(
                 is RegisterIntent.ConfirmPasswordChanged ->
                     _uiState.update { it.copy(confirmPassword = intent.confirmPassword) }
 
-                is RegisterIntent.SendOTPCodeClicked ->
+                is RegisterIntent.ResendOTPCodeClicked ->
                     sendOTPCode()
 
                 is RegisterIntent.VerifyEmailClicked ->
@@ -59,12 +59,6 @@ class RegisterViewModel(
 
     private suspend fun sendOTPCode() {
         val currentState = _uiState.value
-        val isEmail = isValidEmail(currentState.email)
-        if (!isEmail) {
-            _uiState.update { it.copy(error = "请输入有效的邮箱地址。") }
-            return
-        }
-
         when (val result = sendOTPCodeUseCase(currentState.email)) {
             is Result.Success -> {
                 _uiState.update { it.copy(isEmailValid = true, error = null) }
@@ -83,7 +77,7 @@ class RegisterViewModel(
         val currentState = _uiState.value
         when (val result = verifyEmailUseCase(currentState.email, currentState.otpCode)) {
             is Result.Success -> {
-                _sideEffect.send(RegisterSideEffect.NavigateToNextStep)
+                _sideEffect.send(RegisterSideEffect.NavigateToSuccessStep)
             }
 
             is Result.Error -> {
@@ -110,7 +104,8 @@ class RegisterViewModel(
             password = currentState.password,
         )) {
             is Result.Success -> {
-                _sideEffect.send(RegisterSideEffect.NavigateToSuccessStep)
+                sendOTPCode()
+                _sideEffect.send(RegisterSideEffect.NavigateToNextStep)
             }
 
             is Result.Error -> {
