@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.ContactError
 
 class ContactRemoteDatasource(private val client: HttpClient) {
@@ -45,9 +46,9 @@ class ContactRemoteDatasource(private val client: HttpClient) {
      * @return Result<List<Contact>, UserError>
      */
     // TODO: 联系人数据模型
-    suspend fun getdContacts(): Result<List<String>, ContactError> {
+    suspend fun getContacts(): Result<List<Contact>, ContactError> {
         return try {
-            val contacts: List<String> = client.get("$endpoint/list").body()
+            val contacts: List<Contact> = client.get("$endpoint/list").body()
             Result.Success(contacts)
         } catch (e: Exception) {
             Result.Error(ContactError.ApiError(-1, e.message ?: "获取联系人列表失败"))
