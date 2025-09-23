@@ -8,8 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
@@ -30,14 +28,6 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.LoginVie
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.RegisterViewModel
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
-
-@Serializable
-data class RefreshTokenResponse(
-    @SerialName("access_token")
-    val accessToken: String,
-    @SerialName("refresh_token")
-    val refreshToken: String,
-)
 
 val commonModule = module {
     factoryOf(::SignInUserUseCase)

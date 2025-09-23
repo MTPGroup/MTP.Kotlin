@@ -1,7 +1,7 @@
-package tech.hanasaki.momotalk_plus.features.login.presentation.state
+package tech.hanasaki.momotalk_plus.features.auth.presentation.state
 
 data class LoginState(
-    val username: String = "",
+    val email: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
     val loginError: String? = null,
@@ -9,7 +9,7 @@ data class LoginState(
 )
 
 sealed class LoginIntent {
-    data class UsernameChanged(val username: String) : LoginIntent()
+    data class EmailChanged(val email: String) : LoginIntent()
     data class PasswordChanged(val password: String) : LoginIntent()
     data object ForgotPasswordClicked : LoginIntent()
     data object RegisterClicked : LoginIntent()

@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.login.presentation.ui
+package tech.hanasaki.momotalk_plus.features.auth.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -23,10 +23,10 @@ import momotalkplus.composeapp.generated.resources.text_logo
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginSideEffect
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginState
-import tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel.LoginViewModel
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginIntent
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginSideEffect
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginState
+import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
@@ -104,8 +104,8 @@ fun LoginContent(
         )
 
         OutlinedTextField(
-            value = uiState.username,
-            onValueChange = { onIntent(LoginIntent.UsernameChanged(it)) },
+            value = uiState.email,
+            onValueChange = { onIntent(LoginIntent.EmailChanged(it)) },
             label = { Text("用户名") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -159,7 +159,7 @@ fun LoginContent(
         Button(
             onClick = { onIntent(LoginIntent.LoginClicked) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !uiState.isLoading && uiState.username.isNotBlank() && uiState.password.isNotBlank()
+            enabled = !uiState.isLoading && uiState.email.isNotBlank() && uiState.password.isNotBlank()
         ) {
             Text("登录")
         }

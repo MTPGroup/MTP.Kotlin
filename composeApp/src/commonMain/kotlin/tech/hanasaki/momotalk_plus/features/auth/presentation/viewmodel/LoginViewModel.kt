@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.login.presentation.viewmodel
+package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,13 +6,13 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.Result
-import tech.hanasaki.momotalk_plus.features.login.domain.usecase.LoginUserUseCase
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginIntent
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginSideEffect
-import tech.hanasaki.momotalk_plus.features.login.presentation.state.LoginState
+import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignInUserUseCase
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginIntent
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginSideEffect
+import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginState
 
 class LoginViewModel(
-    private val loginUserUseCase: LoginUserUseCase,
+    private val loginUserUseCase: SignInUserUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginState())
     val uiState: StateFlow<LoginState> = _uiState.asStateFlow()
@@ -23,17 +23,17 @@ class LoginViewModel(
     fun processIntent(intent: LoginIntent) {
         viewModelScope.launch {
             when (intent) {
-                is LoginIntent.UsernameChanged ->
-                    _uiState.update { it.copy(username = intent.username) }
+                is LoginIntent.EmailChanged ->
+                    _uiState.update { it.copy(email = intent.email) }
+
+                is LoginIntent.PasswordChanged ->
+                    _uiState.update { it.copy(password = intent.password) }
 
                 is LoginIntent.ErrorDismissed ->
                     _uiState.update { it.copy(loginError = null) }
 
                 is LoginIntent.LoginClicked ->
                     loginUser()
-
-                is LoginIntent.PasswordChanged ->
-                    _uiState.update { it.copy(password = intent.password) }
 
                 is LoginIntent.ForgotPasswordClicked ->
                     _sideEffect.send(LoginSideEffect.NavigateToForgotPassword)
@@ -49,7 +49,7 @@ class LoginViewModel(
         val currentState = _uiState.value
 
         when (val loginResult =
-            loginUserUseCase(currentState.username, currentState.password)) {
+            loginUserUseCase(currentState.email, currentState.password)) {
             is Result.Success -> {
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                 _sideEffect.send(LoginSideEffect.NavigateToHome)
