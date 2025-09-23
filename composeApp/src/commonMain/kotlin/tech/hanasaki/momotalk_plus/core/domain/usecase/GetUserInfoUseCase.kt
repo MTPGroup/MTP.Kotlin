@@ -7,7 +7,7 @@ import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
 
 class GetUserInfoUseCase(private val userRepository: UserRepository) {
-    suspend operator fun invoke(): Result<UserProfile, AppError> =
+    suspend operator fun invoke(): Result<UserProfile?, AppError> =
         userRepository.getCurrentUser().mapError { error ->
             when (error) {
                 is UserError.ApiError -> AppError("获取用户信息失败: ${error.message}")

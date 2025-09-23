@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.app.state.AppUiState
+import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
@@ -27,38 +28,28 @@ class AppViewModel(
     private fun checkUserLoginStatus() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            getLoginStateUseCase().collect { token ->
-                if (token == null) {
+            when (val userInfo = getUserInfoUseCase()) {
+                is Result.Success -> {
+                    if (userInfo.data != null) {
+                        _uiState.update {
+                            it.copy(
+                                isLoggedIn = true,
+                                currentUser = userInfo.data,
+                                isLoading = false
+                            )
+                        }
+                    }
+                }
+
+                is Result.Error -> {
+                    val isLoggedIn = getLoginStateUseCase()
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
-                            isLoggedIn = false,
+                            isLoggedIn = isLoggedIn,
                             currentUser = null,
+                            isLoading = false
                         )
                     }
-                } else {
-                    getUserInfoUseCase().fold(
-                        onSuccess = { user ->
-                            println("User info retrieved: $user")
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    isLoggedIn = true,
-                                    currentUser = user,
-                                )
-                            }
-                        },
-                        onError = {
-                            println("获取用户信息失败")
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    isLoggedIn = false,
-                                    currentUser = null,
-                                )
-                            }
-                        }
-                    )
                 }
             }
         }

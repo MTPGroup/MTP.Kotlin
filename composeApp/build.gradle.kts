@@ -88,6 +88,7 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
             implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.serialization)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.noArg)
             implementation(libs.multiplatform.settings.makeObservable)

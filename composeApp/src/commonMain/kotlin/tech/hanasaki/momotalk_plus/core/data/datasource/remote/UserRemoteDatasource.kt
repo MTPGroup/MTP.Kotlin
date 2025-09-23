@@ -3,8 +3,6 @@ package tech.hanasaki.momotalk_plus.core.data.datasource.remote
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import tech.hanasaki.momotalk_plus.core.common.Result
@@ -105,13 +103,6 @@ class UserRemoteDatasource(private val client: HttpClient) {
     }
 
     /**
-     * 清除用户令牌缓存
-     */
-    suspend fun clearToken(): Unit {
-        client.authProviders.filterIsInstance<BearerAuthProvider>().firstOrNull()?.clearToken()
-    }
-
-    /**
      * 设置用户账户信息
      *
      * @param idToken 用户的身份验证令牌
@@ -131,15 +122,27 @@ class UserRemoteDatasource(private val client: HttpClient) {
 
 
     /**
-     * 获取用户账户信息
+     * 获取会话信息
      *
-     * @param idToken 用户的身份验证令牌
-     * @return Result<GetAccountInfoResponse> 成功时返回账户信息响应，失败时返回错误信息
+     * @return Result<GetAccountInfoResponse> 成功时返回会话信息响应，失败时返回错误信息
      */
-    suspend fun getUserInfo(): Result<GetSessionResponse, UserError> =
+    suspend fun getSessionInfo(): Result<GetSessionResponse?, UserError> =
         getRequest<GetSessionResponse>(
-            "$endpoint/get-session",
+            "$endpoint/auth/get-session",
         )
+
+    /**
+     * 用户登出
+     *
+     * @return Result<Unit> 成功时返回空结果，失败时返回错误信息
+     */
+    suspend fun logout(): Result<Unit, UserError> =
+        try {
+            client.post("$endpoint/auth/sign-out")
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(UserError.NetworkError(e))
+        }
 
 
     /**

@@ -12,7 +12,7 @@ import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
 
 
 class AuthRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "http://127.0.0.1:3001/api/auth"
+    private val endpoint = "http://localhost:3001/api/auth"
 
     private suspend inline fun <reified R : Any> postAuthRequest(
         url: String,

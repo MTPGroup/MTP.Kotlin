@@ -1,6 +1,5 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
-import kotlinx.coroutines.flow.Flow
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.User
@@ -12,7 +11,7 @@ interface UserRepository {
      *
      * @return 返回用户信息或错误
      */
-    suspend fun getCurrentUser(): Result<UserProfile, UserError>
+    suspend fun getCurrentUser(): Result<UserProfile?, UserError>
 
     /**
      * 更新用户信息
@@ -41,7 +40,7 @@ interface UserRepository {
     /**
      * 获取登录状态。
      *
-     * @return 返回一个 [Flow]，包含当前用户的 uid，如果未登录则为 null。
+     * @return 返回当前的登录状态，true 表示已登录，false 表示未登录。
      */
-    fun getLoginState(): Flow<String?>
+    suspend fun getLoginState(): Boolean
 }

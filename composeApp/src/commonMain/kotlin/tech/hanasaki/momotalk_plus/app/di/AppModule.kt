@@ -1,21 +1,18 @@
 package tech.hanasaki.momotalk_plus.app.di
 
-import com.russhwolf.settings.ExperimentalSettingsApi
-import com.russhwolf.settings.ObservableSettings
+import LocalCookieStorage
 import com.russhwolf.settings.Settings
-import com.russhwolf.settings.observable.makeObservable
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
-import tech.hanasaki.momotalk_plus.core.data.datasource.local.TokenStorage
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.data.repository.UserRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
@@ -45,16 +42,13 @@ val commonModule = module {
     factoryOf(::LogoutUserUseCase)
 }
 
-@OptIn(ExperimentalSettingsApi::class)
 val storageModule = module {
-    single<ObservableSettings> {
-        Settings().makeObservable()
-    }
-    single { TokenStorage(get()) }
+    single { Settings() }
+    single { LocalCookieStorage(get()) }
 }
 
 val networkModule = module {
-    single(named("authClient")) {
+    single {
         HttpClient {
             install(ContentNegotiation) {
                 json(Json {
@@ -63,15 +57,40 @@ val networkModule = module {
                     ignoreUnknownKeys = true
                 })
             }
-            install(HttpCookies)
-            install(Logging)
+            install(HttpCookies) {
+                storage = object : CookiesStorage {
+                    private val delegate = AcceptAllCookiesStorage()
+
+                    override suspend fun get(requestUrl: Url): List<Cookie> {
+                        val mem = delegate.get(requestUrl)
+                        if (mem.isNotEmpty()) return mem
+                        val cookieStorage: LocalCookieStorage = get()
+                        val cookie = cookieStorage.getCookie("better-auth.session_token")
+                        return cookie?.let { listOf(it) } ?: emptyList()
+                    }
+
+                    override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
+                        delegate.addCookie(requestUrl, cookie)
+                        if (cookie.name == "better-auth.session_token") {
+                            val cookieStorage: LocalCookieStorage = get()
+                            cookieStorage.saveCookie(cookie, "better-auth.session_token")
+                        }
+                    }
+
+                    override fun close() = delegate.close()
+
+                }
+            }
+            install(Logging) {
+                level = LogLevel.ALL
+            }
         }
     }
 }
 
 val datasourceModule = module {
-    factory<AuthRemoteDatasource> { AuthRemoteDatasource(get(named("authClient"))) }
-    factory<UserRemoteDatasource> { UserRemoteDatasource(get(named("authClient"))) }
+    factoryOf(::AuthRemoteDatasource)
+    factoryOf(::UserRemoteDatasource)
 }
 
 val repositoryModule = module {
