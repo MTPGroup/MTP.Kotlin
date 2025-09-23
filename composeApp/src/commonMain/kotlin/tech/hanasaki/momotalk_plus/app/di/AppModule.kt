@@ -13,12 +13,13 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.CharacterRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasource
+import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.UserRepositoryImpl
+import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
-import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
-import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
-import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.auth.data.repository.AuthRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
@@ -40,6 +41,11 @@ val commonModule = module {
     factoryOf(::GetUserInfoUseCase)
     factoryOf(::GetLoginStateUseCase)
     factoryOf(::LogoutUserUseCase)
+    factoryOf(::CharacterDetailUseCase)
+    factoryOf(::CreateCharacterUseCase)
+    factoryOf(::DeleteCharacterUseCase)
+    factoryOf(::ListCharacterUseCase)
+    factoryOf(::UpdateCharacterUseCase)
 }
 
 val storageModule = module {
@@ -91,11 +97,13 @@ val networkModule = module {
 val datasourceModule = module {
     factoryOf(::AuthRemoteDatasource)
     factoryOf(::UserRemoteDatasource)
+    factoryOf(::CharacterRemoteDatasource)
 }
 
 val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     single<UserRepository> { UserRepositoryImpl(get(), get()) }
+    single<CharacterRepository> { CharacterRepositoryImpl(get()) }
 }
 
 

@@ -4,59 +4,12 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.http.*
 import tech.hanasaki.momotalk_plus.core.common.Result
 import tech.hanasaki.momotalk_plus.core.data.model.GetSessionResponse
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 
 class UserRemoteDatasource(private val client: HttpClient) {
     private val endpoint = "http://localhost:3001/api"
-
-    private suspend inline fun <reified T : Any, reified R : Any> postRequest(
-        url: String,
-        requestBody: T,
-    ): Result<R, UserError> {
-        return try {
-            val response: R = client.post(url) {
-                contentType(ContentType.Application.Json)
-                setBody(requestBody)
-            }.body()
-            Result.Success(response)
-        } catch (e: ClientRequestException) {
-            try {
-                val errorBody = e.response.body<Any>()
-                Result.Error(
-                    UserError.ApiError(
-                        -1,
-                        ""
-                    )
-                )
-            } catch (parseEx: Exception) {
-                Result.Error(
-                    UserError.ApiError(
-                        e.response.status.value,
-                        "客户端请求失败，无法解析错误信息。"
-                    )
-                )
-            }
-        } catch (e: ServerResponseException) {
-            Result.Error(
-                UserError.ApiError(
-                    e.response.status.value,
-                    "服务器错误: ${e.response.status}"
-                )
-            )
-        } catch (e: RedirectResponseException) {
-            Result.Error(
-                UserError.ApiError(
-                    e.response.status.value,
-                    "重定向错误: ${e.response.status}"
-                )
-            )
-        } catch (e: Exception) {
-            Result.Error(UserError.NetworkError(e))
-        }
-    }
 
     private suspend inline fun <reified T : Any> getRequest(
         url: String,
