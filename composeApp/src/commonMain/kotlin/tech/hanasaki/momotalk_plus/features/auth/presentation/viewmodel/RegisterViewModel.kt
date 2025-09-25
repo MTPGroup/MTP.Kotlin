@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendEmailVerificationUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignUpUserUseCase
@@ -60,12 +60,12 @@ class RegisterViewModel(
     private suspend fun sendOTPCode() {
         val currentState = _uiState.value
         when (val result = sendOTPCodeUseCase(currentState.email)) {
-            is Result.Success -> {
+            is IResult.Success -> {
                 _uiState.update { it.copy(isEmailValid = true, error = null) }
                 _sideEffect.send(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
             }
 
-            is Result.Error -> {
+            is IResult.Error -> {
                 val errorMessage = result.error.message
                 _uiState.update { it.copy(error = errorMessage) }
                 _sideEffect.send(RegisterSideEffect.ShowToast(errorMessage))
@@ -76,11 +76,11 @@ class RegisterViewModel(
     private suspend fun verifyEmail() {
         val currentState = _uiState.value
         when (val result = verifyEmailUseCase(currentState.email, currentState.otpCode)) {
-            is Result.Success -> {
+            is IResult.Success -> {
                 _sideEffect.send(RegisterSideEffect.NavigateToSuccessStep)
             }
 
-            is Result.Error -> {
+            is IResult.Error -> {
                 val errorMessage = result.error.message
                 _uiState.update { it.copy(error = errorMessage) }
                 _sideEffect.send(RegisterSideEffect.ShowToast(errorMessage))
@@ -103,12 +103,12 @@ class RegisterViewModel(
             username = currentState.username,
             password = currentState.password,
         )) {
-            is Result.Success -> {
+            is IResult.Success -> {
                 sendOTPCode()
                 _sideEffect.send(RegisterSideEffect.NavigateToNextStep)
             }
 
-            is Result.Error -> {
+            is IResult.Error -> {
                 val errorMessage = result.error.message
                 _uiState.update { it.copy(error = errorMessage) }
                 _sideEffect.send(RegisterSideEffect.ShowToast(errorMessage))

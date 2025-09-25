@@ -1,16 +1,16 @@
 package tech.hanasaki.momotalk_plus.features.auth.domain.usecase
 
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.AuthError
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
 
 class SignInUserUseCase(
     private val authRepository: AuthRepository,
 ) {
-    suspend operator fun invoke(email: String, password: String): Result<String, AppError> {
+    suspend operator fun invoke(email: String, password: String): IResult<String, AppError> {
         if (email == "" || password == "") {
-            return Result.Error(AppError("邮箱或密码不能为空"))
+            return IResult.Error(AppError("邮箱或密码不能为空"))
         }
         return authRepository.signInWithPassword(email, password)
             .map { signInWithPasswordResponse ->

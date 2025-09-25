@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.CharacterRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
@@ -15,7 +15,7 @@ class CharacterRepositoryImpl(private val characterRemoteDatasource: CharacterRe
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<Unit, UserError> =
+    ): IResult<Unit, UserError> =
         characterRemoteDatasource.createCharacter(
             name,
             creatorId,
@@ -25,15 +25,15 @@ class CharacterRepositoryImpl(private val characterRemoteDatasource: CharacterRe
             visibility,
         ).map {}
 
-    override suspend fun deleteCharacter(id: String): Result<Unit, UserError> =
+    override suspend fun deleteCharacter(id: String): IResult<Unit, UserError> =
         characterRemoteDatasource.deleteCharacter(id)
 
-    override suspend fun getAvailableCharacters(): Result<List<Character>, UserError> =
+    override suspend fun getAvailableCharacters(): IResult<List<Character>, UserError> =
         characterRemoteDatasource.listCharacters().map { listCharacterResponse ->
             listCharacterResponse.data.characters
         }
 
-    override suspend fun getCharacterById(id: String): Result<Character, UserError> =
+    override suspend fun getCharacterById(id: String): IResult<Character, UserError> =
         characterRemoteDatasource.searchCharacterById(id).map { characterDetailResponse ->
             characterDetailResponse.data.characterData
         }
@@ -45,7 +45,7 @@ class CharacterRepositoryImpl(private val characterRemoteDatasource: CharacterRe
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<Unit, UserError> =
+    ): IResult<Unit, UserError> =
         characterRemoteDatasource.updateCharacter(
             id,
             name,

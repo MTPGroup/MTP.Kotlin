@@ -4,7 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.GetSessionResponse
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 
@@ -13,23 +13,23 @@ class UserRemoteDatasource(private val client: HttpClient) {
 
     private suspend inline fun <reified T : Any> getRequest(
         url: String,
-    ): Result<T, UserError> {
+    ): IResult<T, UserError> {
         return try {
             val response: T = client.get(url).body()
             println("收到响应: $response")
-            Result.Success(response)
+            IResult.Success(response)
         } catch (e: ClientRequestException) {
             try {
                 val errorBody = e.response.body<Any>()
                 println(errorBody)
-                Result.Error(
+                IResult.Error(
                     UserError.ApiError(
                         -1,
                         ""
                     )
                 )
             } catch (parseEx: Exception) {
-                Result.Error(
+                IResult.Error(
                     UserError.ApiError(
                         e.response.status.value,
                         "客户端请求失败，无法解析错误信息。"
@@ -37,21 +37,21 @@ class UserRemoteDatasource(private val client: HttpClient) {
                 )
             }
         } catch (e: ServerResponseException) {
-            Result.Error(
+            IResult.Error(
                 UserError.ApiError(
                     e.response.status.value,
                     "服务器错误: ${e.response.status}"
                 )
             )
         } catch (e: RedirectResponseException) {
-            Result.Error(
+            IResult.Error(
                 UserError.ApiError(
                     e.response.status.value,
                     "重定向错误: ${e.response.status}"
                 )
             )
         } catch (e: Exception) {
-            Result.Error(UserError.NetworkError(e))
+            IResult.Error(UserError.NetworkError(e))
         }
     }
 
@@ -79,7 +79,7 @@ class UserRemoteDatasource(private val client: HttpClient) {
      *
      * @return Result<GetAccountInfoResponse> 成功时返回会话信息响应，失败时返回错误信息
      */
-    suspend fun getSessionInfo(): Result<GetSessionResponse?, UserError> =
+    suspend fun getSessionInfo(): IResult<GetSessionResponse?, UserError> =
         getRequest<GetSessionResponse>(
             "$endpoint/auth/get-session",
         )
@@ -89,12 +89,12 @@ class UserRemoteDatasource(private val client: HttpClient) {
      *
      * @return Result<Unit> 成功时返回空结果，失败时返回错误信息
      */
-    suspend fun logout(): Result<Unit, UserError> =
+    suspend fun logout(): IResult<Unit, UserError> =
         try {
             client.post("$endpoint/auth/sign-out")
-            Result.Success(Unit)
+            IResult.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(UserError.NetworkError(e))
+            IResult.Error(UserError.NetworkError(e))
         }
 
 

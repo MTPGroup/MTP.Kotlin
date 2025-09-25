@@ -5,7 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.auth.data.model.*
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.AuthError
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
@@ -18,7 +18,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
         url: String,
         requestBody: Any? = null,
         headers: Headers? = null,
-    ): Result<R, AuthError> {
+    ): IResult<R, AuthError> {
         return try {
             val response: R = client.post(url) {
                 contentType(ContentType.Application.Json)
@@ -31,13 +31,13 @@ class AuthRemoteDatasource(private val client: HttpClient) {
                     }
                 }
             }.body()
-            Result.Success(response)
+            IResult.Success(response)
         } catch (e: ClientRequestException) {
             try {
                 val errorBody = e.response.body<Any>()
-                Result.Error(AuthError.ApiError(-1, "发生错误: $errorBody"))
+                IResult.Error(AuthError.ApiError(-1, "发生错误: $errorBody"))
             } catch (_: Exception) {
-                Result.Error(
+                IResult.Error(
                     AuthError.ApiError(
                         e.response.status.value,
                         "客户端请求失败，无法解析错误信息。",
@@ -45,21 +45,21 @@ class AuthRemoteDatasource(private val client: HttpClient) {
                 )
             }
         } catch (e: ServerResponseException) {
-            Result.Error(
+            IResult.Error(
                 AuthError.ApiError(
                     e.response.status.value,
                     "服务器响应错误: ${e.response.status.description}",
                 )
             )
         } catch (e: RedirectResponseException) {
-            Result.Error(
+            IResult.Error(
                 AuthError.ApiError(
                     e.response.status.value,
                     "重定向错误: ${e.response.status.description}",
                 )
             )
         } catch (e: Exception) {
-            Result.Error(AuthError.NetworkError(e))
+            IResult.Error(AuthError.NetworkError(e))
         }
     }
 
@@ -77,7 +77,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
         email: String,
         password: String,
         callbackURL: String = "",
-    ): Result<SignUpResponse, AuthError> =
+    ): IResult<SignUpResponse, AuthError> =
         postAuthRequest(
             "$endpoint/sign-up/email",
             SignUpRequest(email, name, password, callbackURL),
@@ -93,7 +93,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
     suspend fun signInWithPassword(
         email: String,
         password: String,
-    ): Result<SignInWithPasswordResponse, AuthError> =
+    ): IResult<SignInWithPasswordResponse, AuthError> =
         postAuthRequest(
             "$endpoint/sign-in/email",
             SignInWithPasswordRequest(email, password),
@@ -104,7 +104,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
      *
      * @return Result<SignOutResponse> 成功时返回登出响应，失败时返回错误信息
      */
-    suspend fun signOut(): Result<SignOutResponse, AuthError> =
+    suspend fun signOut(): IResult<SignOutResponse, AuthError> =
         postAuthRequest(
             "$endpoint/sign-out",
             SignOutRequest,
@@ -120,7 +120,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
     suspend fun sendEmailVerification(
         email: String,
         type: OTPType,
-    ): Result<SendEmailVerificationResponse, AuthError> =
+    ): IResult<SendEmailVerificationResponse, AuthError> =
         postAuthRequest(
             "$endpoint/email-otp/send-verification-otp",
             SendEmailVerificationRequest(email, type),
@@ -134,7 +134,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
      */
     suspend fun sendPasswordResetEmail(
         email: String,
-    ): Result<SendPasswordResetEmailResponse, AuthError> =
+    ): IResult<SendPasswordResetEmailResponse, AuthError> =
         postAuthRequest(
             "$endpoint/forget-password/email-otp",
             SendPasswordResetEmailRequest(email),
@@ -150,7 +150,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
     suspend fun verifyEmail(
         email: String,
         otp: String,
-    ): Result<VerifyOTPResponse, AuthError> =
+    ): IResult<VerifyOTPResponse, AuthError> =
         postAuthRequest(
             "$endpoint/email-otp/verify-email",
             VerifyOTPRequest(email, otp),
@@ -168,7 +168,7 @@ class AuthRemoteDatasource(private val client: HttpClient) {
         email: String,
         otp: String,
         password: String,
-    ): Result<ResetPasswordResponse, AuthError> =
+    ): IResult<ResetPasswordResponse, AuthError> =
         postAuthRequest(
             "$endpoint/email-otp/reset-password",
             ResetPasswordRequest(email, otp, password),

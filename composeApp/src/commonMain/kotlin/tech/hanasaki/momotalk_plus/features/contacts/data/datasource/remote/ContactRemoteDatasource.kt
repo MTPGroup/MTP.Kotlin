@@ -3,7 +3,7 @@ package tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.ContactError
 
@@ -16,12 +16,12 @@ class ContactRemoteDatasource(private val client: HttpClient) {
      * @param userId 用户ID
      * @return Result<Unit, UserError>
      */
-    suspend fun addContact(userId: String): Result<Unit, ContactError> {
+    suspend fun addContact(userId: String): IResult<Unit, ContactError> {
         return try {
             client.post("$endpoint/add/$userId")
-            Result.Success(Unit)
+            IResult.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(ContactError.ApiError(-1, e.message ?: "添加联系人失败"))
+            IResult.Error(ContactError.ApiError(-1, e.message ?: "添加联系人失败"))
         }
     }
 
@@ -31,12 +31,12 @@ class ContactRemoteDatasource(private val client: HttpClient) {
      * @param userId 用户ID
      * @return Result<Unit, UserError>
      */
-    suspend fun deleteContact(userId: String): Result<Unit, ContactError> {
+    suspend fun deleteContact(userId: String): IResult<Unit, ContactError> {
         return try {
             client.delete("$endpoint/delete/$userId")
-            Result.Success(Unit)
+            IResult.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(ContactError.ApiError(-1, e.message ?: "删除联系人失败"))
+            IResult.Error(ContactError.ApiError(-1, e.message ?: "删除联系人失败"))
         }
     }
 
@@ -46,12 +46,12 @@ class ContactRemoteDatasource(private val client: HttpClient) {
      * @return Result<List<Contact>, UserError>
      */
     // TODO: 联系人数据模型
-    suspend fun getContacts(): Result<List<Contact>, ContactError> {
+    suspend fun getContacts(): IResult<List<Contact>, ContactError> {
         return try {
             val contacts: List<Contact> = client.get("$endpoint/list").body()
-            Result.Success(contacts)
+            IResult.Success(contacts)
         } catch (e: Exception) {
-            Result.Error(ContactError.ApiError(-1, e.message ?: "获取联系人列表失败"))
+            IResult.Error(ContactError.ApiError(-1, e.message ?: "获取联系人列表失败"))
         }
     }
 }

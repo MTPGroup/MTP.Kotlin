@@ -1,7 +1,7 @@
 package tech.hanasaki.momotalk_plus.core.domain.usecase
 
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 
@@ -12,7 +12,7 @@ class CreateCharacterUseCase(private val repository: CharacterRepository) {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<Unit, AppError> =
+    ): IResult<Unit, AppError> =
         repository.createCharacter(
             name,
             creatorId, persona, signature, avatarUrl, visibility

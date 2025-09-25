@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
@@ -11,7 +11,7 @@ interface UserRepository {
      *
      * @return 返回用户信息或错误
      */
-    suspend fun getCurrentUser(): Result<UserProfile?, UserError>
+    suspend fun getCurrentUser(): IResult<UserProfile?, UserError>
 
     /**
      * 更新用户信息
@@ -32,9 +32,9 @@ interface UserRepository {
     /**
      * 注销当前用户。
      *
-     * @return 成功时返回 [Result.Success]，失败时返回 [Result.Error]。
+     * @return 成功时返回 [IResult.Success]，失败时返回 [IResult.Error]。
      */
-    suspend fun logout(): Result<Unit, UserError>
+    suspend fun logout(): IResult<Unit, UserError>
 
 
     /**

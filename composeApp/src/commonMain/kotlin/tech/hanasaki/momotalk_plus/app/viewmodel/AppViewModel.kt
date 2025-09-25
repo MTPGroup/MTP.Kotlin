@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.app.state.AppUiState
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
@@ -16,7 +16,7 @@ import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
 class AppViewModel(
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val getLoginStateUseCase: GetLoginStateUseCase,
-    private val logoutUserUseCase: LogoutUserUseCase
+    private val logoutUserUseCase: LogoutUserUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
@@ -29,7 +29,7 @@ class AppViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             when (val userInfo = getUserInfoUseCase()) {
-                is Result.Success -> {
+                is IResult.Success -> {
                     if (userInfo.data != null) {
                         _uiState.update {
                             it.copy(
@@ -41,7 +41,7 @@ class AppViewModel(
                     }
                 }
 
-                is Result.Error -> {
+                is IResult.Error -> {
                     val isLoggedIn = getLoginStateUseCase()
                     _uiState.update {
                         it.copy(

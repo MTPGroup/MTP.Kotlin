@@ -5,7 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.*
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
@@ -16,24 +16,24 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
     private suspend inline fun <reified T : Any, reified R : Any> postRequest(
         url: String,
         requestBody: T,
-    ): Result<R, UserError> {
+    ): IResult<R, UserError> {
         return try {
             val response: R = client.post(url) {
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)
             }.body()
-            Result.Success(response)
+            IResult.Success(response)
         } catch (e: ClientRequestException) {
             try {
                 val errorBody = e.response.body<Any>()
-                Result.Error(
+                IResult.Error(
                     UserError.ApiError(
                         -1,
                         ""
                     )
                 )
             } catch (parseEx: Exception) {
-                Result.Error(
+                IResult.Error(
                     UserError.ApiError(
                         e.response.status.value,
                         "客户端请求失败，无法解析错误信息。"
@@ -41,43 +41,43 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
                 )
             }
         } catch (e: ServerResponseException) {
-            Result.Error(
+            IResult.Error(
                 UserError.ApiError(
                     e.response.status.value,
                     "服务器错误: ${e.response.status}"
                 )
             )
         } catch (e: RedirectResponseException) {
-            Result.Error(
+            IResult.Error(
                 UserError.ApiError(
                     e.response.status.value,
                     "重定向错误: ${e.response.status}"
                 )
             )
         } catch (e: Exception) {
-            Result.Error(UserError.NetworkError(e))
+            IResult.Error(UserError.NetworkError(e))
         }
     }
 
     private suspend inline fun <reified T : Any> getRequest(
         url: String,
-    ): Result<T, UserError> {
+    ): IResult<T, UserError> {
         return try {
             val response: T = client.get(url).body()
             println("收到响应: $response")
-            Result.Success(response)
+            IResult.Success(response)
         } catch (e: ClientRequestException) {
             try {
                 val errorBody = e.response.body<Any>()
                 println(errorBody)
-                Result.Error(
+                IResult.Error(
                     UserError.ApiError(
                         -1,
                         ""
                     )
                 )
             } catch (parseEx: Exception) {
-                Result.Error(
+                IResult.Error(
                     UserError.ApiError(
                         e.response.status.value,
                         "客户端请求失败，无法解析错误信息。"
@@ -85,21 +85,21 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
                 )
             }
         } catch (e: ServerResponseException) {
-            Result.Error(
+            IResult.Error(
                 UserError.ApiError(
                     e.response.status.value,
                     "服务器错误: ${e.response.status}"
                 )
             )
         } catch (e: RedirectResponseException) {
-            Result.Error(
+            IResult.Error(
                 UserError.ApiError(
                     e.response.status.value,
                     "重定向错误: ${e.response.status}"
                 )
             )
         } catch (e: Exception) {
-            Result.Error(UserError.NetworkError(e))
+            IResult.Error(UserError.NetworkError(e))
         }
     }
 
@@ -116,7 +116,7 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<CreateCharacterResponse, UserError> =
+    ): IResult<CreateCharacterResponse, UserError> =
         postRequest<CreateCharacterRequest, CreateCharacterResponse>(
             "$endpoint/create",
             CreateCharacterRequest(
@@ -135,12 +135,12 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
      * @param id 角色ID
      * @return Result<Unit, UserError>
      */
-    suspend fun deleteCharacter(id: String): Result<Unit, UserError> {
+    suspend fun deleteCharacter(id: String): IResult<Unit, UserError> {
         try {
             client.delete("$endpoint/delete/$id")
-            return Result.Success(Unit)
+            return IResult.Success(Unit)
         } catch (e: Exception) {
-            return Result.Error(UserError.NetworkError(e))
+            return IResult.Error(UserError.NetworkError(e))
         }
     }
 
@@ -150,7 +150,7 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
      * @param id 角色ID
      * @return Result<CharacterDetailResponse, UserError>
      */
-    suspend fun searchCharacterById(id: String): Result<CharacterDetailResponse, UserError> =
+    suspend fun searchCharacterById(id: String): IResult<CharacterDetailResponse, UserError> =
         getRequest<CharacterDetailResponse>("$endpoint/$id")
 
     /**
@@ -158,7 +158,7 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
      *
      * @return Result<ListCharacterResponse, UserError>
      */
-    suspend fun listCharacters(): Result<ListCharacterResponse, UserError> =
+    suspend fun listCharacters(): IResult<ListCharacterResponse, UserError> =
         getRequest<ListCharacterResponse>("$endpoint/list")
 
     /**
@@ -179,7 +179,7 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<Unit, UserError> =
+    ): IResult<Unit, UserError> =
         postRequest<UpdateCharacterRequest, UpdateCharacterResponse>(
             "$endpoint/update/$id",
             UpdateCharacterRequest(
@@ -191,8 +191,8 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
             )
         ).let { result ->
             when (result) {
-                is Result.Success -> Result.Success(Unit)
-                is Result.Error -> Result.Error(result.error)
+                is IResult.Success -> IResult.Success(Unit)
+                is IResult.Error -> IResult.Error(result.error)
             }
         }
 }

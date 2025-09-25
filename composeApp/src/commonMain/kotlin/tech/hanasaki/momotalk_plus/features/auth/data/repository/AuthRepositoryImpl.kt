@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.auth.data.repository
 
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.auth.data.model.SignInWithPasswordResponse
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.AuthError
@@ -13,8 +13,8 @@ class AuthRepositoryImpl(
     override suspend fun signUp(
         email: String,
         username: String,
-        password: String
-    ): Result<Unit, AuthError> =
+        password: String,
+    ): IResult<Unit, AuthError> =
         remoteDatasource.signUpWithPassword(
             username,
             email,
@@ -24,31 +24,31 @@ class AuthRepositoryImpl(
     override suspend fun signInWithPassword(
         email: String,
         password: String,
-    ): Result<SignInWithPasswordResponse, AuthError> =
+    ): IResult<SignInWithPasswordResponse, AuthError> =
         remoteDatasource.signInWithPassword(email, password)
 
-    override suspend fun signOut(): Result<Unit, AuthError> =
+    override suspend fun signOut(): IResult<Unit, AuthError> =
         remoteDatasource.signOut().map { }
 
     override suspend fun sendEmailVerification(
         email: String,
-        type: OTPType
-    ): Result<Unit, AuthError> =
+        type: OTPType,
+    ): IResult<Unit, AuthError> =
         remoteDatasource.sendEmailVerification(email, type).map { }
 
-    override suspend fun sendPasswordResetEmail(email: String): Result<Unit, AuthError> =
+    override suspend fun sendPasswordResetEmail(email: String): IResult<Unit, AuthError> =
         remoteDatasource.sendPasswordResetEmail(email).map { }
 
     override suspend fun verifyEmail(
         email: String,
-        otp: String
-    ): Result<Unit, AuthError> =
+        otp: String,
+    ): IResult<Unit, AuthError> =
         remoteDatasource.verifyEmail(email, otp).map { }
 
     override suspend fun resetPassword(
         email: String,
         otp: String,
-        password: String
-    ): Result<Unit, AuthError> =
+        password: String,
+    ): IResult<Unit, AuthError> =
         remoteDatasource.resetPassword(email, otp, password).map { }
 }

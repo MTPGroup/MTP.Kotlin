@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignInUserUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginSideEffect
@@ -50,12 +50,12 @@ class LoginViewModel(
 
         when (val loginResult =
             loginUserUseCase(currentState.email, currentState.password)) {
-            is Result.Success -> {
+            is IResult.Success -> {
                 _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                 _sideEffect.send(LoginSideEffect.NavigateToHome)
             }
 
-            is Result.Error -> {
+            is IResult.Error -> {
                 val errorMessage = loginResult.error.message
                 _uiState.update {
                     it.copy(

@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
@@ -24,7 +24,7 @@ interface CharacterRepository {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<Unit, UserError>
+    ): IResult<Unit, UserError>
 
     /**
      * 删除角色
@@ -32,14 +32,14 @@ interface CharacterRepository {
      * @param id 角色ID
      * @return Result<Unit, UserError>
      */
-    suspend fun deleteCharacter(id: String): Result<Unit, UserError>
+    suspend fun deleteCharacter(id: String): IResult<Unit, UserError>
 
     /**
      * 获取可用角色列表
      *
      * @return Result<List<Character>, UserError>
      */
-    suspend fun getAvailableCharacters(): Result<List<Character>, UserError>
+    suspend fun getAvailableCharacters(): IResult<List<Character>, UserError>
 
     /**
      * 查询角色详情
@@ -47,7 +47,7 @@ interface CharacterRepository {
      * @param id 角色ID
      * @return Result<Character?, UserError>
      */
-    suspend fun getCharacterById(id: String): Result<Character, UserError>
+    suspend fun getCharacterById(id: String): IResult<Character, UserError>
 
     /**
      * 更新角色信息
@@ -67,5 +67,5 @@ interface CharacterRepository {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): Result<Unit, UserError>
+    ): IResult<Unit, UserError>
 }

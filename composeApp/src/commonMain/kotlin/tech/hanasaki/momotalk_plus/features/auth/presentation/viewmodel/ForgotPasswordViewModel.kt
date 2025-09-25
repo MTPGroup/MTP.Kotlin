@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.Result
+import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.ResetPasswordUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendPasswordResetEmailUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
@@ -48,12 +48,12 @@ class ForgotPasswordViewModel(
         _uiState.update { it.copy(isRequestingCode = true, error = null) }
         when (val result =
             sendPasswordResetEmailUseCase(uiState.value.email)) {
-            is Result.Success -> {
+            is IResult.Success -> {
                 _uiState.update { it.copy(isRequestingCode = false) }
                 _sideEffect.send(ForgotPasswordSideEffect.ShowToast("验证码已发送，请检查您的邮箱。"))
             }
 
-            is Result.Error -> {
+            is IResult.Error -> {
                 val errorMessage = result.error.message
                 _uiState.update { it.copy(isRequestingCode = false, error = errorMessage) }
                 _sideEffect.send(ForgotPasswordSideEffect.ShowToast(errorMessage))
@@ -78,12 +78,12 @@ class ForgotPasswordViewModel(
             otp = currentState.otpCode,
             newPassword = currentState.newPassword,
         )) {
-            is Result.Success -> {
+            is IResult.Success -> {
                 _uiState.update { it.copy(isLoading = false) }
                 _sideEffect.send(ForgotPasswordSideEffect.NavigateToSuccess)
             }
 
-            is Result.Error -> {
+            is IResult.Error -> {
                 val errorMessage = result.error.message
                 _uiState.update { it.copy(isLoading = false, error = errorMessage) }
                 _sideEffect.send(ForgotPasswordSideEffect.ShowToast(errorMessage))
