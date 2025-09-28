@@ -1,18 +1,48 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.navigation.ContactsRoute
 
 @Composable
-fun ContactsScreen(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun ContactsScreen(
+    currentUser: UserProfile?,
+    onAvatarClick: () -> Unit,
+) {
+    val contactsNavController = rememberNavController()
+
+    NavHost(
+        navController = contactsNavController,
+        startDestination = ContactsRoute.ContactList
     ) {
-        Text("联系人列表")
+        composable<ContactsRoute.ContactList> {
+            ContactListPage(
+                currentUser = currentUser,
+                onAvatarClick = onAvatarClick,
+                onNavigateToAddContact = { contactsNavController.navigate(ContactsRoute.AddContact) },
+                onNavigateToContactDetail = { contactId ->
+                    contactsNavController.navigate(ContactsRoute.ContactDetail(contactId))
+                }
+            )
+        }
+
+        composable<ContactsRoute.ContactDetail> { backStackEntry ->
+            val route = backStackEntry.toRoute<ContactsRoute.ContactDetail>()
+            ContactDetailPage(
+                userId = route.id,
+                onNavigateBack = { contactsNavController.popBackStack() }
+            )
+        }
+
+        composable<ContactsRoute.AddContact> {
+            AddContactPage(
+                onNavigateBack = { contactsNavController.popBackStack() }
+            )
+        }
     }
+
 }

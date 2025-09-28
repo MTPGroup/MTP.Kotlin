@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.koin.compose.viewmodel.koinViewModel
+import tech.hanasaki.momotalk_plus.app.ui.widgets.TopAppBar
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatListItem
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatsIntent
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatsSideEffect
@@ -28,12 +30,15 @@ import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsVi
 
 @Composable
 fun ChatsScreen(
+    currentUser: UserProfile?,
+    onAvatarClick: () -> Unit,
     onNavigateToChat: (String) -> Unit,
     modifier: Modifier = Modifier,
-    chatsViewModel: ChatsViewModel = koinViewModel()
+    chatsViewModel: ChatsViewModel = koinViewModel(),
 ) {
     val uiState by chatsViewModel.uiState.collectAsState()
     val onIntent = chatsViewModel::processIntent
+
 
     LaunchedEffect(chatsViewModel.sideEffect) {
         chatsViewModel.sideEffect.collect { effect ->
@@ -43,20 +48,34 @@ fun ChatsScreen(
         }
     }
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(uiState.chatList, key = { it.id }) { chat ->
-                    ChatItem(
-                        chat = chat,
-                        onClick = { onIntent(ChatsIntent.ChatClicked(chat.id)) }
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = "",
+                avatarUrl = currentUser?.image,
+                username = currentUser?.name ?: "未登录",
+                onAvatarClick = onAvatarClick,
+                onActionClick = {},
+            )
+        },
+    ) { paddingValues ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(uiState.chatList, key = { it.id }) { chat ->
+                        ChatItem(
+                            chat = chat,
+                            onClick = { onIntent(ChatsIntent.ChatClicked(chat.id)) }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(start = 88.dp))
+                    }
                 }
             }
         }
@@ -66,7 +85,7 @@ fun ChatsScreen(
 @Composable
 private fun ChatItem(
     chat: ChatListItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier

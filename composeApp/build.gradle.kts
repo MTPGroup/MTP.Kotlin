@@ -44,7 +44,6 @@ kotlin {
                 outputFileName = "composeApp.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
                         add(rootDirPath)
                         add(projectDirPath)
                     }
@@ -92,6 +91,7 @@ kotlin {
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.noArg)
             implementation(libs.multiplatform.settings.makeObservable)
+            implementation(libs.compose.icon.ionicons)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

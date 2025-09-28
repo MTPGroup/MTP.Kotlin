@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets
+package tech.hanasaki.momotalk_plus.app.ui.widgets
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -10,12 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,16 +18,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
-import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeIntent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopAppBar(
+fun TopAppBar(
     title: String,
     username: String,
     avatarUrl: String?,
-    onIntent: (HomeIntent) -> Unit,
     onAvatarClick: () -> Unit,
+    onActionClick: () -> Unit,
 ) {
     CenterAlignedTopAppBar(
         title = { Text(title, fontWeight = FontWeight.Bold) },
@@ -57,7 +51,7 @@ fun HomeTopAppBar(
                         )
                     } else {
                         Icon(
-                           imageVector =  Icons.Default.Person,
+                            imageVector = Icons.Default.Person,
                             contentDescription = "用户头像",
                             modifier = avatarModifier
                         )
@@ -73,11 +67,11 @@ fun HomeTopAppBar(
         },
         actions = {
             if (title.isBlank()) {
-                IconButton(onClick = { /* TODO: 实现搜索 */ }) {
+                IconButton(onClick = onActionClick) {
                     Icon(Icons.Default.Search, contentDescription = "搜索")
                 }
             } else {
-                IconButton(onClick = { /* TODO: 实现添加联系人 */}) {
+                IconButton(onClick = onActionClick) {
                     Icon(Icons.Default.Add, contentDescription = "添加联系人")
                 }
             }

@@ -7,9 +7,10 @@ import io.ktor.client.request.*
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.GetSessionResponse
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
+import tech.hanasaki.momotalk_plus.core.utils.Constants
 
 class UserRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "http://localhost:3001/api"
+    private val endpoint = Constants.BASE_URL
 
     private suspend inline fun <reified T : Any> getRequest(
         url: String,

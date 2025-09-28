@@ -1,0 +1,53 @@
+package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.widgets
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import coil3.compose.rememberAsyncImagePainter
+import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
+
+@Composable
+fun ContactListItem(
+    contact: Contact,
+    onContactClick: (String) -> Unit,
+) {
+    ListItem(
+        headlineContent = { Text(contact.name) },
+        supportingContent = { Text(contact.signature) },
+        leadingContent = {
+            val avatarModifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(2.dp, Color.Gray, CircleShape)
+
+            if (contact.avatarUrl.isNotBlank()) {
+                Icon(
+                    painter = rememberAsyncImagePainter(contact.avatarUrl),
+                    contentDescription = "用户头像",
+                    modifier = avatarModifier
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "默认头像",
+                    modifier = avatarModifier
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = { onContactClick(contact.id) }),
+    )
+}

@@ -1,12 +1,10 @@
 package tech.hanasaki.momotalk_plus.features.home.presentation.ui
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,7 +18,6 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeSideEffe
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeTab
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeBottomNavigationBar
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeDrawerContent
-import tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets.HomeTopAppBar
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
 
 @Composable
@@ -43,9 +40,9 @@ fun HomeScreen(
     LaunchedEffect(key1 = homeViewModel.sideEffect) {
         homeViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is HomeSideEffect.NavigateToNewChat -> onNavigateToChat
-                HomeSideEffect.NavigateToProfile -> onNavigateToProfile
-                HomeSideEffect.NavigateToLogin -> {
+                is HomeSideEffect.NavigateToNewChat -> onNavigateToChat("")
+                is HomeSideEffect.NavigateToProfile -> onNavigateToProfile()
+                is HomeSideEffect.NavigateToLogin -> {
                     scope.launch {
                         drawerState.close()
                         onLogout()
@@ -76,39 +73,37 @@ fun HomeScreen(
         },
     ) {
         Scaffold(
-            topBar = {
-                HomeTopAppBar(
-                    title = when (uiState.currentTab) {
-                        HomeTab.Chats -> ""
-                        HomeTab.Contacts -> "联系人"
-                    },
-                    avatarUrl = currentUser?.image,
-                    username = currentUser?.name ?: "未登录",
-                    onIntent = onIntent,
-                    onAvatarClick = {
-                        scope.launch {
-                            drawerState.open()
-                        }
-                    },
-                )
-            },
             bottomBar = {
                 HomeBottomNavigationBar(
                     currentTab = uiState.currentTab,
                     onTabSelected = { tab -> onIntent(HomeIntent.TabSelected(tab)) }
                 )
             },
-        ) { paddingValues ->
+        ) {
             NavHost(
                 navController = tabNavController,
                 startDestination = HomeTab.Chats,
-                modifier = Modifier.padding(paddingValues)
             ) {
                 composable<HomeTab.Chats> {
-                    ChatsScreen(onNavigateToChat = onNavigateToChat)
+                    ChatsScreen(
+                        currentUser = currentUser,
+                        onAvatarClick = {
+                            scope.launch {
+                                drawerState.open()
+                            }
+                        },
+                        onNavigateToChat = onNavigateToChat
+                    )
                 }
                 composable<HomeTab.Contacts> {
-                    ContactsScreen()
+                    ContactsScreen(
+                        currentUser = currentUser,
+                        onAvatarClick = {
+                            scope.launch {
+                                drawerState.open()
+                            }
+                        }
+                    )
                 }
             }
         }

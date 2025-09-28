@@ -9,9 +9,10 @@ import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.*
 import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
+import tech.hanasaki.momotalk_plus.core.utils.Constants
 
 class CharacterRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "http://localhost:3001/api/character"
+    private val endpoint = "${Constants.BASE_URL}/character"
 
     private suspend inline fun <reified T : Any, reified R : Any> postRequest(
         url: String,
@@ -151,7 +152,7 @@ class CharacterRemoteDatasource(private val client: HttpClient) {
      * @return Result<CharacterDetailResponse, UserError>
      */
     suspend fun searchCharacterById(id: String): IResult<CharacterDetailResponse, UserError> =
-        getRequest<CharacterDetailResponse>("$endpoint/$id")
+        getRequest<CharacterDetailResponse>("$endpoint/detail/$id")
 
     /**
      * 查询可用角色列表

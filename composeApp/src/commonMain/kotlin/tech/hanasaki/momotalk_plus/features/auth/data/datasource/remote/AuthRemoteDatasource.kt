@@ -6,13 +6,14 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.utils.Constants
 import tech.hanasaki.momotalk_plus.features.auth.data.model.*
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.AuthError
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
 
 
 class AuthRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "http://localhost:3001/api/auth"
+    private val endpoint = "${Constants.BASE_URL}/auth"
 
     private suspend inline fun <reified R : Any> postAuthRequest(
         url: String,
