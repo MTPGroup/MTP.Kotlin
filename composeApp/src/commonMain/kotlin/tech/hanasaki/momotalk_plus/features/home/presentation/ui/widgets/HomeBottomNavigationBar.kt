@@ -1,13 +1,14 @@
 package tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.ChatbubbleEllipses
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.People
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeTab
 
 @Composable
@@ -16,19 +17,22 @@ fun HomeBottomNavigationBar(
     onTabSelected: (HomeTab) -> Unit,
 ) {
     val tabs = listOf(HomeTab.Chats, HomeTab.Contacts)
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+    ) {
         tabs.forEach { tab ->
             NavigationBarItem(
                 icon = {
                     Icon(
                         imageVector = when (tab) {
-                            HomeTab.Chats -> Icons.AutoMirrored.Filled.Chat
-                            HomeTab.Contacts -> Icons.Default.Contacts
+                            HomeTab.Chats -> Ionicons.Outline.ChatbubbleEllipses
+                            HomeTab.Contacts -> Ionicons.Outline.People
                         },
                         contentDescription = when (tab) {
                             HomeTab.Chats -> "消息"
                             HomeTab.Contacts -> "联系人"
-                        }
+                        },
+                        modifier = Modifier.size(24.dp)
                     )
                 },
                 label = {
@@ -40,7 +44,7 @@ fun HomeBottomNavigationBar(
                     )
                 },
                 selected = currentTab == tab,
-                onClick = { onTabSelected(tab) }
+                onClick = { onTabSelected(tab) },
             )
         }
     }

@@ -53,6 +53,7 @@ fun HomeScreen(
     }
 
     val tabNavController = rememberNavController()
+
     LaunchedEffect(uiState.currentTab) {
         tabNavController.navigate(uiState.currentTab) {
             launchSingleTop = true
@@ -74,10 +75,12 @@ fun HomeScreen(
     ) {
         Scaffold(
             bottomBar = {
-                HomeBottomNavigationBar(
-                    currentTab = uiState.currentTab,
-                    onTabSelected = { tab -> onIntent(HomeIntent.TabSelected(tab)) }
-                )
+                if (uiState.showBottomBar) {
+                    HomeBottomNavigationBar(
+                        currentTab = uiState.currentTab,
+                        onTabSelected = { tab -> onIntent(HomeIntent.TabSelected(tab)) }
+                    )
+                }
             },
         ) {
             NavHost(
@@ -102,6 +105,9 @@ fun HomeScreen(
                             scope.launch {
                                 drawerState.open()
                             }
+                        },
+                        onSetBottomBarVisibility = { visible ->
+                            onIntent(HomeIntent.SetBottomBarVisibility(visible))
                         }
                     )
                 }

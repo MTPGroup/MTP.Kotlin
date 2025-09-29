@@ -7,15 +7,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.outlined.AccountBox
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +15,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterIntent
@@ -36,7 +33,7 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.Register
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
-    viewModel: RegisterViewModel = koinViewModel()
+    viewModel: RegisterViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -81,8 +78,9 @@ fun RegisterScreen(
                     if (pagerState.currentPage < 2) {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "返回"
+                                imageVector = Ionicons.Filled.ChevronBack,
+                                contentDescription = "返回",
+                                modifier = Modifier.size(24.dp),
                             )
                         }
                     }
@@ -137,7 +135,7 @@ fun RegisterScreen(
 @Composable
 private fun VerificationStep(
     uiState: RegisterState,
-    onIntent: (RegisterIntent) -> Unit
+    onIntent: (RegisterIntent) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -146,7 +144,6 @@ private fun VerificationStep(
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // 1. 添加标题和描述
         Text(
             text = "验证您的邮箱",
             style = MaterialTheme.typography.headlineSmall,
@@ -161,14 +158,19 @@ private fun VerificationStep(
         )
         Spacer(Modifier.height(32.dp))
 
-        // 2. 优化输入框和按钮布局
         OutlinedTextField(
             value = uiState.otpCode,
             onValueChange = { onIntent(RegisterIntent.OTPCodeChanged(it)) },
             label = { Text("6位验证码") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.MailOutline, contentDescription = null) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.Mail,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             isError = uiState.error?.contains("验证码") == true,
             supportingText = { if (uiState.error != null) Text(uiState.error) },
             shape = MaterialTheme.shapes.medium,
@@ -181,13 +183,15 @@ private fun VerificationStep(
                 enabled = !uiState.isLoading,
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
-                Text("没有收到？重新发送")
+                Text(
+                    "没有收到？重新发送",
+                    textDecoration = TextDecoration.Underline,
+                )
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // 3. 修改按钮文本和样式
         Button(
             onClick = { onIntent(RegisterIntent.VerifyEmailClicked) },
             enabled = uiState.otpCode.isNotBlank() && !uiState.isLoading,
@@ -202,7 +206,7 @@ private fun VerificationStep(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("验证") // 文本更贴切
+                Text("验证")
             }
         }
     }
@@ -212,7 +216,7 @@ private fun VerificationStep(
 private fun UserInfoStep(
     uiState: RegisterState,
     onIntent: (RegisterIntent) -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     val confirmPasswordVisible by remember { mutableStateOf(false) }
@@ -234,7 +238,13 @@ private fun UserInfoStep(
             label = { Text("请输入邮箱") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.Mail,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             isError = uiState.error?.contains("邮箱") == true,
             shape = MaterialTheme.shapes.medium
         )
@@ -245,7 +255,13 @@ private fun UserInfoStep(
             label = { Text("用户名") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.AccountBox, contentDescription = null) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.PersonCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             isError = uiState.error?.contains("用户名") == true,
             shape = MaterialTheme.shapes.medium
         )
@@ -256,16 +272,23 @@ private fun UserInfoStep(
             label = { Text("密码 (至少8位)") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.LockClosed,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
                 val image =
-                    if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+                    if (passwordVisible) Ionicons.Outline.EyeOff else Ionicons.Outline.Eye
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = image,
-                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
+                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             },
@@ -279,7 +302,13 @@ private fun UserInfoStep(
             label = { Text("确认密码") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.LockClosed,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             isError = uiState.error?.contains("密码不一致") == true,
@@ -301,7 +330,10 @@ private fun UserInfoStep(
         }
 
         TextButton(onClick = onNavigateToLogin) {
-            Text("已有账户？直接登录")
+            Text(
+                "已有账户？直接登录",
+                textDecoration = TextDecoration.Underline,
+            )
         }
     }
 }
@@ -319,7 +351,7 @@ private fun ResetSuccessStep(onNavigateToLogin: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.CheckCircle,
+            imageVector = Ionicons.Outline.Checkmark,
             contentDescription = "注册成功",
             modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary

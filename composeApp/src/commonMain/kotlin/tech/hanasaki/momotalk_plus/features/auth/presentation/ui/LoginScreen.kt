@@ -3,9 +3,6 @@ package tech.hanasaki.momotalk_plus.features.auth.presentation.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,10 +13,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Eye
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.EyeOff
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.LockClosed
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Mail
 import kotlinx.coroutines.launch
 import momotalkplus.composeapp.generated.resources.Res
 import momotalkplus.composeapp.generated.resources.app_description
-import momotalkplus.composeapp.generated.resources.text_logo
+import momotalkplus.composeapp.generated.resources.arona
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -85,7 +88,7 @@ fun LoginScreen(
 @Composable
 fun LoginContent(
     uiState: LoginState,
-    onIntent: (LoginIntent) -> Unit
+    onIntent: (LoginIntent) -> Unit,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -97,9 +100,9 @@ fun LoginContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Image(
-            painter = painterResource(Res.drawable.text_logo),
+            painter = painterResource(Res.drawable.arona),
             contentDescription = stringResource(Res.string.app_description),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(0.6f),
             contentScale = ContentScale.FillWidth
         )
 
@@ -107,6 +110,13 @@ fun LoginContent(
             value = uiState.email,
             onValueChange = { onIntent(LoginIntent.EmailChanged(it)) },
             label = { Text("邮箱") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.Mail,
+                    contentDescription = "邮箱图标",
+                    modifier = Modifier.size(24.dp)
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             isError = uiState.loginError != null
@@ -118,12 +128,23 @@ fun LoginContent(
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.LockClosed,
+                    contentDescription = "密码图标",
+                    modifier = Modifier.size(24.dp)
+                )
+            },
             trailingIcon = {
                 val image =
-                    if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+                    if (passwordVisible) Ionicons.Outline.EyeOff else Ionicons.Outline.Eye
                 val description = if (passwordVisible) "隐藏密码" else "显示密码"
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, description)
+                    Icon(
+                        imageVector = image,
+                        contentDescription = description,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             },
             isError = uiState.loginError != null

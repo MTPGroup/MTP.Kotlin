@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ISearchBar(
+fun MSearchBar(
     modifier: Modifier = Modifier,
     query: String,
     onQueryChanged: (String) -> Unit,

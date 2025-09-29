@@ -30,6 +30,9 @@ class HomeViewModel : ViewModel() {
 
                 HomeIntent.LogoutClicked ->
                     _sideEffect.send(HomeSideEffect.NavigateToLogin)
+
+                is HomeIntent.SetBottomBarVisibility ->
+                    _uiState.update { it.copy(showBottomBar = intent.visible) }
             }
         }
     }

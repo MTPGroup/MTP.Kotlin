@@ -13,8 +13,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.app.ui.widgets.ISearchBar
-import tech.hanasaki.momotalk_plus.app.ui.widgets.TopAppBar
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MSearchBar
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopAppBar
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactListIntent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactListSideEffect
@@ -72,7 +72,7 @@ fun ContactListPage(
     Scaffold(
         snackbarHost = { SnackbarHost(snackHostState) },
         topBar = {
-            TopAppBar(
+            MTopAppBar(
                 title = "联系人",
                 avatarUrl = currentUser?.image,
                 username = currentUser?.name ?: "未登录",
@@ -96,7 +96,7 @@ fun ContactListPage(
                     )
                 }
         ) {
-            ISearchBar(
+            MSearchBar(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 query = uiState.searchQuery,
                 onQueryChanged = { query ->

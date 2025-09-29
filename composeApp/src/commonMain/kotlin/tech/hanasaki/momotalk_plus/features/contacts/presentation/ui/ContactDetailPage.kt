@@ -1,5 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +22,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import momotalkplus.composeapp.generated.resources.Res
+import momotalkplus.composeapp.generated.resources.default_banner
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailIntent
@@ -82,25 +87,42 @@ fun ContactDetailPage(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-                Column(
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // 头像、名称和签名
-                    AsyncImage(
-                        model = uiState.contact.avatarUrl,
-                        contentDescription = "${uiState.contact.name} 的头像",
+                    Box(
                         modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.default_banner),
+                            contentDescription = "背景图",
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                        )
+
+                        AsyncImage(
+                            model = uiState.contact.avatarUrl.ifBlank {
+                                "https://v2.xxapi.cn/api/head?return=302"
+                            },
+                            contentDescription = "${uiState.contact.name} 的头像",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.Black, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .offset(y = 200.dp - 40.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Column(
@@ -121,7 +143,17 @@ fun ContactDetailPage(
                             )
                         }
                     }
+                }
 
+                Spacer(modifier = Modifier.height(50.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     // 发送消息按钮
                     Button(
                         onClick = { /* TODO: 发送消息 */ },

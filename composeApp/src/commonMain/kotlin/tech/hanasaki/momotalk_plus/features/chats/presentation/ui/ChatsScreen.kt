@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.app.ui.widgets.TopAppBar
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopAppBar
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatListItem
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatsIntent
@@ -50,7 +50,7 @@ fun ChatsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            MTopAppBar(
                 title = "",
                 avatarUrl = currentUser?.image,
                 username = currentUser?.name ?: "未登录",

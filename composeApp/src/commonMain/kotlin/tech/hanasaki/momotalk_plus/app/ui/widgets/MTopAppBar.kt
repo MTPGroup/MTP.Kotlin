@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -18,10 +17,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
+import com.woowla.compose.icon.collections.ionicons.ionicons.filled.Person
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopAppBar(
+fun MTopAppBar(
     title: String,
     username: String,
     avatarUrl: String?,
@@ -51,7 +53,7 @@ fun TopAppBar(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Default.Person,
+                            imageVector = Ionicons.Filled.Person,
                             contentDescription = "用户头像",
                             modifier = avatarModifier
                         )

@@ -5,7 +5,6 @@ import com.russhwolf.settings.Settings
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -97,9 +96,6 @@ val networkModule = module {
                     override fun close() = delegate.close()
 
                 }
-            }
-            install(Logging) {
-                level = LogLevel.ALL
             }
         }
     }

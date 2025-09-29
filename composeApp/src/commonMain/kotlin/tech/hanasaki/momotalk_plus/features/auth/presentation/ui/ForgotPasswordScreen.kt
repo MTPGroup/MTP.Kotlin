@@ -5,12 +5,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.LockReset
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +15,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
@@ -32,7 +31,7 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.ForgotPa
 @Composable
 fun ForgotPasswordScreen(
     onNavigateBack: () -> Unit,
-    viewModel: ForgotPasswordViewModel = koinViewModel()
+    viewModel: ForgotPasswordViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -66,8 +65,9 @@ fun ForgotPasswordScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            imageVector = Ionicons.Filled.ChevronBack,
+                            contentDescription = "返回",
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 },
@@ -99,7 +99,7 @@ fun ForgotPasswordScreen(
 @Composable
 private fun RequestEmailStep(
     uiState: ForgotPasswordState,
-    onIntent: (ForgotPasswordIntent) -> Unit
+    onIntent: (ForgotPasswordIntent) -> Unit,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -110,9 +110,9 @@ private fun RequestEmailStep(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
-            imageVector = Icons.Outlined.LockReset,
+            imageVector = Ionicons.Outline.RefreshCircle,
             contentDescription = "重置密码图标",
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary
         )
         Text(
@@ -133,7 +133,13 @@ private fun RequestEmailStep(
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.error != null,
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = "邮箱图标") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Ionicons.Outline.Mail,
+                    contentDescription = "邮箱图标",
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             supportingText = {
                 if (uiState.error != null && uiState.error.contains("邮箱")) {
                     Text(uiState.error)
@@ -147,16 +153,23 @@ private fun RequestEmailStep(
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.error != null,
             singleLine = true,
-            leadingIcon = { Icon(Icons.Outlined.Password, contentDescription = "密码图标") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Password,
+                    contentDescription = "密码图标",
+                    modifier = Modifier.size(24.dp),
+                )
+            },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
                 val image =
-                    if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+                    if (passwordVisible) Ionicons.Outline.EyeOff else Ionicons.Outline.Eye
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = image,
-                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
+                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             },
@@ -177,7 +190,13 @@ private fun RequestEmailStep(
                 modifier = Modifier.weight(1f),
                 isError = uiState.error != null,
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = "验证码图标") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Ionicons.Outline.ShieldCheckmark,
+                        contentDescription = "验证码图标",
+                        modifier = Modifier.size(24.dp),
+                    )
+                },
                 supportingText = {
                     if (uiState.error != null && uiState.error.contains("验证码")) {
                         Text(uiState.error)
@@ -216,7 +235,7 @@ private fun ResetSuccessStep(onNavigateToLogin: () -> Unit) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.CheckCircle,
+            imageVector = Ionicons.Outline.CheckmarkCircle,
             contentDescription = "重置密码成功",
             modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary

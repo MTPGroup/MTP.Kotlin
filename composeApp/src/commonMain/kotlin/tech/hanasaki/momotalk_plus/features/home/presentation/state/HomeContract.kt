@@ -13,6 +13,7 @@ sealed interface HomeTab {
 
 data class HomeState(
     val currentTab: HomeTab = HomeTab.Chats,
+    val showBottomBar: Boolean = true,
 )
 
 sealed class HomeIntent {
@@ -20,6 +21,7 @@ sealed class HomeIntent {
     data object NewChatClicked : HomeIntent()
     data object ProfileClicked : HomeIntent()
     data class TabSelected(val tab: HomeTab) : HomeIntent()
+    data class SetBottomBarVisibility(val visible: Boolean) : HomeIntent()
 }
 
 sealed class HomeSideEffect {
