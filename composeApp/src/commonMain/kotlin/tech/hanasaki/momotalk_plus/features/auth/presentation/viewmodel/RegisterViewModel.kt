@@ -1,10 +1,8 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendEmailVerificationUseCase
@@ -19,31 +17,25 @@ class RegisterViewModel(
     private val registerUserUseCase: SignUpUserUseCase,
     private val sendOTPCodeUseCase: SendEmailVerificationUseCase,
     private val verifyEmailUseCase: VerifyEmailUseCase,
-) : ViewModel() {
+) : BaseViewModel<RegisterState, RegisterSideEffect, RegisterIntent>(RegisterState()) {
 
-    private val _uiState = MutableStateFlow(RegisterState())
-    val uiState: StateFlow<RegisterState> = _uiState.asStateFlow()
-
-    private val _sideEffect = Channel<RegisterSideEffect>()
-    val sideEffect: Flow<RegisterSideEffect> = _sideEffect.receiveAsFlow()
-
-    fun processIntent(intent: RegisterIntent) {
+    override fun processIntent(intent: RegisterIntent) {
         viewModelScope.launch {
             when (intent) {
                 is RegisterIntent.EmailChanged ->
-                    _uiState.update { it.copy(email = intent.email) }
+                    updateState { it.copy(email = intent.email) }
 
                 is RegisterIntent.OTPCodeChanged ->
-                    _uiState.update { it.copy(otpCode = intent.otpCode) }
+                    updateState { it.copy(otpCode = intent.otpCode) }
 
                 is RegisterIntent.UsernameChanged ->
-                    _uiState.update { it.copy(username = intent.username) }
+                    updateState { it.copy(username = intent.username) }
 
                 is RegisterIntent.PasswordChanged ->
-                    _uiState.update { it.copy(password = intent.password) }
+                    updateState { it.copy(password = intent.password) }
 
                 is RegisterIntent.ConfirmPasswordChanged ->
-                    _uiState.update { it.copy(confirmPassword = intent.confirmPassword) }
+                    updateState { it.copy(confirmPassword = intent.confirmPassword) }
 
                 is RegisterIntent.ResendOTPCodeClicked ->
                     sendOTPCode()
@@ -58,40 +50,40 @@ class RegisterViewModel(
     }
 
     private suspend fun sendOTPCode() {
-        val currentState = _uiState.value
+        val currentState = getState()
         when (val result = sendOTPCodeUseCase(currentState.email)) {
             is IResult.Success -> {
-                _uiState.update { it.copy(isEmailValid = true, error = null) }
-                _sideEffect.send(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
+                updateState { it.copy(isEmailValid = true, error = null) }
+                sendSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
             }
 
             is IResult.Error -> {
                 val errorMessage = result.error.message
-                _uiState.update { it.copy(error = errorMessage) }
-                _sideEffect.send(RegisterSideEffect.ShowToast(errorMessage))
+                updateState { it.copy(error = errorMessage) }
+                sendSideEffect(RegisterSideEffect.ShowToast(errorMessage))
             }
         }
     }
 
     private suspend fun verifyEmail() {
-        val currentState = _uiState.value
+        val currentState = getState()
         when (val result = verifyEmailUseCase(currentState.email, currentState.otpCode)) {
             is IResult.Success -> {
-                _sideEffect.send(RegisterSideEffect.NavigateToSuccessStep)
+                sendSideEffect(RegisterSideEffect.NavigateToSuccessStep)
             }
 
             is IResult.Error -> {
                 val errorMessage = result.error.message
-                _uiState.update { it.copy(error = errorMessage) }
-                _sideEffect.send(RegisterSideEffect.ShowToast(errorMessage))
+                updateState { it.copy(error = errorMessage) }
+                sendSideEffect(RegisterSideEffect.ShowToast(errorMessage))
             }
         }
     }
 
     private suspend fun registerUser() {
-        val currentState = _uiState.value
+        val currentState = getState()
         if (currentState.password != currentState.confirmPassword) {
-            _uiState.update { it.copy(error = "两次输入的密码不一致。") }
+            updateState { it.copy(error = "两次输入的密码不一致。") }
             return
         }
 
@@ -105,13 +97,13 @@ class RegisterViewModel(
         )) {
             is IResult.Success -> {
                 sendOTPCode()
-                _sideEffect.send(RegisterSideEffect.NavigateToNextStep)
+                sendSideEffect(RegisterSideEffect.NavigateToNextStep)
             }
 
             is IResult.Error -> {
                 val errorMessage = result.error.message
-                _uiState.update { it.copy(error = errorMessage) }
-                _sideEffect.send(RegisterSideEffect.ShowToast(errorMessage))
+                updateState { it.copy(error = errorMessage) }
+                sendSideEffect(RegisterSideEffect.ShowToast(errorMessage))
             }
         }
     }
