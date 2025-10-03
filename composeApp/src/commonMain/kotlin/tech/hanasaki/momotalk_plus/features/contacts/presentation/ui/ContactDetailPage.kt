@@ -6,9 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +19,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
+import com.woowla.compose.icon.collections.ionicons.ionicons.filled.Send
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import momotalkplus.composeapp.generated.resources.Res
 import momotalkplus.composeapp.generated.resources.default_banner
 import org.jetbrains.compose.resources.painterResource
@@ -47,26 +50,35 @@ fun ContactDetailPage(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = uiState.contact.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = {
+                    Text(
+                        text = uiState.contact.name,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            Ionicons.Filled.ChevronBack,
                             contentDescription = "返回上一页",
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO: 编辑联系人 */ }) {
                         Icon(
-                            Icons.Default.EditNote,
+                            Ionicons.Outline.Create,
                             contentDescription = "编辑联系人信息",
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                     IconButton(onClick = { /* TODO: 删除联系人 */ }) {
                         Icon(
-                            Icons.Default.Delete,
+                            Ionicons.Outline.Trash,
                             contentDescription = "删除联系人",
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }
@@ -87,70 +99,63 @@ fun ContactDetailPage(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
-                BoxWithConstraints(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
+                    Image(
+                        painter = painterResource(Res.drawable.default_banner),
+                        contentDescription = "背景图",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Image(
-                            painter = painterResource(Res.drawable.default_banner),
-                            contentDescription = "背景图",
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                        )
+                            .fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
 
-                        AsyncImage(
-                            model = uiState.contact.avatarUrl.ifBlank {
-                                "https://v2.xxapi.cn/api/head?return=302"
-                            },
-                            contentDescription = "${uiState.contact.name} 的头像",
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, Color.Black, CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    Card(
+                    AsyncImage(
+                        model = uiState.contact.avatarUrl.ifBlank {
+                            "https://v2.xxapi.cn/api/head?return=302"
+                        },
+                        contentDescription = "${uiState.contact.name} 的头像",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .offset(y = 200.dp - 40.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = uiState.contact.name,
-                                style = MaterialTheme.typography.headlineLarge
-                            )
-                            Text(
-                                text = uiState.contact.signature,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, Color.Black, CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(50.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .offset(y = (-30).dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = uiState.contact.name,
+                            style = MaterialTheme.typography.headlineLarge
+                        )
+                        Text(
+                            text = uiState.contact.signature,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -161,9 +166,11 @@ fun ContactDetailPage(
                     ) {
                         Row {
                             Icon(
-                                Icons.Default.Message,
+                                Ionicons.Filled.Send,
                                 contentDescription = "发送消息",
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .size(24.dp)
                             )
                             Text("发送消息")
                         }
@@ -180,7 +187,7 @@ fun ContactDetailPage(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             Text(
-                                text = uiState.contact.persona.ifBlank { "暂无设定。" },
+                                text = uiState.contact.persona.ifBlank { "暂无设定" },
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -201,8 +208,9 @@ fun ContactDetailPage(
                                 supportingContent = { Text(uiState.contact.creator.name) },
                                 leadingContent = {
                                     Icon(
-                                        Icons.Default.Face,
-                                        contentDescription = "创建者"
+                                        Ionicons.Outline.PersonCircle,
+                                        contentDescription = "创建者",
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             )
@@ -213,8 +221,9 @@ fun ContactDetailPage(
                                 supportingContent = { Text(if (uiState.contact.visibility == Visibility.PUBLIC) "公开" else "私有") },
                                 leadingContent = {
                                     Icon(
-                                        if (uiState.contact.visibility == Visibility.PUBLIC) Icons.Default.Public else Icons.Default.Lock,
-                                        contentDescription = "可见性"
+                                        if (uiState.contact.visibility == Visibility.PUBLIC) Ionicons.Outline.Earth else Ionicons.Outline.LockClosed,
+                                        contentDescription = "可见性",
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             )
@@ -225,8 +234,9 @@ fun ContactDetailPage(
                                 supportingContent = { Text(uiState.contact.createdAt) },
                                 leadingContent = {
                                     Icon(
-                                        Icons.Default.CalendarMonth,
-                                        contentDescription = "创建日期"
+                                        Ionicons.Outline.Calendar,
+                                        contentDescription = "创建日期",
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             )
@@ -237,8 +247,9 @@ fun ContactDetailPage(
                                 supportingContent = { Text(uiState.contact.updatedAt) },
                                 leadingContent = {
                                     Icon(
-                                        Icons.Default.CalendarMonth,
-                                        contentDescription = "更新日期"
+                                        Ionicons.Outline.Calendar,
+                                        contentDescription = "更新日期",
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             )

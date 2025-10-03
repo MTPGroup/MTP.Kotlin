@@ -2,6 +2,7 @@ package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,7 +16,7 @@ fun ContactsScreen(
     onAvatarClick: () -> Unit,
     onSetBottomBarVisibility: (Boolean) -> Unit,
 ) {
-    val contactsNavController = rememberNavController()
+    val contactsNavController: NavHostController = rememberNavController()
 
     LaunchedEffect(contactsNavController) {
         contactsNavController.currentBackStackEntryFlow.collect { entry ->

@@ -37,7 +37,7 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = homeViewModel.sideEffect) {
+    LaunchedEffect(homeViewModel.sideEffect) {
         homeViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is HomeSideEffect.NavigateToNewChat -> onNavigateToChat("")

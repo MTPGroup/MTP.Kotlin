@@ -1,30 +1,32 @@
 [versions]
 agp = "8.10.1"
-android-compileSdk = "35"
+android-compileSdk = "36"
 android-minSdk = "30"
+#noinspection OldTargetApi
 android-targetSdk = "35"
-androidx-activity = "1.10.1"
-androidx-appcompat = "1.7.0"
+androidx-activity = "1.11.0"
+androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.2.1"
-androidx-core = "1.16.0"
-androidx-espresso = "3.6.1"
-androidx-lifecycle = "2.9.0"
-androidx-testExt = "1.2.1"
+androidx-core = "1.17.0"
+androidx-espresso = "3.7.0"
+androidx-lifecycle = "2.9.4"
+androidx-testExt = "1.3.0"
 androidx-collection = "1.5.0"
-androidx-navigation = "2.9.0-beta03"
-composeHotReload = "1.0.0-alpha10"
-composeMultiplatform = "1.8.1"
+androidx-navigation = "2.9.0"
+composeHotReload = "1.0.0-beta09"
+composeMultiplatform = "1.9.0"
 junit = "4.13.2"
-kotlin = "2.1.21"
+kotlin = "2.2.20"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization-json = "1.8.1"
-google-services = "4.4.2"
-koin-bom = "4.1.0"
-ktor = "3.2.0"
+google-services = "4.4.3"
+koin-bom = "4.1.1"
+ktor = "3.3.0"
 build-konfig = "0.17.1"
-coil = "3.2.0"
+coil = "3.3.0"
 multiplatform-settings = "1.3.0"
 ionicons = "8.0.8"
+compose-core = "1.45.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -62,6 +64,7 @@ multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-sett
 multiplatform-settings-noArg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
 multiplatform-settings-makeObservable = { module = "com.russhwolf:multiplatform-settings-make-observable", version.ref = "multiplatform-settings" }
 compose-icon-ionicons = { module = "com.woowla.compose.icon.collections:ionicons", version.ref = "ionicons" }
+compose-core = { module = "com.composables:core", version.ref = "compose-core" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

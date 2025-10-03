@@ -92,6 +92,7 @@ kotlin {
             implementation(libs.multiplatform.settings.noArg)
             implementation(libs.multiplatform.settings.makeObservable)
             implementation(libs.compose.icon.ionicons)
+            implementation(libs.compose.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

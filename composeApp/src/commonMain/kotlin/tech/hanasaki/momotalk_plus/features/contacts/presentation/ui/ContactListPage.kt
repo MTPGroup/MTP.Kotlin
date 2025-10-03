@@ -115,6 +115,7 @@ fun ContactListPage(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(top = 16.dp),
                     ) {
                         items(filteredContacts.size) { index ->
                             ContactListItem(
