@@ -26,6 +26,10 @@ import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.ForgotPasswordViewModel
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.LoginViewModel
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.RegisterViewModel
+import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.ChatRemoteDatasource
+import tech.hanasaki.momotalk_plus.features.chats.data.repository.ChatRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatRepository
+import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.ContactRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactRepositoryImpl
@@ -58,6 +62,13 @@ val commonModule = module {
     factoryOf(::AddContactUseCase)
     factoryOf(::DeleteContactUseCase)
     factoryOf(::ListContactUseCase)
+    factoryOf(::ClearChatHistoryUseCase)
+    factoryOf(::CreateChatUseCase)
+    factoryOf(::DeleteChatUseCase)
+    factoryOf(::GetChatHistoryUseCase)
+    factoryOf(::GetChatsUseCase)
+    factoryOf(::SendMessageStreamUseCase)
+    factoryOf(::UpdateChatUseCase)
 }
 
 val storageModule = module {
@@ -108,6 +119,7 @@ val datasourceModule = module {
     factoryOf(::UserRemoteDatasource)
     factoryOf(::CharacterRemoteDatasource)
     factoryOf(::ContactRemoteDatasource)
+    factoryOf(::ChatRemoteDatasource)
 }
 
 val repositoryModule = module {
@@ -115,6 +127,7 @@ val repositoryModule = module {
     single<UserRepository> { UserRepositoryImpl(get(), get()) }
     single<CharacterRepository> { CharacterRepositoryImpl(get()) }
     single<ContactRepository> { ContactRepositoryImpl(get()) }
+    single<ChatRepository> { ChatRepositoryImpl(get()) }
 }
 
 
