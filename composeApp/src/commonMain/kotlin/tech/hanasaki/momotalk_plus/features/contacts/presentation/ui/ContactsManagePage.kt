@@ -1,28 +1,22 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.filled.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MSearchBar
-import tech.hanasaki.momotalk_plus.core.domain.model.Character
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactsManageIntent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactsManageSideEffect
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.widgets.ContactManageListItem
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -205,7 +199,7 @@ fun ContactsManagePage(
                                 val isAdded = character.id in uiState.addedContactIds
                                 val isProcessing = uiState.processingContactId == character.id
 
-                                ContactItem(
+                                ContactManageListItem(
                                     character = character,
                                     isAdded = isAdded,
                                     isProcessing = isProcessing,
@@ -218,120 +212,6 @@ fun ContactsManagePage(
                                 )
                             }
                         }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ContactItem(
-    character: Character,
-    isAdded: Boolean, // 新增参数
-    isProcessing: Boolean,
-    onAddClick: () -> Unit,
-    onRemoveClick: () -> Unit, // 新增参数
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable(
-                enabled = !isProcessing,
-                onClick = if (isAdded) onRemoveClick else onAddClick
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 头像
-            AsyncImage(
-                model = character.avatarUrl.ifEmpty { "https://via.placeholder.com/48" },
-                contentDescription = "头像",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 信息
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = character.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (character.signature.isNotEmpty()) {
-                    Text(
-                        text = character.signature,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 按钮：根据状态显示添加或删除
-            if (isAdded) {
-                FilledTonalButton(
-                    onClick = onRemoveClick,
-                    enabled = !isProcessing,
-                    modifier = Modifier.height(36.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                ) {
-                    if (isProcessing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Ionicons.Filled.PersonRemove,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .padding(end = 4.dp)
-                        )
-                        Text("移除")
-                    }
-                }
-            } else {
-                FilledTonalButton(
-                    onClick = onAddClick,
-                    enabled = !isProcessing,
-                    modifier = Modifier.height(36.dp)
-                ) {
-                    if (isProcessing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Ionicons.Filled.PersonAdd,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .padding(end = 4.dp)
-                        )
-                        Text("添加")
                     }
                 }
             }
