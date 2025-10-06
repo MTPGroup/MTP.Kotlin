@@ -32,7 +32,7 @@ fun ContactsScreen(
             ContactListPage(
                 currentUser = currentUser,
                 onAvatarClick = onAvatarClick,
-                onNavigateToAddContact = { contactsNavController.navigate(ContactsRoute.AddContact) },
+                onNavigateToAddContact = { contactsNavController.navigate(ContactsRoute.ManageContacts) },
                 onNavigateToContactDetail = { contactId ->
                     contactsNavController.navigate(ContactsRoute.ContactDetail(contactId))
                 }
@@ -43,12 +43,23 @@ fun ContactsScreen(
             val route = backStackEntry.toRoute<ContactsRoute.ContactDetail>()
             ContactDetailPage(
                 userId = route.id,
+                onNavigateToEditContact = { contactId ->
+                    contactsNavController.navigate(ContactsRoute.EditContact(contactId))
+                },
                 onNavigateBack = { contactsNavController.popBackStack() }
             )
         }
 
-        composable<ContactsRoute.AddContact> {
-            AddContactPage(
+        composable<ContactsRoute.EditContact> { backStackEntry ->
+            val route = backStackEntry.toRoute<ContactsRoute.EditContact>()
+            ContactEditPage(
+                contactId = route.id,
+                onNavigateBack = { contactsNavController.popBackStack() }
+            )
+        }
+
+        composable<ContactsRoute.ManageContacts> {
+            ContactsManagePage(
                 onNavigateBack = { contactsNavController.popBackStack() }
             )
         }

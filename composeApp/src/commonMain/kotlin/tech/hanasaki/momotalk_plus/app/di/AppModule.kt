@@ -34,7 +34,9 @@ import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.AddContactUs
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.DeleteContactUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.ListContactUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactDetailViewModel
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactEditViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
 
 val commonModule = module {
@@ -125,6 +127,8 @@ val viewModelModule = module {
     viewModelOf(::ChatsViewModel)
     viewModelOf(::ContactListViewModel)
     viewModelOf(::ContactDetailViewModel)
+    viewModelOf(::ContactEditViewModel)
+    viewModelOf(::ContactsManageViewModel)
 }
 
 val appModule =

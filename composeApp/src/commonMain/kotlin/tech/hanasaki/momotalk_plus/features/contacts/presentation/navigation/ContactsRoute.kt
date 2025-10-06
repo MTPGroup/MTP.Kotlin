@@ -8,24 +8,11 @@ sealed interface ContactsRoute {
     data object ContactList : ContactsRoute
 
     @Serializable
-    data object AddContact : ContactsRoute
+    data object ManageContacts : ContactsRoute
+
+    @Serializable
+    data class EditContact(val id: String) : ContactsRoute
 
     @Serializable
     data class ContactDetail(val id: String) : ContactsRoute
-
-    companion object {
-        fun fromRoute(route: String?): ContactsRoute? {
-            if (route == null) return null
-            return when {
-                route == "contact_list" -> ContactList
-                route == "add_contact" -> AddContact
-                route.startsWith("contact_detail/") -> {
-                    val id = route.removePrefix("contact_detail/")
-                    ContactDetail(id)
-                }
-
-                else -> null
-            }
-        }
-    }
 }
