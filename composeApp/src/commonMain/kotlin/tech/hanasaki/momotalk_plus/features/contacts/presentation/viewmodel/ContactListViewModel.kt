@@ -34,10 +34,6 @@ class ContactListViewModel(
                 is ContactListIntent.LoadContacts ->
                     loadContacts()
 
-                is ContactListIntent.RefreshContacts -> {
-                    TODO()
-                }
-
                 is ContactListIntent.ContactClicked -> {
                     sendSideEffect(ContactListSideEffect.NavigateToContactDetail(intent.contactId))
                 }
