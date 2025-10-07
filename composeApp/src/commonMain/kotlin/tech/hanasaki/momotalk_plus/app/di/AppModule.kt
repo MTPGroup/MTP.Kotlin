@@ -48,6 +48,11 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
+import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.ProfileRemoteDataSource
+import tech.hanasaki.momotalk_plus.features.profile.data.repository.ProfileRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
+import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
+import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
 import tech.hanasaki.momotalk_plus.features.settings.data.repository.SettingsRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository
 import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.*
@@ -89,6 +94,7 @@ val commonModule = module {
     factoryOf(::SaveNotificationSettingsUseCase)
     factoryOf(::SaveSoundSettingsUseCase)
     factoryOf(::SaveVibrationSettingsUseCase)
+    factoryOf(::UpdateUserProfileUseCase)
 }
 
 val storageModule = module {
@@ -148,6 +154,7 @@ val datasourceModule = module {
     factoryOf(::CharacterRemoteDatasource)
     factoryOf(::ContactRemoteDatasource)
     factoryOf(::ChatRemoteDatasource)
+    factoryOf(::ProfileRemoteDataSource)
 }
 
 val repositoryModule = module {
@@ -158,6 +165,7 @@ val repositoryModule = module {
     single<ChatRepository> { ChatRepositoryImpl(get()) }
     single<ContactProvider> { ContactProviderImpl(get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
+    single<ProfileRepository> { ProfileRepositoryImpl(get()) }
 }
 
 
@@ -174,6 +182,7 @@ val viewModelModule = module {
     viewModelOf(::ContactEditViewModel)
     viewModelOf(::ContactsManageViewModel)
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::ProfileViewModel)
 }
 
 val appModule =

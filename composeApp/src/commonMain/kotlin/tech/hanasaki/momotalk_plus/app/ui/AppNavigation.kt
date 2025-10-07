@@ -1,13 +1,8 @@
 package tech.hanasaki.momotalk_plus.app.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,6 +15,7 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.ForgotPasswordS
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.LoginScreen
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.RegisterScreen
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.HomeScreen
+import tech.hanasaki.momotalk_plus.features.profile.presentation.ui.ProfileScreen
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.PrivacyPolicyScreen
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.SettingsScreen
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.TermsOfServiceScreen
@@ -156,9 +152,16 @@ fun AppNavigation(
         }
 
         composable<NavigationRoute.Profile> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("个人资料页面")
-            }
+            ProfileScreen(
+                currentUser = appState.currentUser,
+                onNavigateBack = { navController.popBackStack() },
+                onLogout = {
+                    appViewModel.logout()
+                    navController.navigate(NavigationRoute.Login) {
+                        popUpTo(NavigationRoute.Home) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
