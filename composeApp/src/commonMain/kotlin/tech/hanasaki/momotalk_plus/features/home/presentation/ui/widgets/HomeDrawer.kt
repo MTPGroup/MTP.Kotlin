@@ -14,7 +14,6 @@ import coil3.compose.AsyncImage
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Cog
-import com.woowla.compose.icon.collections.ionicons.ionicons.outline.InformationCircle
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.LogOut
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Person
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
@@ -88,31 +87,6 @@ fun HomeDrawerContent(
                 unselectedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
-        NavigationDrawerItem(
-            icon = {
-                Icon(
-                    Ionicons.Outline.InformationCircle,
-                    contentDescription = "关于",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            },
-            label = {
-                Text(
-                    "关于",
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            selected = false,
-            onClick = { /* TODO: Navigate to About */ },
-            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
-            colors = NavigationDrawerItemDefaults.colors(
-                unselectedContainerColor = MaterialTheme.colorScheme.surface,
-                unselectedIconColor = MaterialTheme.colorScheme.primary,
-                unselectedTextColor = MaterialTheme.colorScheme.onSurface
-            )
-        )
-
         Spacer(Modifier.weight(1f))
 
         NavigationDrawerItem(

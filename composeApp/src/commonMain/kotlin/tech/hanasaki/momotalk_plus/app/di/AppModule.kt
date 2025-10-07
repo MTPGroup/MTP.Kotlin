@@ -48,6 +48,7 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
+import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
 
 val themeModule = module {
     single { ThemeManager() }
@@ -162,6 +163,7 @@ val viewModelModule = module {
     viewModelOf(::ContactDetailViewModel)
     viewModelOf(::ContactEditViewModel)
     viewModelOf(::ContactsManageViewModel)
+    viewModelOf(::SettingsViewModel)
 }
 
 val appModule =

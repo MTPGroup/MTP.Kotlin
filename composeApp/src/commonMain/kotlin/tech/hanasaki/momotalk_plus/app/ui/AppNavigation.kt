@@ -15,10 +15,12 @@ import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
+import tech.hanasaki.momotalk_plus.features.about.presentation.ui.AboutScreen
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.ForgotPasswordScreen
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.LoginScreen
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.RegisterScreen
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.HomeScreen
+import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.SettingsScreen
 
 @Serializable
 sealed interface NavigationRoute {
@@ -36,6 +38,9 @@ sealed interface NavigationRoute {
 
     @Serializable
     data object Settings : NavigationRoute
+
+    @Serializable
+    data object About : NavigationRoute
 
     @Serializable
     data object Profile : NavigationRoute
@@ -110,9 +115,18 @@ fun AppNavigation(
         }
 
         composable<NavigationRoute.Settings> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("设置页面")
-            }
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAbout = {
+                    navController.navigate(NavigationRoute.About)
+                }
+            )
+        }
+
+        composable<NavigationRoute.About> {
+            AboutScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable<NavigationRoute.Profile> {
