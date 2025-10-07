@@ -12,7 +12,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
-import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
@@ -97,9 +96,7 @@ fun AppNavigation(
 
         composable<NavigationRoute.Home> {
             HomeScreen(
-                onNavigateToChat = { chatId ->
-                    navController.navigate(NavigationRoute.Chat(chatId))
-                },
+                currentUser = appState.currentUser,
                 onNavigateToProfile = {
                     TODO("Navigate to profile not implemented yet")
                 },
@@ -110,13 +107,6 @@ fun AppNavigation(
                     }
                 }
             )
-        }
-
-        composable<NavigationRoute.Chat> { backStackEntry ->
-            val chat = backStackEntry.toRoute<NavigationRoute.Chat>()
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("聊天室: ${chat.sessionId}")
-            }
         }
 
         composable<NavigationRoute.Settings> {

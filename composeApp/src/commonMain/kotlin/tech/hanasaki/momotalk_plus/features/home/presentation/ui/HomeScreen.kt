@@ -10,7 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.features.chats.presentation.ui.ChatsScreen
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.ContactsScreen
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeIntent
@@ -22,17 +22,13 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeView
 
 @Composable
 fun HomeScreen(
-    onNavigateToChat: (String) -> Unit,
+    currentUser: UserProfile?,
     onNavigateToProfile: () -> Unit,
     onLogout: () -> Unit,
     homeViewModel: HomeViewModel = koinViewModel(),
-    appViewModel: AppViewModel = koinViewModel(),
 ) {
     val uiState by homeViewModel.uiState.collectAsState()
     val onIntent = homeViewModel::processIntent
-
-    val appState by appViewModel.uiState.collectAsState()
-    val currentUser = appState.currentUser
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -40,7 +36,9 @@ fun HomeScreen(
     LaunchedEffect(homeViewModel.sideEffect) {
         homeViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is HomeSideEffect.NavigateToNewChat -> onNavigateToChat("")
+                is HomeSideEffect.NavigateToNewChat ->
+                    TODO()
+
                 is HomeSideEffect.NavigateToProfile -> onNavigateToProfile()
                 is HomeSideEffect.NavigateToLogin -> {
                     scope.launch {
@@ -95,7 +93,9 @@ fun HomeScreen(
                                 drawerState.open()
                             }
                         },
-                        onNavigateToChat = onNavigateToChat
+                        onSetBottomBarVisibility = { visible ->
+                            onIntent(HomeIntent.SetBottomBarVisibility(visible))
+                        },
                     )
                 }
                 composable<HomeTab.Contacts> {

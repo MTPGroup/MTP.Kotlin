@@ -23,4 +23,5 @@ data class Message(
     val type: MessageType,
     val createdAt: String,
     val updatedAt: String,
+    val isStreaming: Boolean = false,
 )

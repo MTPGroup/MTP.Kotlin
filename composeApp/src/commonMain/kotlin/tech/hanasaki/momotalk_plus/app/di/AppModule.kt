@@ -5,6 +5,8 @@ import com.russhwolf.settings.Settings
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.sse.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -17,6 +19,7 @@ import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasou
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.UserRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
+import tech.hanasaki.momotalk_plus.core.domain.repository.ContactProvider
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
@@ -30,8 +33,10 @@ import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.ChatRem
 import tech.hanasaki.momotalk_plus.features.chats.data.repository.ChatRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatRepository
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.*
+import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatDetailViewModel
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.ContactRemoteDatasource
+import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactProviderImpl
 import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.contacts.domain.repository.ContactRepository
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.AddContactUseCase
@@ -69,6 +74,7 @@ val commonModule = module {
     factoryOf(::GetChatsUseCase)
     factoryOf(::SendMessageStreamUseCase)
     factoryOf(::UpdateChatUseCase)
+    factoryOf(::GetChatInfoUseCase)
 }
 
 val storageModule = module {
@@ -79,6 +85,10 @@ val storageModule = module {
 val networkModule = module {
     single {
         HttpClient {
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.HEADERS
+            }
             install(ContentNegotiation) {
                 json(Json {
                     prettyPrint = true
@@ -110,6 +120,10 @@ val networkModule = module {
 
                 }
             }
+            install(SSE) {
+                showRetryEvents()
+                showCommentEvents()
+            }
         }
     }
 }
@@ -128,6 +142,7 @@ val repositoryModule = module {
     single<CharacterRepository> { CharacterRepositoryImpl(get()) }
     single<ContactRepository> { ContactRepositoryImpl(get()) }
     single<ChatRepository> { ChatRepositoryImpl(get()) }
+    single<ContactProvider> { ContactProviderImpl(get()) }
 }
 
 
@@ -138,6 +153,7 @@ val viewModelModule = module {
     viewModelOf(::RegisterViewModel)
     viewModelOf(::HomeViewModel)
     viewModelOf(::ChatsViewModel)
+    viewModelOf(::ChatDetailViewModel)
     viewModelOf(::ContactListViewModel)
     viewModelOf(::ContactDetailViewModel)
     viewModelOf(::ContactEditViewModel)

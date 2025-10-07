@@ -74,6 +74,7 @@ kotlin {
             implementation(libs.androidx.navigation)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.datetime)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
@@ -81,7 +82,6 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.cio)
             implementation(libs.ktor.client.auth)
-            implementation(libs.ktor.client.sse)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -133,6 +133,7 @@ android {
 }
 
 dependencies {
+    implementation("io.ktor:ktor-client-logging:3.3.0")
     debugImplementation(compose.uiTooling)
 }
 

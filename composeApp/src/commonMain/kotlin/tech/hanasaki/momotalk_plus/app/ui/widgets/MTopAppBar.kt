@@ -18,8 +18,8 @@ import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.filled.Person
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Add
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.PersonAdd
-import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Search
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +71,8 @@ fun MTopAppBar(
             if (title.isBlank()) {
                 IconButton(onClick = onActionClick) {
                     Icon(
-                        Ionicons.Outline.Search,
-                        contentDescription = "搜索",
+                        Ionicons.Outline.Add,
+                        contentDescription = "创建会话",
                         modifier = Modifier.size(24.dp)
                     )
                 }

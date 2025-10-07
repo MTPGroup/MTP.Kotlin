@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Chat
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.ChatWithCharacter
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 
@@ -49,6 +50,14 @@ interface ChatRepository {
         description: String,
         avatarUrl: String,
     ): IResult<Unit, AppError>
+
+    /**
+     * 获取单个聊天会话信息
+     *
+     * @param chatId 聊天ID
+     * @return 聊天会话信息
+     */
+    suspend fun getChatInfo(chatId: String): IResult<ChatWithCharacter, AppError>
 
     /**
      * 获取单个聊天会话历史记录

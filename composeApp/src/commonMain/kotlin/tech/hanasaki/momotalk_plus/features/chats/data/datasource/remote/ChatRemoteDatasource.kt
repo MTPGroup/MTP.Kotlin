@@ -12,13 +12,9 @@ import kotlinx.serialization.json.Json
 import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.utils.Constants
-import tech.hanasaki.momotalk_plus.features.chats.data.model.CreateChatRequest
-import tech.hanasaki.momotalk_plus.features.chats.data.model.GetChatListResponse
-import tech.hanasaki.momotalk_plus.features.chats.data.model.GetMessagesResponse
-import tech.hanasaki.momotalk_plus.features.chats.data.model.UpdateChatInfoRequest
+import tech.hanasaki.momotalk_plus.features.chats.data.model.*
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamChunk
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class ChatRemoteDatasource(
@@ -101,10 +97,16 @@ class ChatRemoteDatasource(
      *
      * @return IResult<List<Chat>, AppError>
      */
-    suspend fun getChatList(): IResult<GetChatListResponse, AppError> =
-        postAuthRequest<GetChatListResponse>(
-            url = "$endpoint/list"
-        )
+    suspend fun getChatList(): IResult<GetChatListResponse, AppError> {
+        return try {
+            val response: GetChatListResponse = client.get(
+                "$endpoint/list"
+            ).body()
+            IResult.Success(response)
+        } catch (e: Exception) {
+            IResult.Error(AppError(e.message ?: "未知错误"))
+        }
+    }
 
     /**
      * 删除聊天会话
@@ -144,6 +146,23 @@ class ChatRemoteDatasource(
     )
 
     /**
+     * 获取聊天会话信息
+     *
+     * @param chatId 聊天ID
+     * @return IResult<Chat, AppError>
+     */
+    suspend fun getChatInfo(chatId: String): IResult<GetChatInfoResponse, AppError> {
+        return try {
+            val response: GetChatInfoResponse = client.get(
+                "$endpoint/detail/$chatId"
+            ).body()
+            IResult.Success(response)
+        } catch (e: Exception) {
+            IResult.Error(AppError(e.message ?: "未知错误"))
+        }
+    }
+
+    /**
      * 获取聊天会话中的消息列表
      *
      * @param chatId 聊天ID
@@ -163,10 +182,6 @@ class ChatRemoteDatasource(
                     if (limit != null) {
                         parameter("limit", limit)
                     }
-                    parameter(
-                        "before",
-                        Clock.System.now().toString()
-                    )
                 }
             }.body()
             IResult.Success(response)

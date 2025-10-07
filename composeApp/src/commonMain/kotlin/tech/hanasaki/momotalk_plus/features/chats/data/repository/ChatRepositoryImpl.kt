@@ -5,6 +5,7 @@ import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.ChatRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Chat
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.ChatWithCharacter
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatRepository
@@ -45,6 +46,11 @@ class ChatRepositoryImpl(
             description,
             avatarUrl,
         )
+
+    override suspend fun getChatInfo(chatId: String): IResult<ChatWithCharacter, AppError> =
+        remoteDatasource.getChatInfo(chatId).map { getChatInfoResponse ->
+            getChatInfoResponse.data
+        }
 
     override suspend fun getChatHistory(
         chatId: String,

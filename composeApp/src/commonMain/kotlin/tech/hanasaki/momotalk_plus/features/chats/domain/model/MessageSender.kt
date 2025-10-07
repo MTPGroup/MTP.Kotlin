@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MessageSender(
     val name: String,
-    val avatar: String,
+    val avatar: String?,
 )
 
 @Serializable
