@@ -1,5 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.home.presentation.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -23,6 +25,7 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeView
 @Composable
 fun HomeScreen(
     currentUser: UserProfile?,
+    onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onLogout: () -> Unit,
     homeViewModel: HomeViewModel = koinViewModel(),
@@ -36,9 +39,7 @@ fun HomeScreen(
     LaunchedEffect(homeViewModel.sideEffect) {
         homeViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is HomeSideEffect.NavigateToNewChat ->
-                    TODO()
-
+                is HomeSideEffect.NavigateToSettings -> onNavigateToSettings()
                 is HomeSideEffect.NavigateToProfile -> onNavigateToProfile()
                 is HomeSideEffect.NavigateToLogin -> {
                     scope.launch {
@@ -54,6 +55,9 @@ fun HomeScreen(
 
     LaunchedEffect(uiState.currentTab) {
         tabNavController.navigate(uiState.currentTab) {
+            popUpTo(tabNavController.graph.startDestinationId) {
+                saveState = true
+            }
             launchSingleTop = true
             restoreState = true
         }
@@ -85,7 +89,10 @@ fun HomeScreen(
                 navController = tabNavController,
                 startDestination = HomeTab.Chats,
             ) {
-                composable<HomeTab.Chats> {
+                composable<HomeTab.Chats>(
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None }
+                ) {
                     ChatsScreen(
                         currentUser = currentUser,
                         onAvatarClick = {
@@ -98,7 +105,10 @@ fun HomeScreen(
                         },
                     )
                 }
-                composable<HomeTab.Contacts> {
+                composable<HomeTab.Contacts>(
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None }
+                ) {
                     ContactsScreen(
                         currentUser = currentUser,
                         onAvatarClick = {

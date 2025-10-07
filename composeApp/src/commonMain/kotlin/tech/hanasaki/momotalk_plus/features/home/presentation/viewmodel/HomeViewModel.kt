@@ -14,9 +14,6 @@ class HomeViewModel : BaseViewModel<HomeState, HomeSideEffect, HomeIntent>(HomeS
                 is HomeIntent.TabSelected ->
                     updateState { it.copy(currentTab = intent.tab) }
 
-                is HomeIntent.NewChatClicked ->
-                    sendSideEffect(HomeSideEffect.NavigateToNewChat)
-
                 HomeIntent.ProfileClicked ->
                     sendSideEffect(HomeSideEffect.NavigateToProfile)
 

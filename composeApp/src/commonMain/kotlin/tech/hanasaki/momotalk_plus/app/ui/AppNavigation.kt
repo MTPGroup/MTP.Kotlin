@@ -39,9 +39,6 @@ sealed interface NavigationRoute {
 
     @Serializable
     data object Profile : NavigationRoute
-
-    @Serializable
-    data class Chat(val sessionId: String) : NavigationRoute
 }
 
 @Serializable
@@ -98,7 +95,10 @@ fun AppNavigation(
             HomeScreen(
                 currentUser = appState.currentUser,
                 onNavigateToProfile = {
-                    TODO("Navigate to profile not implemented yet")
+                    navController.navigate(NavigationRoute.Profile)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(NavigationRoute.Settings)
                 },
                 onLogout = {
                     appViewModel.logout()
@@ -112,6 +112,12 @@ fun AppNavigation(
         composable<NavigationRoute.Settings> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("设置页面")
+            }
+        }
+
+        composable<NavigationRoute.Profile> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("个人资料页面")
             }
         }
     }

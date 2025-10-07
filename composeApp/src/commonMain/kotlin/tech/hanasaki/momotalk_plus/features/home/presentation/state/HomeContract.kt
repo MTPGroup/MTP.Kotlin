@@ -18,14 +18,13 @@ data class HomeState(
 
 sealed class HomeIntent {
     data object LogoutClicked : HomeIntent()
-    data object NewChatClicked : HomeIntent()
     data object ProfileClicked : HomeIntent()
     data class TabSelected(val tab: HomeTab) : HomeIntent()
     data class SetBottomBarVisibility(val visible: Boolean) : HomeIntent()
 }
 
 sealed class HomeSideEffect {
+    data object NavigateToSettings : HomeSideEffect()
     data object NavigateToLogin : HomeSideEffect()
-    data object NavigateToNewChat : HomeSideEffect()
     data object NavigateToProfile : HomeSideEffect()
 }
