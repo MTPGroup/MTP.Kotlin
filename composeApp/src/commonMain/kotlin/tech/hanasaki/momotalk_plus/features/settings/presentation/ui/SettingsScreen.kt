@@ -27,6 +27,8 @@ import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.Sett
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAbout: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit,
+    onNavigateToTermsOfService: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -38,14 +40,8 @@ fun SettingsScreen(
         viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is SettingsSideEffect.NavigateToAbout -> onNavigateToAbout()
-                is SettingsSideEffect.NavigateToPrivacyPolicy -> {
-                    // TODO: Open browser
-                }
-
-                is SettingsSideEffect.NavigateToTermsOfService -> {
-                    // TODO: Open browser
-                }
-
+                is SettingsSideEffect.NavigateToPrivacyPolicy -> onNavigateToPrivacyPolicy()
+                is SettingsSideEffect.NavigateToTermsOfService -> onNavigateToTermsOfService()
                 is SettingsSideEffect.ShowMessage -> {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(effect.message)
@@ -378,4 +374,3 @@ private fun SettingsClickableItem(
         )
     }
 }
-

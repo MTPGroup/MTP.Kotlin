@@ -48,6 +48,9 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
+import tech.hanasaki.momotalk_plus.features.settings.data.repository.SettingsRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
 
 val themeModule = module {
@@ -80,6 +83,12 @@ val commonModule = module {
     factoryOf(::SendMessageStreamUseCase)
     factoryOf(::UpdateChatUseCase)
     factoryOf(::GetChatInfoUseCase)
+    // Settings UseCases
+    factoryOf(::GetUserSettingsUseCase)
+    factoryOf(::SaveThemeUseCase)
+    factoryOf(::SaveNotificationSettingsUseCase)
+    factoryOf(::SaveSoundSettingsUseCase)
+    factoryOf(::SaveVibrationSettingsUseCase)
 }
 
 val storageModule = module {
@@ -148,6 +157,7 @@ val repositoryModule = module {
     single<ContactRepository> { ContactRepositoryImpl(get()) }
     single<ChatRepository> { ChatRepositoryImpl(get()) }
     single<ContactProvider> { ContactProviderImpl(get()) }
+    single<SettingsRepository> { SettingsRepositoryImpl(get()) }
 }
 
 

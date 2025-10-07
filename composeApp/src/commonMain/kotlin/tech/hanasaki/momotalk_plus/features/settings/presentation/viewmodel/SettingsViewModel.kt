@@ -4,12 +4,18 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsIntent
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsSideEffect
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsState
 
 class SettingsViewModel(
     private val themeManager: ThemeManager,
+    private val getUserSettingsUseCase: GetUserSettingsUseCase,
+    private val saveThemeUseCase: SaveThemeUseCase,
+    private val saveNotificationSettingsUseCase: SaveNotificationSettingsUseCase,
+    private val saveSoundSettingsUseCase: SaveSoundSettingsUseCase,
+    private val saveVibrationSettingsUseCase: SaveVibrationSettingsUseCase,
 ) : BaseViewModel<SettingsState, SettingsSideEffect, SettingsIntent>(
     initialState = SettingsState()
 ) {
@@ -32,13 +38,22 @@ class SettingsViewModel(
 
     private fun loadSettings() {
         viewModelScope.launch {
-            val currentTheme = themeManager.currentTheme.value
+            // 加载用户设置
+            val userSettings = getUserSettingsUseCase()
             val availableThemes = themeManager.getAvailableThemes()
+            val savedTheme = availableThemes.find { it.id == userSettings.themeId }
+                ?: availableThemes.first()
+
+            // 应用保存的主题
+            themeManager.setTheme(savedTheme)
 
             updateState {
                 it.copy(
-                    currentTheme = currentTheme,
-                    availableThemes = availableThemes
+                    currentTheme = savedTheme,
+                    availableThemes = availableThemes,
+                    notificationsEnabled = userSettings.notificationsEnabled,
+                    soundEnabled = userSettings.soundEnabled,
+                    vibrationEnabled = userSettings.vibrationEnabled
                 )
             }
         }
@@ -46,25 +61,36 @@ class SettingsViewModel(
 
     private fun changeTheme(theme: tech.hanasaki.momotalk_plus.core.theme.AppTheme) {
         viewModelScope.launch {
+            // 保存主题到持久化存储
+            saveThemeUseCase(theme.id)
+
+            // 应用主题
             themeManager.setTheme(theme)
             updateState { it.copy(currentTheme = theme) }
+
             sendSideEffect(SettingsSideEffect.ShowMessage("主题已切换"))
         }
     }
 
     private fun toggleNotifications(enabled: Boolean) {
-        updateState { it.copy(notificationsEnabled = enabled) }
-        // TODO: Save to preferences
+        viewModelScope.launch {
+            saveNotificationSettingsUseCase(enabled)
+            updateState { it.copy(notificationsEnabled = enabled) }
+        }
     }
 
     private fun toggleSound(enabled: Boolean) {
-        updateState { it.copy(soundEnabled = enabled) }
-        // TODO: Save to preferences
+        viewModelScope.launch {
+            saveSoundSettingsUseCase(enabled)
+            updateState { it.copy(soundEnabled = enabled) }
+        }
     }
 
     private fun toggleVibration(enabled: Boolean) {
-        updateState { it.copy(vibrationEnabled = enabled) }
-        // TODO: Save to preferences
+        viewModelScope.launch {
+            saveVibrationSettingsUseCase(enabled)
+            updateState { it.copy(vibrationEnabled = enabled) }
+        }
     }
 
     private fun navigateToAbout() {
@@ -85,4 +111,3 @@ class SettingsViewModel(
         }
     }
 }
-

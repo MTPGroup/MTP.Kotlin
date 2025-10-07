@@ -20,7 +20,9 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.ForgotPasswordS
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.LoginScreen
 import tech.hanasaki.momotalk_plus.features.auth.presentation.ui.RegisterScreen
 import tech.hanasaki.momotalk_plus.features.home.presentation.ui.HomeScreen
+import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.PrivacyPolicyScreen
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.SettingsScreen
+import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.TermsOfServiceScreen
 
 @Serializable
 sealed interface NavigationRoute {
@@ -41,6 +43,12 @@ sealed interface NavigationRoute {
 
     @Serializable
     data object About : NavigationRoute
+
+    @Serializable
+    data object PrivacyPolicy : NavigationRoute
+
+    @Serializable
+    data object TermsOfService : NavigationRoute
 
     @Serializable
     data object Profile : NavigationRoute
@@ -119,12 +127,30 @@ fun AppNavigation(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAbout = {
                     navController.navigate(NavigationRoute.About)
+                },
+                onNavigateToPrivacyPolicy = {
+                    navController.navigate(NavigationRoute.PrivacyPolicy)
+                },
+                onNavigateToTermsOfService = {
+                    navController.navigate(NavigationRoute.TermsOfService)
                 }
             )
         }
 
         composable<NavigationRoute.About> {
             AboutScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<NavigationRoute.PrivacyPolicy> {
+            PrivacyPolicyScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<NavigationRoute.TermsOfService> {
+            TermsOfServiceScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
