@@ -1,13 +1,17 @@
 package tech.hanasaki.momotalk_plus.features.settings.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.woowla.compose.icon.collections.ionicons.Ionicons
@@ -211,7 +215,7 @@ private fun ThemeSelector(
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -230,42 +234,105 @@ private fun ThemeSelector(
             )
         }
 
-        availableThemes.forEach { theme ->
-            Surface(
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            availableThemes.forEach { theme ->
+                ThemeCard(
+                    theme = theme,
+                    isSelected = currentTheme?.id == theme.id,
+                    onSelect = { onThemeSelected(theme) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeCard(
+    theme: AppTheme,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .width(140.dp)
+            .clickable(onClick = onSelect),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else null,
+        shadowElevation = if (isSelected) 4.dp else 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Theme color preview
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onThemeSelected(theme) },
-                shape = RoundedCornerShape(8.dp),
-                color = if (currentTheme?.id == theme.id) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                Row(
+                // Primary color
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = theme.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (currentTheme?.id == theme.id) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                        .background(theme.colorScheme.primary)
+                )
+                // Surface color
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(theme.colorScheme.surface)
+                )
+                // Background color
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
+                        .background(theme.colorScheme.background)
+                )
+            }
+
+            // Theme name and selection indicator
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = theme.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                if (isSelected) {
+                    Icon(
+                        Ionicons.Outline.Checkmark,
+                        contentDescription = "已选择",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
-                    if (currentTheme?.id == theme.id) {
-                        Icon(
-                            Ionicons.Outline.Checkmark,
-                            contentDescription = "已选择",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
                 }
             }
         }
