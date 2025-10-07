@@ -23,7 +23,7 @@ import kotlinx.coroutines.delay
 fun TypingDots(
     modifier: Modifier = Modifier,
     dotSize: Dp = 6.dp,
-    dotColor: Color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f),
+    dotColor: Color = MaterialTheme.colorScheme.primary,
     animationDuration: Int = 600,
 ) {
     val dots = listOf(

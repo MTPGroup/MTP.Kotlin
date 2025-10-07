@@ -1,5 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.chats.presentation.ui
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,6 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -30,6 +33,7 @@ fun ChatListPage(
     val onIntent = viewModel::processIntent
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(Unit) {
         onIntent(ChatsIntent.LoadChats)
@@ -51,7 +55,13 @@ fun ChatListPage(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(snackbarHostState)
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
         },
         topBar = {
             MTopAppBar(
@@ -62,6 +72,7 @@ fun ChatListPage(
                 onActionClick = { onIntent(ChatsIntent.ShowCreateChatDialog) },
             )
         },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         if (uiState.showCreateChatDialog) {
             CreateChatDialog(
@@ -85,6 +96,14 @@ fun ChatListPage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            focusManager.clearFocus()
+                            onIntent(ChatsIntent.UpdateSearchQuery(""))
+                        }
+                    )
+                }
         ) {
             // 搜索栏
             MSearchBar(
@@ -105,7 +124,9 @@ fun ChatListPage(
             ) {
                 when {
                     uiState.isLoading -> {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
 
                     uiState.filteredChatList.isEmpty() -> {
@@ -134,7 +155,9 @@ fun ChatListPage(
                                         onIntent(ChatsIntent.DeleteChat(chatId))
                                     }
                                 )
-                                HorizontalDivider()
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                )
                             }
                         }
                     }

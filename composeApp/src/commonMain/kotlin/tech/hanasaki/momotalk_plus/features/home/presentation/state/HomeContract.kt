@@ -17,6 +17,7 @@ data class HomeState(
 )
 
 sealed class HomeIntent {
+    data object SettingsClicked : HomeIntent()
     data object LogoutClicked : HomeIntent()
     data object ProfileClicked : HomeIntent()
     data class TabSelected(val tab: HomeTab) : HomeIntent()

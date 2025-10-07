@@ -14,6 +14,9 @@ class HomeViewModel : BaseViewModel<HomeState, HomeSideEffect, HomeIntent>(HomeS
                 is HomeIntent.TabSelected ->
                     updateState { it.copy(currentTab = intent.tab) }
 
+                HomeIntent.SettingsClicked ->
+                    sendSideEffect(HomeSideEffect.NavigateToSettings)
+
                 HomeIntent.ProfileClicked ->
                     sendSideEffect(HomeSideEffect.NavigateToProfile)
 

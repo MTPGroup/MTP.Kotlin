@@ -25,10 +25,14 @@ fun MSearchBar(
         value = query,
         onValueChange = onQueryChanged,
         singleLine = true,
+        textStyle = LocalTextStyle.current.copy(
+            color = MaterialTheme.colorScheme.onSurface
+        ),
         decorationBox = { innerTextField ->
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                shadowElevation = 2.dp
             ) {
                 Row(
                     modifier = Modifier
@@ -39,8 +43,8 @@ fun MSearchBar(
                 ) {
                     Icon(
                         imageVector = Ionicons.Outline.Search,
-                        contentDescription = "搜索联系人",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        contentDescription = "搜索",
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
 
@@ -50,24 +54,29 @@ fun MSearchBar(
                             .weight(1f),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        if (query.isEmpty()) Text(
-                            text = "搜索",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        if (query.isEmpty()) {
+                            Text(
+                                text = "搜索",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                         innerTextField()
                     }
 
-                    if (query.isNotEmpty())
+                    if (query.isNotEmpty()) {
                         IconButton(
-                            onClick = onClear
+                            onClick = onClear,
+                            modifier = Modifier.size(16.dp)
                         ) {
                             Icon(
                                 imageVector = Ionicons.Outline.Close,
-                                contentDescription = null,
+                                contentDescription = "清除",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
+                    }
                 }
             }
 

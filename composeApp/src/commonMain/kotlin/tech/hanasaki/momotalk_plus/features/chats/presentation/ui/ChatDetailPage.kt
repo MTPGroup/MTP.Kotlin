@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -104,7 +103,15 @@ fun ChatDetailPage(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -127,13 +134,14 @@ fun ChatDetailPage(
                             Text(
                                 text = uiState.title.ifEmpty { "聊天" },
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             if (uiState.isTyping) {
                                 Text(
                                     text = "正在输入...",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -144,6 +152,7 @@ fun ChatDetailPage(
                         Icon(
                             imageVector = Ionicons.Filled.ChevronBack,
                             contentDescription = "返回",
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -153,15 +162,20 @@ fun ChatDetailPage(
                         Icon(
                             imageVector = Ionicons.Outline.TrashBin,
                             contentDescription = "删除会话",
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(24.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.error
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Dialog(state = dialogState) {
             Scrim()
@@ -171,28 +185,49 @@ fun ChatDetailPage(
                     .systemBarsPadding()
                     .widthIn(min = 280.dp, max = 560.dp)
                     .padding(16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text("确认清空历史记录吗？")
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "确认清空历史记录吗？",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "此操作将删除所有消息记录，且不可恢复。",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.fillMaxWidth()
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Button(onClick = { dialogState.visible = false }) {
-                            Text("取消")
+                        TextButton(
+                            onClick = { dialogState.visible = false }
+                        ) {
+                            Text(
+                                "取消",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
-                            onIntent(ChatDetailIntent.ClearChatHistory(chatId))
-                            dialogState.visible = false
-                        }) {
-                            Text("清空", color = Color.Red)
+                        Spacer(Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                onIntent(ChatDetailIntent.ClearChatHistory(chatId))
+                                dialogState.visible = false
+                            }
+                        ) {
+                            Text(
+                                "确认",
+                                color = MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                 }

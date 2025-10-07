@@ -22,6 +22,7 @@ import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 import tech.hanasaki.momotalk_plus.core.domain.repository.ContactProvider
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
+import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.auth.data.repository.AuthRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
@@ -48,6 +49,9 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
 
+val themeModule = module {
+    single { ThemeManager() }
+}
 val commonModule = module {
     factoryOf(::SignInUserUseCase)
     factoryOf(::SignUpUserUseCase)
@@ -162,6 +166,7 @@ val viewModelModule = module {
 
 val appModule =
     listOf(
+        themeModule,
         commonModule,
         networkModule,
         datasourceModule,

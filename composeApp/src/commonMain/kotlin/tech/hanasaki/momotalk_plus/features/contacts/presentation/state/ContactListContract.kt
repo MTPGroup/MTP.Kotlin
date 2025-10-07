@@ -7,7 +7,16 @@ data class ContactListState(
     val contacts: List<Contact> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-)
+) {
+    val filteredContacts: List<Contact>
+        get() = if (searchQuery.isBlank()) {
+            contacts
+        } else {
+            contacts.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
+        }
+}
 
 sealed class ContactListIntent {
     data class SearchQueryChanged(val query: String) : ContactListIntent()

@@ -34,23 +34,32 @@ fun ContactManageListItem(
                 enabled = !isProcessing,
                 onClick = if (isAdded) onRemoveClick else onAddClick
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 头像
-            AsyncImage(
-                model = character.avatarUrl.ifEmpty { "https://via.placeholder.com/48" },
-                contentDescription = "头像",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                AsyncImage(
+                    model = character.avatarUrl.ifEmpty { "https://via.placeholder.com/48" },
+                    contentDescription = "头像",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -61,6 +70,7 @@ fun ContactManageListItem(
                 Text(
                     text = character.name,
                     style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -91,7 +101,8 @@ fun ContactManageListItem(
                     if (isProcessing) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     } else {
                         Icon(
@@ -108,12 +119,17 @@ fun ContactManageListItem(
                 FilledTonalButton(
                     onClick = onAddClick,
                     enabled = !isProcessing,
-                    modifier = Modifier.height(36.dp)
+                    modifier = Modifier.height(36.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 ) {
                     if (isProcessing) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else {
                         Icon(

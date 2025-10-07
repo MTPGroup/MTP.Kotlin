@@ -68,10 +68,11 @@ fun HomeScreen(
         drawerContent = {
             HomeDrawerContent(
                 currentUser = currentUser,
+                onSettingsClick = { onIntent(HomeIntent.SettingsClicked) },
                 onProfileClick = { onIntent(HomeIntent.ProfileClicked) },
                 onLogoutClick = {
                     onIntent(HomeIntent.LogoutClicked)
-                }
+                },
             )
         },
     ) {

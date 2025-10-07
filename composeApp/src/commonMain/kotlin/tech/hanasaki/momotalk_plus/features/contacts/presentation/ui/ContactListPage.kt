@@ -36,15 +36,6 @@ fun ContactListPage(
     val snackHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
-    val filteredContacts = remember(uiState.contacts, uiState.searchQuery) {
-        if (uiState.searchQuery.isBlank()) {
-            uiState.contacts
-        } else {
-            uiState.contacts.filter {
-                it.name.contains(uiState.searchQuery, ignoreCase = true)
-            }
-        }
-    }
 
     LaunchedEffect(Unit) {
         onIntent(ContactListIntent.LoadContacts)
@@ -70,7 +61,15 @@ fun ContactListPage(
 
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackHostState) },
+        snackbarHost = {
+            SnackbarHost(snackHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
+        },
         topBar = {
             MTopAppBar(
                 title = "联系人",
@@ -82,6 +81,7 @@ fun ContactListPage(
                 }
             )
         },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -97,33 +97,45 @@ fun ContactListPage(
                 }
         ) {
             MSearchBar(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 query = uiState.searchQuery,
-                onQueryChanged = { query ->
-                    onIntent(ContactListIntent.SearchQueryChanged(query))
-                },
-                onClear = {
-                    onIntent(ContactListIntent.ClearSearchQuery)
-                }
+                onQueryChanged = { onIntent(ContactListIntent.SearchQueryChanged(it)) },
+                onClear = { onIntent(ContactListIntent.ClearSearchQuery) }
             )
+
             when {
                 uiState.isLoading -> {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                uiState.filteredContacts.isEmpty() -> {
+                    Text(
+                        text = if (uiState.searchQuery.isBlank()) {
+                            "暂无联系人"
+                        } else {
+                            "未找到匹配的联系人"
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
 
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 16.dp),
-                    ) {
-                        items(filteredContacts.size) { index ->
-                            ContactListItem(
-                                contact = filteredContacts[index],
-                                onContactClick = { contactId ->
-                                    onIntent(ContactListIntent.ContactClicked(contactId))
-                                }
-                            )
+                    LazyColumn {
+                        uiState.filteredContacts.forEach { contact ->
+                            item(key = contact.id) {
+                                ContactListItem(
+                                    contact = contact,
+                                    onContactClick = { onIntent(ContactListIntent.ContactClicked(it)) }
+                                )
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                )
+                            }
                         }
                     }
                 }

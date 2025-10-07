@@ -31,7 +31,13 @@ fun MTopAppBar(
     onActionClick: () -> Unit,
 ) {
     CenterAlignedTopAppBar(
-        title = { Text(title, fontWeight = FontWeight.Bold) },
+        title = {
+            Text(
+                title,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
         navigationIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
@@ -40,7 +46,7 @@ fun MTopAppBar(
                     val avatarModifier = Modifier
                         .size(32.dp)
                         .border(
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                             CircleShape,
                         )
                         .clip(CircleShape)
@@ -49,20 +55,31 @@ fun MTopAppBar(
                         Icon(
                             painter = rememberAsyncImagePainter(avatarUrl),
                             contentDescription = "用户头像",
-                            modifier = avatarModifier
+                            modifier = avatarModifier,
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     } else {
                         Icon(
                             imageVector = Ionicons.Filled.Person,
                             contentDescription = "用户头像",
-                            modifier = avatarModifier
+                            modifier = avatarModifier,
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
                 if (title.isBlank()) {
                     Column {
-                        Text(username, style = MaterialTheme.typography.titleMedium)
-                        Text("在线", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            username,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            "在线",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -73,7 +90,8 @@ fun MTopAppBar(
                     Icon(
                         Ionicons.Outline.Add,
                         contentDescription = "创建会话",
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             } else {
@@ -82,9 +100,16 @@ fun MTopAppBar(
                         Ionicons.Outline.PersonAdd,
                         contentDescription = "添加联系人",
                         modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
-        }
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+        )
     )
 }
