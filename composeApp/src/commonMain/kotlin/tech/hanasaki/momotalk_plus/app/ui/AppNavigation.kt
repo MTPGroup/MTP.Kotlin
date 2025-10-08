@@ -1,6 +1,7 @@
 package tech.hanasaki.momotalk_plus.app.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
@@ -19,9 +20,13 @@ import tech.hanasaki.momotalk_plus.features.profile.presentation.ui.ProfileScree
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.PrivacyPolicyScreen
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.SettingsScreen
 import tech.hanasaki.momotalk_plus.features.settings.presentation.ui.TermsOfServiceScreen
+import tech.hanasaki.momotalk_plus.features.splash.presentation.ui.SplashScreen
 
 @Serializable
 sealed interface NavigationRoute {
+    @Serializable
+    data object Splash : NavigationRoute
+
     @Serializable
     data object Login : NavigationRoute
 
@@ -61,10 +66,28 @@ fun AppNavigation(
     val navController = rememberNavController()
     val appState by appViewModel.uiState.collectAsState()
 
+    // 监听初始化状态，完成后导航到合适的页面
+    LaunchedEffect(appState.isInitialized) {
+        if (appState.isInitialized) {
+            val destination = if (appState.isLoggedIn) {
+                NavigationRoute.Home
+            } else {
+                NavigationRoute.Login
+            }
+            navController.navigate(destination) {
+                popUpTo(NavigationRoute.Splash) { inclusive = true }
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
-        startDestination = if (appState.isLoggedIn) NavigationRoute.Home else AuthGraph,
+        startDestination = NavigationRoute.Splash,
     ) {
+        composable<NavigationRoute.Splash> {
+            SplashScreen()
+        }
+
         navigation<AuthGraph>(
             startDestination = NavigationRoute.Login,
         ) {

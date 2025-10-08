@@ -27,7 +27,7 @@ class AppViewModel(
 
     private fun checkUserLoginStatus() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, isInitialized = false) }
             when (val userInfo = getUserInfoUseCase()) {
                 is IResult.Success -> {
                     println("User info fetched: ${userInfo.data}")
@@ -36,7 +36,17 @@ class AppViewModel(
                             it.copy(
                                 isLoggedIn = true,
                                 currentUser = userInfo.data,
-                                isLoading = false
+                                isLoading = false,
+                                isInitialized = true
+                            )
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                isLoggedIn = false,
+                                currentUser = null,
+                                isLoading = false,
+                                isInitialized = true
                             )
                         }
                     }
@@ -49,7 +59,8 @@ class AppViewModel(
                         it.copy(
                             isLoggedIn = isLoggedIn,
                             currentUser = null,
-                            isLoading = false
+                            isLoading = false,
+                            isInitialized = true
                         )
                     }
                 }
