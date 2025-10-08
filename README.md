@@ -31,9 +31,6 @@ MomoTalk Plus (MTP) 是一款基于 Kotlin Multiplatform 开发的角色扮演�
 
 ### 开发中功能
 
-- 🚧 个人资料页面
-- 🚧 设置页面
-
 ## 技术架构
 
 ### 技术栈
