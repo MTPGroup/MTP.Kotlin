@@ -12,7 +12,7 @@ interface ProfileRepository {
      *
      * @param name 用户名
      * @param image 用户头像URL
-     * @return IResult<UserProfile, ProfileError> 成功返回更新后的用户信息，失败返回错误
+     * @return IResult<[Unit], [AppError]> 成功返回更新后的用户信息，失败返回错误
      */
     suspend fun updateUserProfile(
         name: String,

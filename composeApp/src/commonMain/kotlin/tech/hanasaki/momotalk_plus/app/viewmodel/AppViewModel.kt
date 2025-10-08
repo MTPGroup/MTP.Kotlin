@@ -30,6 +30,7 @@ class AppViewModel(
             _uiState.update { it.copy(isLoading = true) }
             when (val userInfo = getUserInfoUseCase()) {
                 is IResult.Success -> {
+                    println("User info fetched: ${userInfo.data}")
                     if (userInfo.data != null) {
                         _uiState.update {
                             it.copy(
@@ -43,6 +44,7 @@ class AppViewModel(
 
                 is IResult.Error -> {
                     val isLoggedIn = getLoginStateUseCase()
+                    println("Error fetching user info: ${userInfo.error}. Login state: $isLoggedIn")
                     _uiState.update {
                         it.copy(
                             isLoggedIn = isLoggedIn,

@@ -16,15 +16,15 @@ class ChatRepositoryImpl(
     override suspend fun createChat(
         characterId: String,
         title: String,
-        description: String,
-        avatarUrl: String,
+        description: String?,
+        avatarUrl: String?,
     ): IResult<Unit, AppError> =
         remoteDatasource.createChat(
             characterId,
             title,
             description,
             avatarUrl,
-        )
+        ).map { }
 
     override suspend fun getChatList(): IResult<List<Chat>, AppError> =
         remoteDatasource.getChatList().map { getChatListResponse ->
@@ -45,7 +45,7 @@ class ChatRepositoryImpl(
             title,
             description,
             avatarUrl,
-        )
+        ).map { }
 
     override suspend fun getChatInfo(chatId: String): IResult<ChatWithCharacter, AppError> =
         remoteDatasource.getChatInfo(chatId).map { getChatInfoResponse ->

@@ -2,19 +2,9 @@ package tech.hanasaki.momotalk_plus.features.auth.domain.usecase
 
 import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
-import tech.hanasaki.momotalk_plus.features.auth.domain.model.AuthError
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
 
 class SignOutUserUseCase(private val repository: AuthRepository) {
     suspend operator fun invoke(): IResult<Unit, AppError> =
-        repository.signOut().mapError { error ->
-            when (error) {
-                is AuthError.NetworkError -> AppError(error.originalException.message ?: "网络错误")
-                is AuthError.ApiError -> AppError(
-                    "注册失败，请检查您的信息",
-                )
-
-                else -> AppError("未知错误")
-            }
-        }
+        repository.signOut()
 }

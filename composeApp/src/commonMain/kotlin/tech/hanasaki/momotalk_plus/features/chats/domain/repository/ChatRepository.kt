@@ -20,8 +20,8 @@ interface ChatRepository {
     suspend fun createChat(
         characterId: String,
         title: String,
-        description: String,
-        avatarUrl: String,
+        description: String?,
+        avatarUrl: String?,
     ): IResult<Unit, AppError>
 
     /**

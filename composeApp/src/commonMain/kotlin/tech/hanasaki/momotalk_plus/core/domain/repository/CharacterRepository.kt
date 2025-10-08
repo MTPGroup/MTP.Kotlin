@@ -1,8 +1,8 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
+import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
-import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 
 interface CharacterRepository {
@@ -15,7 +15,8 @@ interface CharacterRepository {
      * @param signature 角色签名
      * @param avatarUrl 角色头像URL
      * @param visibility 角色可见性
-     * @return Result<Unit, UserError>
+     *
+     * @return IResult<[Unit], [AppError]>
      */
     suspend fun createCharacter(
         name: String,
@@ -24,30 +25,31 @@ interface CharacterRepository {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): IResult<Unit, UserError>
+    ): IResult<Unit, AppError>
 
     /**
      * 删除角色
      *
      * @param id 角色ID
-     * @return Result<Unit, UserError>
+     *
+     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun deleteCharacter(id: String): IResult<Unit, UserError>
+    suspend fun deleteCharacter(id: String): IResult<Unit, AppError>
 
     /**
      * 获取可用角色列表
      *
-     * @return Result<List<Character>, UserError>
+     * @return Result<List<[Character]>, [AppError]>
      */
-    suspend fun getAvailableCharacters(): IResult<List<Character>, UserError>
+    suspend fun getAvailableCharacters(): IResult<List<Character>, AppError>
 
     /**
      * 查询角色详情
      *
      * @param id 角色ID
-     * @return Result<Character?, UserError>
+     * @return IResult<[Character], [AppError]>
      */
-    suspend fun getCharacterById(id: String): IResult<Character, UserError>
+    suspend fun getCharacterById(id: String): IResult<Character, AppError>
 
     /**
      * 更新角色信息
@@ -58,7 +60,7 @@ interface CharacterRepository {
      * @param signature 角色签名
      * @param avatarUrl 角色头像URL
      * @param visibility 角色可见性
-     * @return Result<Unit, UserError>
+     * @return IResult<[Unit], [AppError]>
      */
     suspend fun updateCharacter(
         id: String,
@@ -67,5 +69,5 @@ interface CharacterRepository {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): IResult<Unit, UserError>
+    ): IResult<Unit, AppError>
 }

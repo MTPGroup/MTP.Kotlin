@@ -1,18 +1,18 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
 import LocalCookieStorage
+import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.User
-import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
 
 class UserRepositoryImpl(
     private val userRemoteDatasource: UserRemoteDatasource,
     private val localCookieStorage: LocalCookieStorage,
 ) : UserRepository {
-    override suspend fun getCurrentUser(): IResult<UserProfile?, UserError> {
+    override suspend fun getCurrentUser(): IResult<UserProfile?, AppError> {
         return when (val sessionInfo = userRemoteDatasource.getSessionInfo()) {
             is IResult.Success -> {
                 IResult.Success(
@@ -21,7 +21,7 @@ class UserRepositoryImpl(
             }
 
             is IResult.Error -> {
-                IResult.Error(UserError.Unknown)
+                IResult.Error(AppError(sessionInfo.error.message))
             }
         }
     }
@@ -34,7 +34,7 @@ class UserRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override suspend fun logout(): IResult<Unit, UserError> {
+    override suspend fun logout(): IResult<Unit, AppError> {
         userRemoteDatasource.logout()
         localCookieStorage.removeCookie("better-auth.session_token")
         return IResult.Success(Unit)

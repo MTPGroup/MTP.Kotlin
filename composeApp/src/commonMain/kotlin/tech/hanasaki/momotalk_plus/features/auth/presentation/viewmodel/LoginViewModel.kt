@@ -42,7 +42,8 @@ class LoginViewModel(
         val currentState = getState()
 
         when (val loginResult =
-            loginUserUseCase(currentState.email, currentState.password)) {
+            loginUserUseCase(currentState.email, currentState.password)
+        ) {
             is IResult.Success -> {
                 updateState { it.copy(isLoading = false, isLoggedIn = true) }
                 sendSideEffect(LoginSideEffect.NavigateToHome)

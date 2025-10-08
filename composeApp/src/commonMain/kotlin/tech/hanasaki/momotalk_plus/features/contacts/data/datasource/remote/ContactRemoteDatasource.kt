@@ -1,58 +1,46 @@
 package tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote
 
 import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
+import tech.hanasaki.momotalk_plus.core.common.AppError
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
 import tech.hanasaki.momotalk_plus.core.common.IResult
-import tech.hanasaki.momotalk_plus.core.utils.Constants
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.model.ContactListResponse
-import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
-import tech.hanasaki.momotalk_plus.features.contacts.domain.model.ContactError
 
-class ContactRemoteDatasource(private val client: HttpClient) {
-    private val endpoint = "${Constants.BASE_URL}/contact"
+class ContactRemoteDatasource(client: HttpClient) : BaseRemoteDataSource(client) {
+    private val endpoint = "$baseUrl/contacts"
 
     /**
      * 添加联系人
      *
-     * @param userId 用户ID
-     * @return Result<Unit, UserError>
+     * @param characterId 角色ID
+     *
+     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun addContact(userId: String): IResult<Unit, ContactError> {
-        return try {
-            client.post("$endpoint/add/$userId")
-            IResult.Success(Unit)
-        } catch (e: Exception) {
-            IResult.Error(ContactError.ApiError(-1, e.message ?: "添加联系人失败"))
-        }
-    }
+    suspend fun addContact(characterId: String): IResult<Unit, AppError> =
+        post<Any>(
+            "$endpoint/$characterId",
+            requestBody = null,
+        ).map { }
 
     /**
      * 删除联系人
      *
-     * @param userId 用户ID
-     * @return Result<Unit, UserError>
+     * @param characterId 角色ID
+     *
+     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun deleteContact(userId: String): IResult<Unit, ContactError> {
-        return try {
-            client.delete("$endpoint/delete/$userId")
-            IResult.Success(Unit)
-        } catch (e: Exception) {
-            IResult.Error(ContactError.ApiError(-1, e.message ?: "删除联系人失败"))
-        }
-    }
+    suspend fun deleteContact(characterId: String): IResult<Unit, AppError> =
+        delete<Any>(
+            "$endpoint/$characterId",
+        ).map { }
 
     /**
      * 获取联系人列表
      *
-     * @return Result<List<Contact>, UserError>
+     * @return IResult<[ContactListResponse], [AppError]>
      */
-    suspend fun getContacts(): IResult<List<Contact>, ContactError> {
-        return try {
-            val contactsResponse: ContactListResponse = client.get("$endpoint/list").body()
-            IResult.Success(contactsResponse.data.contacts)
-        } catch (e: Exception) {
-            IResult.Error(ContactError.ApiError(-1, e.message ?: "获取联系人列表失败"))
-        }
-    }
+    suspend fun getContacts(): IResult<ContactListResponse, AppError> =
+        get(
+            endpoint,
+        )
 }

@@ -1,30 +1,32 @@
 package tech.hanasaki.momotalk_plus.features.contacts.domain.repository
 
+import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
-import tech.hanasaki.momotalk_plus.features.contacts.domain.model.ContactError
 
 interface ContactRepository {
     /**
      * 添加联系人
      *
-     * @param userId 用户ID
-     * @return Result<Unit, ContactError>
+     * @param characterId 角色ID
+     *
+     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun addContact(userId: String): IResult<Unit, ContactError>
+    suspend fun addContact(characterId: String): IResult<Unit, AppError>
 
     /**
      * 删除联系人
      *
-     * @param userId 用户ID
-     * @return Result<Unit, ContactError>
+     * @param characterId 角色ID
+     *
+     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun deleteContact(userId: String): IResult<Unit, ContactError>
+    suspend fun deleteContact(characterId: String): IResult<Unit, AppError>
 
     /**
      * 获取联系人列表
      *
-     * @return Result<List<Contact>, ContactError>
+     * @return IResult<List<[Contact]>, [AppError]>
      */
-    suspend fun getContacts(): IResult<List<Contact>, ContactError>
+    suspend fun getContacts(): IResult<List<Contact>, AppError>
 }

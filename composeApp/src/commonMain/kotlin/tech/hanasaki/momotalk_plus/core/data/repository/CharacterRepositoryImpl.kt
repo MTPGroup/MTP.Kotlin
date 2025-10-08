@@ -1,9 +1,9 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
+import tech.hanasaki.momotalk_plus.core.common.AppError
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.CharacterRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
-import tech.hanasaki.momotalk_plus.core.domain.model.UserError
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 
@@ -15,27 +15,26 @@ class CharacterRepositoryImpl(private val characterRemoteDatasource: CharacterRe
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): IResult<Unit, UserError> =
+    ): IResult<Unit, AppError> =
         characterRemoteDatasource.createCharacter(
             name,
-            creatorId,
             persona,
             signature,
             avatarUrl,
             visibility,
-        ).map {}
+        ).map { }
 
-    override suspend fun deleteCharacter(id: String): IResult<Unit, UserError> =
+    override suspend fun deleteCharacter(id: String): IResult<Unit, AppError> =
         characterRemoteDatasource.deleteCharacter(id)
 
-    override suspend fun getAvailableCharacters(): IResult<List<Character>, UserError> =
+    override suspend fun getAvailableCharacters(): IResult<List<Character>, AppError> =
         characterRemoteDatasource.listCharacters().map { listCharacterResponse ->
             listCharacterResponse.data.characters
         }
 
-    override suspend fun getCharacterById(id: String): IResult<Character, UserError> =
+    override suspend fun getCharacterById(id: String): IResult<Character, AppError> =
         characterRemoteDatasource.searchCharacterById(id).map { characterDetailResponse ->
-            characterDetailResponse.data.characterData
+            characterDetailResponse.data
         }
 
     override suspend fun updateCharacter(
@@ -45,7 +44,7 @@ class CharacterRepositoryImpl(private val characterRemoteDatasource: CharacterRe
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): IResult<Unit, UserError> =
+    ): IResult<Unit, AppError> =
         characterRemoteDatasource.updateCharacter(
             id,
             name,
@@ -53,5 +52,5 @@ class CharacterRepositoryImpl(private val characterRemoteDatasource: CharacterRe
             signature,
             avatarUrl,
             visibility,
-        )
+        ).map { }
 }

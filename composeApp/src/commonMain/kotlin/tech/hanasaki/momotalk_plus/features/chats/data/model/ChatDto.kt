@@ -8,8 +8,13 @@ import tech.hanasaki.momotalk_plus.features.chats.domain.model.ChatWithCharacter
 data class CreateChatRequest(
     val characterId: String,
     val title: String,
-    val description: String,
-    val avatarUrl: String,
+    val description: String? = null,
+    val avatarUrl: String? = null,
+)
+
+@Serializable
+data class CreateChatResponse(
+    val message: String,
 )
 
 @Serializable
@@ -32,6 +37,11 @@ data class GetChatListResponse(
 @Serializable
 data class UpdateChatInfoRequest(
     val title: String,
-    val description: String,
-    val avatarUrl: String,
+    val description: String? = null,
+    val avatarUrl: String? = null,
+)
+
+@Serializable
+data class UpdateChatInfoResponse(
+    val success: Boolean,
 )
