@@ -1,8 +1,8 @@
 package tech.hanasaki.momotalk_plus.features.chats.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.ChatRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Chat
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.ChatWithCharacter

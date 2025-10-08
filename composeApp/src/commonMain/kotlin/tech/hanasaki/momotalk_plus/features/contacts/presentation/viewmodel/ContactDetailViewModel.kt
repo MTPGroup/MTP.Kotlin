@@ -3,7 +3,7 @@ package tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.usecase.CharacterDetailUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.DeleteContactUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailIntent

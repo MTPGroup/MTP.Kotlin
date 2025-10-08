@@ -1,5 +1,4 @@
-package tech.hanasaki.momotalk_plus.core.common
-
+package tech.hanasaki.momotalk_plus.core.domain.model
 
 sealed class IResult<out T, out E> {
     data class Success<out T>(val data: T) : IResult<T, Nothing>()

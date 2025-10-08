@@ -1,7 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.auth.data.repository
 
-import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.auth.data.model.SignInWithPasswordResponse
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType

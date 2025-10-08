@@ -1,10 +1,9 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.remote
 
 import io.ktor.client.*
-import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
-import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.*
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 
 class CharacterRemoteDatasource(client: HttpClient) : BaseRemoteDatasource(client) {

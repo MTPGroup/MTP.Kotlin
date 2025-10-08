@@ -3,8 +3,8 @@ package tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.*
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.ClearChatHistoryUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.GetChatHistoryUseCase

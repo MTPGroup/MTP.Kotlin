@@ -7,9 +7,9 @@ import io.ktor.http.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
-import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.BaseRemoteDatasource
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.chats.data.model.*
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamChunk
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent

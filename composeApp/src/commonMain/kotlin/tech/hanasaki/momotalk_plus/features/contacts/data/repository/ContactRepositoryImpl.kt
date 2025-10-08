@@ -1,7 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.contacts.data.repository
 
-import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.ContactRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
 import tech.hanasaki.momotalk_plus.features.contacts.domain.repository.ContactRepository

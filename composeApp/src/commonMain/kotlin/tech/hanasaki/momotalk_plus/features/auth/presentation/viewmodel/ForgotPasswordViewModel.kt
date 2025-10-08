@@ -3,7 +3,7 @@ package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.ResetPasswordUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendPasswordResetEmailUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent

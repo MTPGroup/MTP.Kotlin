@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.app.state.AppUiState
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase

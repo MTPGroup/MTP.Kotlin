@@ -1,7 +1,7 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
-import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 
 data class ContactInfo(
     val id: String,

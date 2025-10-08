@@ -1,10 +1,12 @@
-package tech.hanasaki.momotalk_plus.core.common
+package tech.hanasaki.momotalk_plus.core.data.datasource.remote
 
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 
 /**
  * 通用API请求处理器

@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.core.common
+package tech.hanasaki.momotalk_plus.core.domain.model
 
 data class AppError(
     val message: String,
