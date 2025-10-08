@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -155,7 +153,7 @@ private fun RequestEmailStep(
             singleLine = true,
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Outlined.Password,
+                    imageVector = Ionicons.Outline.LockClosed,
                     contentDescription = "密码图标",
                     modifier = Modifier.size(24.dp),
                 )

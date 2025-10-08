@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +22,9 @@ import com.composables.core.Dialog
 import com.composables.core.DialogPanel
 import com.composables.core.Scrim
 import com.composables.core.rememberDialogState
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.CheckmarkCircle
 import tech.hanasaki.momotalk_plus.core.domain.repository.ContactInfo
 
 @Composable
@@ -243,7 +244,7 @@ private fun ContactItem(
                         color = MaterialTheme.colorScheme.primary
                     ) {
                         Icon(
-                            Icons.Default.Check,
+                            Ionicons.Outline.CheckmarkCircle,
                             contentDescription = "已选择",
                             modifier = Modifier
                                 .padding(2.dp)

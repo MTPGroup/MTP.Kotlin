@@ -108,7 +108,7 @@ val storageModule = module {
 
 val networkModule = module {
     single {
-        HttpClient {
+        HttpClient() {
             install(Logging) {
                 logger = Logger.DEFAULT
                 level = LogLevel.HEADERS

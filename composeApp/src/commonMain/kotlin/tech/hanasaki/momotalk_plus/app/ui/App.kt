@@ -7,6 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.request.crossfade
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 import tech.hanasaki.momotalk_plus.core.theme.AppThemeProvider
@@ -18,6 +21,11 @@ fun App(
     themeManager: ThemeManager = koinInject(),
 ) {
     val currentTheme by themeManager.currentTheme.collectAsState()
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .crossfade(true)
+            .build()
+    }
 
     AppThemeProvider(theme = currentTheme) {
         Surface(

@@ -61,12 +61,12 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.android)
+            implementation(libs.ktor.client.cio)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -80,7 +80,6 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.cio)
             implementation(libs.ktor.client.auth)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
@@ -95,12 +94,16 @@ kotlin {
             implementation(libs.compose.icon.ionicons)
             implementation(libs.compose.core)
         }
+        appleMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.cio)
         }
     }
 }
