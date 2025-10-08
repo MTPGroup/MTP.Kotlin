@@ -1,5 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.profile.presentation.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
@@ -22,6 +25,8 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
+import tech.hanasaki.momotalk_plus.core.utils.rememberImagePicker
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileIntent
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileSideEffect
 import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
@@ -145,7 +150,11 @@ fun ProfileScreen(
             item {
                 ProfileHeader(
                     user = uiState.user,
-                    isEditing = uiState.isEditing
+                    isEditing = uiState.isEditing,
+                    isUploadingAvatar = uiState.isUploadingAvatar,
+                    onUploadAvatar = { imageData ->
+                        onIntent(ProfileIntent.UploadAvatar(imageData, currentUser?.id))
+                    }
                 )
             }
 
@@ -181,7 +190,20 @@ fun ProfileScreen(
 private fun ProfileHeader(
     user: UserProfile?,
     isEditing: Boolean,
+    isUploadingAvatar: Boolean,
+    onUploadAvatar: (ImageData) -> Unit,
 ) {
+    val painter = rememberAsyncImagePainter(
+        user?.image ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
+    )
+    val avatarState by painter.state.collectAsState()
+
+    val launchImagePicker = rememberImagePicker { imageData ->
+        if (imageData != null) {
+            onUploadAvatar(imageData)
+        }
+    }
+
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
@@ -202,33 +224,55 @@ private fun ProfileHeader(
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                if (user?.image != null) {
-                    // TODO: Load image from URL
-                    Icon(
-                        Ionicons.Outline.Person,
-                        contentDescription = "用户头像",
-                        modifier = Modifier.size(50.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                } else {
-                    Icon(
-                        Ionicons.Outline.Person,
-                        contentDescription = "默认头像",
-                        modifier = Modifier.size(50.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                when {
+                    isUploadingAvatar -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(40.dp),
+                            strokeWidth = 3.dp
+                        )
+                    }
+
+                    avatarState is AsyncImagePainter.State.Empty ||
+                            avatarState is AsyncImagePainter.State.Loading -> {
+                        CircularProgressIndicator()
+                    }
+
+                    avatarState is AsyncImagePainter.State.Success -> {
+                        Image(
+                            painter = painter,
+                            contentDescription = "用户头像",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+
+                    avatarState is AsyncImagePainter.State.Error -> {
+                        Icon(
+                            Ionicons.Outline.Person,
+                            contentDescription = "默认头像",
+                            modifier = Modifier.size(50.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
 
             if (isEditing) {
-                TextButton(onClick = { /* TODO: Change avatar */ }) {
+                TextButton(
+                    onClick = {
+                        println("[ProfileScreen] Upload avatar button clicked")
+                        launchImagePicker()
+                    },
+                    enabled = !isUploadingAvatar
+                ) {
                     Icon(
                         Ionicons.Outline.Camera,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("更换头像")
+                    Text(if (isUploadingAvatar) "上传中..." else "更换头像")
                 }
             } else {
                 Text(

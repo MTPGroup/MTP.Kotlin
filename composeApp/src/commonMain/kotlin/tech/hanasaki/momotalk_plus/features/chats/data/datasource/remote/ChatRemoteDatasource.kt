@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.chats.data.model.*
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamChunk
@@ -16,7 +16,7 @@ import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 
 class ChatRemoteDatasource(
     client: HttpClient,
-) : BaseRemoteDataSource(client) {
+) : BaseRemoteDatasource(client) {
     private val endpoint = "$baseUrl/chats"
 
     /**

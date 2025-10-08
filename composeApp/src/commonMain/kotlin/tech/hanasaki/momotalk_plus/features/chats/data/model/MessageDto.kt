@@ -6,7 +6,7 @@ import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
 @Serializable
 data class GetMessagesData(
     val messages: List<Message>,
-    val next: String,
+    val next: String?,
 )
 
 @Serializable

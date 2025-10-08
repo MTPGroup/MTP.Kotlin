@@ -2,11 +2,11 @@ package tech.hanasaki.momotalk_plus.core.data.datasource.remote
 
 import io.ktor.client.*
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.GetSessionResponse
 
-class UserRemoteDatasource(client: HttpClient) : BaseRemoteDataSource(client) {
+class UserRemoteDatasource(client: HttpClient) : BaseRemoteDatasource(client) {
 
     /**
      * 获取会话信息

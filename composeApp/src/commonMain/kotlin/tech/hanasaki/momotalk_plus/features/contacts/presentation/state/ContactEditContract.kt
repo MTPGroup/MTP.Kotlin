@@ -1,5 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.state
 
+import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 
 data class ContactEditState(
@@ -11,6 +12,7 @@ data class ContactEditState(
     val avatarUrl: String = "",
     val visibility: Visibility = Visibility.PUBLIC,
     val isSaving: Boolean = false,
+    val isUploadingAvatar: Boolean = false,
 )
 
 sealed class ContactEditIndent {
@@ -21,6 +23,7 @@ sealed class ContactEditIndent {
     data class AvatarUrlChanged(val avatarUrl: String) : ContactEditIndent()
     data class VisibilityChanged(val visibility: Visibility) : ContactEditIndent()
     data class UpdateContactInfo(val id: String) : ContactEditIndent()
+    data class UploadAvatar(val imageData: ImageData, val userId: String?) : ContactEditIndent()
 }
 
 sealed class ContactEditSideEffect {

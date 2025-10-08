@@ -15,11 +15,14 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.CharacterRemoteDatasource
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UploadRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.UserRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
+import tech.hanasaki.momotalk_plus.core.data.repository.UploadImageRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.UserRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 import tech.hanasaki.momotalk_plus.core.domain.repository.ContactProvider
+import tech.hanasaki.momotalk_plus.core.domain.repository.UploadImageRepository
 import tech.hanasaki.momotalk_plus.core.domain.repository.UserRepository
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
 import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
@@ -61,6 +64,7 @@ import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.Sett
 val themeModule = module {
     single { ThemeManager() }
 }
+
 val commonModule = module {
     factoryOf(::SignInUserUseCase)
     factoryOf(::SignUpUserUseCase)
@@ -88,13 +92,13 @@ val commonModule = module {
     factoryOf(::SendMessageStreamUseCase)
     factoryOf(::UpdateChatUseCase)
     factoryOf(::GetChatInfoUseCase)
-    // Settings UseCases
     factoryOf(::GetUserSettingsUseCase)
     factoryOf(::SaveThemeUseCase)
     factoryOf(::SaveNotificationSettingsUseCase)
     factoryOf(::SaveSoundSettingsUseCase)
     factoryOf(::SaveVibrationSettingsUseCase)
     factoryOf(::UpdateUserProfileUseCase)
+    factoryOf(::UploadImageUseCase)
 }
 
 val storageModule = module {
@@ -155,6 +159,7 @@ val datasourceModule = module {
     factoryOf(::ContactRemoteDatasource)
     factoryOf(::ChatRemoteDatasource)
     factoryOf(::ProfileRemoteDataSource)
+    factoryOf(::UploadRemoteDatasource)
 }
 
 val repositoryModule = module {
@@ -166,6 +171,7 @@ val repositoryModule = module {
     single<ContactProvider> { ContactProviderImpl(get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
     single<ProfileRepository> { ProfileRepositoryImpl(get()) }
+    single<UploadImageRepository> { UploadImageRepositoryImpl(get()) }
 }
 
 

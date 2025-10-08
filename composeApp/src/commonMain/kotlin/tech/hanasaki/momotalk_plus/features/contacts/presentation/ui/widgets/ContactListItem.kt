@@ -1,13 +1,11 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.widgets
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,14 +31,14 @@ fun ContactListItem(
                 .border(2.dp, Color.Gray, CircleShape)
 
             if (contact.avatarUrl.isNotBlank()) {
-                Icon(
+                Image(
                     painter = rememberAsyncImagePainter(contact.avatarUrl),
                     contentDescription = "用户头像",
                     modifier = avatarModifier
                 )
             } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
+                Image(
+                    painter = rememberAsyncImagePainter("https://cdn.hanasaki.tech/avatars/characters/default_avatar.jpg"),
                     contentDescription = "默认头像",
                     modifier = avatarModifier
                 )

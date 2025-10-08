@@ -2,11 +2,11 @@ package tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote
 
 import io.ktor.client.*
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.model.ContactListResponse
 
-class ContactRemoteDatasource(client: HttpClient) : BaseRemoteDataSource(client) {
+class ContactRemoteDatasource(client: HttpClient) : BaseRemoteDatasource(client) {
     private val endpoint = "$baseUrl/contacts"
 
     /**

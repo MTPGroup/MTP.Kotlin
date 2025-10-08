@@ -4,8 +4,11 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.common.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
+import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.usecase.CharacterDetailUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.UpdateCharacterUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.UploadImageUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditIndent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditSideEffect
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditState
@@ -13,6 +16,7 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactE
 class ContactEditViewModel(
     private val updateContactUseCase: UpdateCharacterUseCase,
     private val characterDetailUseCase: CharacterDetailUseCase,
+    private val uploadImageUseCase: UploadImageUseCase,
 ) :
     BaseViewModel<ContactEditState, ContactEditSideEffect, ContactEditIndent>(ContactEditState()) {
 
@@ -49,6 +53,9 @@ class ContactEditViewModel(
 
                 is ContactEditIndent.UpdateContactInfo ->
                     updateContactInfo(intent.id)
+
+                is ContactEditIndent.UploadAvatar ->
+                    uploadAvatar(intent.imageData, intent.userId)
             }
         }
     }
@@ -122,6 +129,48 @@ class ContactEditViewModel(
                     )
                 )
             }
+        }
+    }
+
+    private suspend fun uploadAvatar(
+        imageData: ImageData,
+        userId: String?,
+    ) {
+        try {
+            updateState {
+                it.copy(isUploadingAvatar = true)
+            }
+
+            when (val result = uploadImageUseCase(imageData, UploadPath.CHARACTER_AVATAR, userId)) {
+                is IResult.Success -> {
+                    updateState {
+                        it.copy(
+                            avatarUrl = result.data,
+                            isUploadingAvatar = false
+                        )
+                    }
+                    sendSideEffect(
+                        ContactEditSideEffect.ShowMessage("头像上传成功")
+                    )
+                }
+
+                is IResult.Error -> {
+                    updateState {
+                        it.copy(isUploadingAvatar = false)
+                    }
+                    sendSideEffect(
+                        ContactEditSideEffect.ShowMessage("头像上传失败: ${result.error.message}")
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            updateState {
+                it.copy(isUploadingAvatar = false)
+            }
+            sendSideEffect(
+                ContactEditSideEffect.ShowMessage("头像上传失败: ${e.message}")
+            )
         }
     }
 }

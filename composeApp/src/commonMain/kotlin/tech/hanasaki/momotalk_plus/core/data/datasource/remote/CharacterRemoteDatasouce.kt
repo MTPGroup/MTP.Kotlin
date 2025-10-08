@@ -2,12 +2,12 @@ package tech.hanasaki.momotalk_plus.core.data.datasource.remote
 
 import io.ktor.client.*
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.core.data.model.*
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 
-class CharacterRemoteDatasource(client: HttpClient) : BaseRemoteDataSource(client) {
+class CharacterRemoteDatasource(client: HttpClient) : BaseRemoteDatasource(client) {
     private val endpoint = "$baseUrl/characters"
 
     /**

@@ -2,7 +2,7 @@ package tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote
 
 import io.ktor.client.*
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.profile.data.model.UpdateUserRequest
 import tech.hanasaki.momotalk_plus.features.profile.data.model.UpdateUserResponse
@@ -10,7 +10,7 @@ import tech.hanasaki.momotalk_plus.features.profile.data.model.UpdateUserRespons
 /**
  * ProfileRemoteDataSource - 个人资料远程数据源
  */
-class ProfileRemoteDataSource(client: HttpClient) : BaseRemoteDataSource(client) {
+class ProfileRemoteDataSource(client: HttpClient) : BaseRemoteDatasource(client) {
     private val endpoint = "$baseUrl/auth"
 
 

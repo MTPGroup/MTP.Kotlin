@@ -2,13 +2,13 @@ package tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote
 
 import io.ktor.client.*
 import tech.hanasaki.momotalk_plus.core.common.AppError
-import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.common.BaseRemoteDatasource
 import tech.hanasaki.momotalk_plus.core.common.IResult
 import tech.hanasaki.momotalk_plus.features.auth.data.model.*
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
 
 
-class AuthRemoteDatasource(client: HttpClient) : BaseRemoteDataSource(client) {
+class AuthRemoteDatasource(client: HttpClient) : BaseRemoteDatasource(client) {
     private val endpoint = "$baseUrl/auth"
 
 

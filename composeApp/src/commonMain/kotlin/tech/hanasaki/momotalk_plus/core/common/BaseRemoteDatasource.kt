@@ -10,7 +10,7 @@ import io.ktor.http.*
  * 通用API请求处理器
  * 处理统一的API响应格式
  */
-open class BaseRemoteDataSource(val client: HttpClient) {
+open class BaseRemoteDatasource(val client: HttpClient) {
     protected val baseUrl = "http://localhost:3001/api"
 
     /**

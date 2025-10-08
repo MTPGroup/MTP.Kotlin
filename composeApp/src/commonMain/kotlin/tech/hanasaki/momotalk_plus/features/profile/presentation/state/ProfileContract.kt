@@ -1,6 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.profile.presentation.state
 
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 
 /**
  * ProfileState - 个人资料页面状态
@@ -9,8 +10,10 @@ data class ProfileState(
     val user: UserProfile? = null,
     val isLoading: Boolean = false,
     val isEditing: Boolean = false,
+    val originAvatar: String? = null,
     val editedName: String = "",
     val isSaving: Boolean = false,
+    val isUploadingAvatar: Boolean = false,
 )
 
 /**
@@ -24,6 +27,7 @@ sealed interface ProfileIntent {
     data object SaveProfile : ProfileIntent
     data object ChangePassword : ProfileIntent
     data object Logout : ProfileIntent
+    data class UploadAvatar(val imageData: ImageData, val userId: String?) : ProfileIntent
 }
 
 /**

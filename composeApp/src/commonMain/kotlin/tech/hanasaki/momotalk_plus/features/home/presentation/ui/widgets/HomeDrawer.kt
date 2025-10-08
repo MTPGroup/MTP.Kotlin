@@ -1,16 +1,20 @@
 package tech.hanasaki.momotalk_plus.features.home.presentation.ui.widgets
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Cog
@@ -119,6 +123,11 @@ fun HomeDrawerContent(
 
 @Composable
 private fun DrawerHeader(user: UserProfile?) {
+    val painter = rememberAsyncImagePainter(
+        user?.image ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
+    )
+    val avatarState by painter.state.collectAsState()
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.primaryContainer
@@ -135,14 +144,33 @@ private fun DrawerHeader(user: UserProfile?) {
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 4.dp
             ) {
-                AsyncImage(
-                    model = user?.image,
-                    contentDescription = "用户头像",
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+                when (avatarState) {
+                    AsyncImagePainter.State.Empty,
+                    is AsyncImagePainter.State.Loading,
+                        -> {
+                        CircularProgressIndicator()
+                    }
+
+                    is AsyncImagePainter.State.Success -> {
+                        Image(
+                            painter = painter,
+                            contentDescription = "用户头像",
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Icon(
+                            Ionicons.Outline.Person,
+                            contentDescription = "用户头像",
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
             }
             Spacer(Modifier.width(16.dp))
             Column {

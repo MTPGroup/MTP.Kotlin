@@ -1,5 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,7 +14,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
@@ -21,7 +23,9 @@ import com.woowla.compose.icon.collections.ionicons.ionicons.filled.*
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Save
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
+import tech.hanasaki.momotalk_plus.core.utils.rememberImagePicker
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditIndent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditSideEffect
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactEditViewModel
@@ -29,6 +33,7 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactEditPage(
+    currentUser: UserProfile?,
     contactId: String,
     onNavigateBack: () -> Unit,
     viewModel: ContactEditViewModel = koinViewModel(),
@@ -37,6 +42,14 @@ fun ContactEditPage(
     val onIntent = viewModel::processIntent
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val painter = rememberAsyncImagePainter(uiState.avatarUrl)
+    val avatarState by painter.state.collectAsState()
+
+    val launchImagePicker = rememberImagePicker { imageData ->
+        if (imageData != null) {
+            onIntent(ContactEditIndent.UploadAvatar(imageData, currentUser?.id))
+        }
+    }
 
     LaunchedEffect(Unit) {
         onIntent(ContactEditIndent.LoadContactInfo(contactId))
@@ -119,18 +132,59 @@ fun ContactEditPage(
                         .padding(vertical = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    AsyncImage(
-                        model = uiState.avatarUrl.ifEmpty { "https://via.placeholder.com/120" },
-                        contentDescription = "头像",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.Black, CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+                    Box(
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when (avatarState) {
+                            is AsyncImagePainter.State.Empty,
+                            is AsyncImagePainter.State.Loading,
+                                -> {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(40.dp),
+                                    strokeWidth = 3.dp
+                                )
+                            }
+
+                            is AsyncImagePainter.State.Success -> {
+                                Image(
+                                    painter = rememberAsyncImagePainter(uiState.avatarUrl.ifEmpty { "https://via.placeholder.com/120" }),
+                                    contentDescription = "头像",
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color.Black, CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
+                            is AsyncImagePainter.State.Error -> {
+                                Icon(
+                                    imageVector = Ionicons.Filled.PersonCircle,
+                                    contentDescription = "头像",
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color.Black, CircleShape),
+                                    tint = Color.Gray
+                                )
+                            }
+                        }
+
+                        if (uiState.isUploadingAvatar) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(40.dp),
+                                strokeWidth = 3.dp
+                            )
+                        }
+                    }
+
                     TextButton(
-                        onClick = { /* TODO: 选择头像 */ },
-                        modifier = Modifier.padding(top = 8.dp)
+                        onClick = {
+                            println("[ContactEditPage] Upload avatar button clicked")
+                            launchImagePicker()
+                        },
+                        modifier = Modifier.padding(top = 8.dp),
+                        enabled = !uiState.isUploadingAvatar
                     ) {
                         Icon(
                             imageVector = Ionicons.Filled.Camera,
@@ -139,7 +193,7 @@ fun ContactEditPage(
                                 .size(16.dp)
                                 .padding(end = 4.dp)
                         )
-                        Text("更换头像")
+                        Text(if (uiState.isUploadingAvatar) "上传中..." else "更换头像")
                     }
                 }
 
