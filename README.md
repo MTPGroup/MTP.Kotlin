@@ -1,9 +1,7 @@
 # MomoTalk Plus (MTP)
 
-<div align="center">
-
-![MTP Logo](./assets/logo.png)
-
+<div align="center" >
+<img src="./assets/logo.png" alt="MTP Logo" width="200"/>
 </div>
 
 ## 项目简介
@@ -30,6 +28,9 @@ MomoTalk Plus (MTP) 是一款基于 Kotlin Multiplatform 开发的角色扮演�
     - 底部导航栏自动显示/隐藏
 
 ### 开发中功能
+
+- 🚧 主题系统
+- 🚧 创建联系人功能
 
 ## 技术架构
 
