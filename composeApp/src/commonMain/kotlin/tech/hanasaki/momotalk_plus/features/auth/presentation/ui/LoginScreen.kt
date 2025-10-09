@@ -119,7 +119,8 @@ fun LoginContent(
             },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            isError = uiState.loginError != null
+            isError = uiState.loginError != null,
+            shape = MaterialTheme.shapes.small,
         )
         OutlinedTextField(
             value = uiState.password,
@@ -147,7 +148,8 @@ fun LoginContent(
                     )
                 }
             },
-            isError = uiState.loginError != null
+            isError = uiState.loginError != null,
+            shape = MaterialTheme.shapes.small,
         )
 
         Row(

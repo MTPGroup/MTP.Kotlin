@@ -8,22 +8,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.composables.core.Dialog
 import com.composables.core.DialogPanel
 import com.composables.core.Scrim
 import com.composables.core.rememberDialogState
-import com.composeunstyled.Button
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
-import com.woowla.compose.icon.collections.ionicons.ionicons.filled.Send
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import momotalkplus.composeapp.generated.resources.Res
@@ -34,6 +34,7 @@ import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailIntent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailSideEffect
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.widgets.InfoRow
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +53,8 @@ fun ContactDetailPage(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val colorScheme = MaterialTheme.colorScheme
+
     LaunchedEffect(Unit) {
         onIntent(ContactDetailIntent.LoadContact(userId))
     }
@@ -66,272 +69,376 @@ fun ContactDetailPage(
 
                 is ContactDetailSideEffect.NavigateToContactsList ->
                     onNavigateBack()
-
-                is ContactDetailSideEffect.NavigateToChat ->
-                    TODO("导航到聊天界面")
             }
         }
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbarHostState)
-        },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = uiState.contact.name,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Ionicons.Filled.ChevronBack,
-                            contentDescription = "返回上一页",
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            onNavigateToEditContact(userId)
-                        },
-                        enabled = uiState.contact.creator.id == appUiState.currentUser?.id
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = colorScheme.primary,
+                    strokeWidth = 3.dp
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // 自定义顶部栏
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .height(56.dp)
+                        .padding(horizontal = 4.dp)
+                        .zIndex(10f)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            Ionicons.Outline.Create,
-                            contentDescription = "编辑联系人信息",
-                            modifier = Modifier.size(24.dp),
-                        )
+                        // 返回按钮
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.surface.copy(alpha = 0.9f))
+                                .clickable(onClick = onNavigateBack),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Ionicons.Filled.ChevronBack,
+                                contentDescription = "返回",
+                                modifier = Modifier.size(24.dp),
+                                tint = colorScheme.onSurface
+                            )
+                        }
+
+                        // 操作按钮组
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(colorScheme.surface.copy(alpha = 0.9f))
+                                    .clickable(
+                                        enabled = uiState.contact.creator.id == appUiState.currentUser?.id,
+                                        onClick = { onNavigateToEditContact(userId) }
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Ionicons.Outline.Create,
+                                    contentDescription = "编辑",
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (uiState.contact.creator.id == appUiState.currentUser?.id)
+                                        colorScheme.primary
+                                    else
+                                        colorScheme.outline
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(colorScheme.surface.copy(alpha = 0.9f))
+                                    .clickable(onClick = { dialogState.visible = true }),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Ionicons.Outline.Trash,
+                                    contentDescription = "删除",
+                                    modifier = Modifier.size(22.dp),
+                                    tint = colorScheme.error
+                                )
+                            }
+                        }
                     }
-                    IconButton(onClick = {
-                        dialogState.visible = true
-                    }) {
-                        Icon(
-                            Ionicons.Outline.Trash,
-                            contentDescription = "删除联系人",
-                            modifier = Modifier.size(24.dp),
+                }
+
+                // 头部背景区域
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp)
+                        .offset(y = (-56).dp)
+                ) {
+                    // 背景图片
+                    Image(
+                        painter = painterResource(Res.drawable.default_banner),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+
+                    // 渐变遮罩
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.3f)
+                                    )
+                                )
+                            )
+                    )
+
+                    // 头像
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .offset(y = 60.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // 头像背景模糊效果
+                        Box(
+                            modifier = Modifier
+                                .size(130.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.surface.copy(alpha = 0.2f))
+                                .blur(20.dp)
+                        )
+
+                        AsyncImage(
+                            model = uiState.contact.avatarUrl.ifBlank {
+                                "https://v2.xxapi.cn/api/head?return=302"
+                            },
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .border(
+                                    width = 5.dp,
+                                    color = colorScheme.surface,
+                                    shape = CircleShape
+                                ),
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
-            )
+
+                // 主要内容区域
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = (-56).dp)
+                        .padding(top = 80.dp, start = 24.dp, end = 24.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 名字
+                    Text(
+                        text = uiState.contact.name,
+                        fontSize = 28.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = colorScheme.onBackground
+                    )
+
+                    // 签名
+                    Text(
+                        text = uiState.contact.signature,
+                        fontSize = 15.sp,
+                        color = colorScheme.onSurfaceVariant,
+                        lineHeight = 22.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 人物设定卡片
+                    if (uiState.contact.persona.isNotBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(colorScheme.surfaceContainerHighest)
+                                .padding(20.dp)
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(6.dp)
+                                            .clip(CircleShape)
+                                            .background(colorScheme.primary)
+                                    )
+                                    Text(
+                                        text = "人物设定",
+                                        fontSize = 16.sp,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                        color = colorScheme.onSurface
+                                    )
+                                }
+
+                                Text(
+                                    text = uiState.contact.persona,
+                                    fontSize = 14.sp,
+                                    color = colorScheme.onSurfaceVariant,
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // 详细信息区域
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // 创建者
+                        InfoRow(
+                            icon = Ionicons.Outline.PersonCircle,
+                            label = "创建者",
+                            value = uiState.contact.creator.name,
+                            iconColor = colorScheme.primary
+                        )
+
+                        // 可见性
+                        InfoRow(
+                            icon = if (uiState.contact.visibility == Visibility.PUBLIC)
+                                Ionicons.Outline.Earth
+                            else
+                                Ionicons.Outline.LockClosed,
+                            label = "可见性",
+                            value = if (uiState.contact.visibility == Visibility.PUBLIC) "公开" else "私有",
+                            iconColor = if (uiState.contact.visibility == Visibility.PUBLIC)
+                                colorScheme.tertiary
+                            else
+                                colorScheme.outline
+                        )
+
+                        // 创建时间
+                        InfoRow(
+                            icon = Ionicons.Outline.Calendar,
+                            label = "创建时间",
+                            value = uiState.contact.createdAt,
+                            iconColor = colorScheme.secondary
+                        )
+
+                        // 更新时间
+                        InfoRow(
+                            icon = Ionicons.Outline.Time,
+                            label = "更新时间",
+                            value = uiState.contact.updatedAt,
+                            iconColor = colorScheme.tertiary
+                        )
+                    }
+                }
+            }
         }
-    ) { paddingValues ->
+
+        // 删除确认对话框
         Dialog(state = dialogState) {
             Scrim()
             DialogPanel(
                 modifier = Modifier
                     .displayCutoutPadding()
                     .systemBarsPadding()
-                    .widthIn(min = 280.dp, max = 560.dp)
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .widthIn(min = 280.dp, max = 400.dp)
+                    .padding(24.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(colorScheme.surface)
             ) {
                 Column(
-                    modifier = Modifier
-                        .padding(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("确认删除该联系人吗？")
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // 图标
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(colorScheme.errorContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Ionicons.Outline.Trash,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = colorScheme.error
+                        )
+                    }
+
+                    Text(
+                        text = "确认删除？",
+                        fontSize = 20.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = colorScheme.onSurface
+                    )
+
+                    Text(
+                        text = "删除后将无法恢复该联系人",
+                        fontSize = 14.sp,
+                        color = colorScheme.onSurfaceVariant
+                    )
+
                     Row(
-                        horizontalArrangement = Arrangement.End,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Button(onClick = { dialogState.visible = false }) {
-                            Text("取消")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
-                            onIntent(ContactDetailIntent.DeleteContact(userId))
-                            dialogState.visible = false
-                        }) {
-                            Text("删除", color = Color.Red)
-                        }
-                    }
-                }
-            }
-        }
-        if (uiState.isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(Res.drawable.default_banner),
-                        contentDescription = "背景图",
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                    )
-
-                    AsyncImage(
-                        model = uiState.contact.avatarUrl.ifBlank {
-                            "https://v2.xxapi.cn/api/head?return=302"
-                        },
-                        contentDescription = "${uiState.contact.name} 的头像",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.Black, CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .offset(y = (-30).dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = uiState.contact.name,
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                        Text(
-                            text = uiState.contact.signature,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // 发送消息按钮
-                    Button(
-                        onClick = { /* TODO: 发送消息 */ },
-                        backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentPadding = PaddingValues(8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        Row {
-                            Icon(
-                                Ionicons.Filled.Send,
-                                contentDescription = "发送消息",
-                                modifier = Modifier
-                                    .padding(end = 8.dp)
-                                    .size(24.dp)
-                            )
-                            Text("发送消息")
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(colorScheme.surfaceVariant)
+                                .clickable { dialogState.visible = false },
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                text = "人物设定",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            Text(
-                                text = uiState.contact.persona.ifBlank { "暂无设定" },
-                                style = MaterialTheme.typography.bodyMedium
+                                text = "取消",
+                                fontSize = 15.sp,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                color = colorScheme.onSurfaceVariant
                             )
                         }
-                    }
 
-                    // 详细信息卡片
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                    ) {
-                        val listColors = ListItemDefaults.colors(
-                            containerColor = Color.Transparent,
-                        )
-                        Column {
-                            ListItem(
-                                colors = listColors,
-                                headlineContent = { Text("创建者") },
-                                supportingContent = { Text(uiState.contact.creator.name) },
-                                leadingContent = {
-                                    Icon(
-                                        Ionicons.Outline.PersonCircle,
-                                        contentDescription = "创建者",
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
-                            )
-                            HorizontalDivider()
-                            ListItem(
-                                colors = listColors,
-                                headlineContent = { Text("可见性") },
-                                supportingContent = { Text(if (uiState.contact.visibility == Visibility.PUBLIC) "公开" else "私有") },
-                                leadingContent = {
-                                    Icon(
-                                        if (uiState.contact.visibility == Visibility.PUBLIC) Ionicons.Outline.Earth else Ionicons.Outline.LockClosed,
-                                        contentDescription = "可见性",
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
-                            )
-                            HorizontalDivider()
-                            ListItem(
-                                colors = listColors,
-                                headlineContent = { Text("创建于") },
-                                supportingContent = { Text(uiState.contact.createdAt) },
-                                leadingContent = {
-                                    Icon(
-                                        Ionicons.Outline.Calendar,
-                                        contentDescription = "创建日期",
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
-                            )
-                            HorizontalDivider()
-                            ListItem(
-                                colors = listColors,
-                                headlineContent = { Text("更新于") },
-                                supportingContent = { Text(uiState.contact.updatedAt) },
-                                leadingContent = {
-                                    Icon(
-                                        Ionicons.Outline.Calendar,
-                                        contentDescription = "更新日期",
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(colorScheme.error)
+                                .clickable {
+                                    onIntent(ContactDetailIntent.DeleteContact(userId))
+                                    dialogState.visible = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "删除",
+                                fontSize = 15.sp,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                color = colorScheme.onError
                             )
                         }
                     }
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 }
+

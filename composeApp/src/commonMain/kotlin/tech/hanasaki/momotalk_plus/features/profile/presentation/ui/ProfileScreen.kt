@@ -17,13 +17,12 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import com.woowla.compose.icon.collections.ionicons.Ionicons
-import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
-import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
 import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.utils.rememberImagePicker
@@ -82,24 +81,9 @@ fun ProfileScreen(
             }
         },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "个人资料",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Ionicons.Filled.ChevronBack,
-                            contentDescription = "返回",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
+            MTopBar(
+                title = "个人资料",
+                onNavigateBack = onNavigateBack,
                 actions = {
                     if (uiState.isEditing) {
                         TextButton(
@@ -131,10 +115,7 @@ fun ProfileScreen(
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background

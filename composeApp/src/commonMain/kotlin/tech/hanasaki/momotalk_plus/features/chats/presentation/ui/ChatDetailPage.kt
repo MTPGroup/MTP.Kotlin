@@ -1,6 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.chats.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,20 +13,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import androidx.compose.ui.unit.sp
 import com.composables.core.Dialog
 import com.composables.core.DialogPanel
 import com.composables.core.Scrim
 import com.composables.core.rememberDialogState
-import com.composeunstyled.Button
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
-import com.woowla.compose.icon.collections.ionicons.ionicons.outline.TrashBin
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Trash
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -51,6 +50,7 @@ fun ChatDetailPage(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val dialogState = rememberDialogState()
+    val colorScheme = MaterialTheme.colorScheme
 
     // 记录上一次的消息内容长度
     var lastContentLength by remember { mutableStateOf(0) }
@@ -102,183 +102,235 @@ fun ChatDetailPage(
         }
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = MaterialTheme.colorScheme.inverseSurface,
-                    contentColor = MaterialTheme.colorScheme.inverseOnSurface
-                )
-            }
-        },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        if (uiState.avatar != null) {
-                            AsyncImage(
-                                model = uiState.avatar,
-                                contentDescription = "会话头像",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = modifier.fillMaxSize()) {
+            // 自定义顶部栏
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .height(56.dp)
+                    .background(colorScheme.surface)
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // 返回按钮
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onNavigateBack),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Ionicons.Filled.ChevronBack,
+                        contentDescription = "返回",
+                        modifier = Modifier.size(24.dp),
+                        tint = colorScheme.onSurface
+                    )
+                }
 
-                        Column {
+                // 标题和头像
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    /*  if (uiState.avatar != null) {
+                          Box(contentAlignment = Alignment.Center) {
+                              // 背景光晕
+                              Box(
+                                  modifier = Modifier
+                                      .size(44.dp)
+                                      .clip(CircleShape)
+                                      .background(colorScheme.primaryContainer.copy(alpha = 0.3f))
+                              )
+                              AsyncImage(
+                                  model = uiState.avatar,
+                                  contentDescription = "会话头像",
+                                  modifier = Modifier
+                                      .size(40.dp)
+                                      .clip(CircleShape),
+                                  contentScale = ContentScale.Crop
+                              )
+                          }
+                      }*/
+
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = uiState.title.ifEmpty { "聊天" },
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.onSurface
+                        )
+                        if (uiState.isTyping) {
                             Text(
-                                text = uiState.title.ifEmpty { "聊天" },
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = "正在输入...",
+                                fontSize = 12.sp,
+                                color = colorScheme.primary
                             )
-                            if (uiState.isTyping) {
-                                Text(
-                                    text = "正在输入...",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
                         }
                     }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Ionicons.Filled.ChevronBack,
-                            contentDescription = "返回",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
+                }
+
+                // 删除按钮
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .clickable { dialogState.visible = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Ionicons.Outline.Trash,
+                        contentDescription = "删除会话",
+                        modifier = Modifier.size(22.dp),
+                        tint = colorScheme.error
+                    )
+                }
+            }
+
+            // 消息列表
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .background(colorScheme.surfaceContainerLowest),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(
+                    items = uiState.messages,
+                    key = { it.id }
+                ) { message ->
+                    MessageBubble(
+                        message = message,
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
+
+            // 输入框
+            MessageInputBar(
+                message = uiState.inputMessage,
+                onMessageChange = { onIntent(ChatDetailIntent.InputMessageChanged(it)) },
+                onSendClick = {
+                    if (uiState.inputMessage.isNotBlank()) {
+                        onIntent(
+                            ChatDetailIntent.SendMessage(
+                                chatId = chatId,
+                                message = uiState.inputMessage,
+                                currentUser = currentUser
+                            )
                         )
+                        onIntent(ChatDetailIntent.InputMessageChanged(""))
                     }
                 },
-                actions = {
-                    IconButton(onClick = { dialogState.visible = true }) {
-                        Icon(
-                            imageVector = Ionicons.Outline.TrashBin,
-                            contentDescription = "删除会话",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.error
-                )
+                enabled = true,
+                paddingValues = PaddingValues(0.dp),
+                modifier = Modifier.fillMaxWidth()
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
+        }
+
+        // 删除确认对话框
         Dialog(state = dialogState) {
             Scrim()
             DialogPanel(
                 modifier = Modifier
                     .displayCutoutPadding()
                     .systemBarsPadding()
-                    .widthIn(min = 280.dp, max = 560.dp)
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface)
+                    .widthIn(min = 280.dp, max = 400.dp)
+                    .padding(24.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(colorScheme.surface)
             ) {
                 Column(
-                    modifier = Modifier
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        "确认清空历史记录吗？",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        "此操作将删除所有消息记录，且不可恢复。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
+                    // 图标
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(colorScheme.errorContainer),
+                        contentAlignment = Alignment.Center
                     ) {
-                        TextButton(
-                            onClick = { dialogState.visible = false }
-                        ) {
-                            Text(
-                                "取消",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Button(
-                            onClick = {
-                                onIntent(ChatDetailIntent.ClearChatHistory(chatId))
-                                dialogState.visible = false
-                            }
-                        ) {
-                            Text(
-                                "确认",
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceContainerLowest),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        items = uiState.messages,
-                        key = { it.id }
-                    ) { message ->
-                        MessageBubble(
-                            message = message,
-                            modifier = Modifier.animateItem()
+                        Icon(
+                            Ionicons.Outline.Trash,
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = colorScheme.error
                         )
                     }
-                }
 
-                MessageInputBar(
-                    message = uiState.inputMessage,
-                    onMessageChange = { onIntent(ChatDetailIntent.InputMessageChanged(it)) },
-                    onSendClick = {
-                        if (uiState.inputMessage.isNotBlank()) {
-                            onIntent(
-                                ChatDetailIntent.SendMessage(
-                                    chatId = chatId,
-                                    message = uiState.inputMessage,
-                                    currentUser = currentUser
-                                )
+                    Text(
+                        text = "确认清空历史记录？",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onSurface
+                    )
+
+                    Text(
+                        text = "此操作将删除所有消息记录，且不可恢复。",
+                        fontSize = 14.sp,
+                        color = colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(colorScheme.surfaceVariant)
+                                .clickable { dialogState.visible = false },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "取消",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onSurfaceVariant
                             )
-                            onIntent(ChatDetailIntent.InputMessageChanged(""))
                         }
-                    },
-                    enabled = true,
-                    paddingValues = paddingValues,
-                    modifier = Modifier.fillMaxWidth()
-                )
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(colorScheme.error)
+                                .clickable {
+                                    onIntent(ChatDetailIntent.ClearChatHistory(chatId))
+                                    dialogState.visible = false
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "确认",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colorScheme.onError
+                            )
+                        }
+                    }
+                }
             }
         }
+
+        // Snackbar
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 }

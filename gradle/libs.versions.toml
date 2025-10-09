@@ -7,6 +7,7 @@ android-targetSdk = "35"
 androidx-activity = "1.11.0"
 androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.2.1"
+annexflow-constraintlayout = "0.6.1"
 androidx-core = "1.17.0"
 androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.4"
@@ -43,6 +44,7 @@ androidx-navigation = { module = "org.jetbrains.androidx.navigation:navigation-c
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+annexflow-constraintlayout = { module = "tech.annexflow.compose:constraintlayout-compose-multiplatform", version.ref = "annexflow-constraintlayout" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

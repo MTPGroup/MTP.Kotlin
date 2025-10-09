@@ -8,9 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.woowla.compose.icon.collections.ionicons.Ionicons
-import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
-import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,27 +17,9 @@ fun TermsOfServiceScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "服务条款",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Ionicons.Filled.ChevronBack,
-                            contentDescription = "返回",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            MTopBar(
+                title = "服务条款",
+                onNavigateBack = onNavigateBack
             )
         },
         containerColor = MaterialTheme.colorScheme.background

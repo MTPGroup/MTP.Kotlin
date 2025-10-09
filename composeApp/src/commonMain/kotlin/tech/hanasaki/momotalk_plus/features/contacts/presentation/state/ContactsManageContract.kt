@@ -9,7 +9,15 @@ data class ContactsManageState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val processingContactId: String? = null,
-)
+) {
+    val filteredContacts: List<Character>
+        get() {
+            val lowerCaseQuery = query.lowercase()
+            return availableContacts.filter {
+                it.name.lowercase().contains(lowerCaseQuery)
+            }
+        }
+}
 
 sealed class ContactsManageIntent {
     data class UpdateQuery(val query: String) : ContactsManageIntent()

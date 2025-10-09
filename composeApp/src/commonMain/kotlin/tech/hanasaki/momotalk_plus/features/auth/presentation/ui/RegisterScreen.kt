@@ -18,12 +18,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.woowla.compose.icon.collections.ionicons.Ionicons
-import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
-import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterIntent
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterSideEffect
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterState
@@ -72,22 +71,9 @@ fun RegisterScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text("创建账户") },
-                navigationIcon = {
-                    if (pagerState.currentPage < 2) {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(
-                                imageVector = Ionicons.Filled.ChevronBack,
-                                contentDescription = "返回",
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                )
+            MTopBar(
+                title = "创建账户",
+                onNavigateBack = onNavigateBack,
             )
         }
     ) { paddingValues ->
@@ -173,8 +159,8 @@ private fun VerificationStep(
             },
             isError = uiState.error?.contains("验证码") == true,
             supportingText = { if (uiState.error != null) Text(uiState.error) },
-            shape = MaterialTheme.shapes.medium,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            shape = MaterialTheme.shapes.small,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
 
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -246,7 +232,7 @@ private fun UserInfoStep(
                 )
             },
             isError = uiState.error?.contains("邮箱") == true,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.small,
         )
 
         OutlinedTextField(
@@ -263,7 +249,7 @@ private fun UserInfoStep(
                 )
             },
             isError = uiState.error?.contains("用户名") == true,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.small,
         )
 
         OutlinedTextField(
@@ -293,7 +279,7 @@ private fun UserInfoStep(
                 }
             },
             isError = uiState.error?.contains("密码") == true,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.small
         )
 
         OutlinedTextField(
@@ -313,7 +299,7 @@ private fun UserInfoStep(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             isError = uiState.error?.contains("密码不一致") == true,
             supportingText = { if (uiState.error?.contains("密码不一致") == true) Text(uiState.error) },
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.small
         )
 
         Button(

@@ -132,9 +132,6 @@ fun ContactListPage(
                                     contact = contact,
                                     onContactClick = { onIntent(ContactListIntent.ContactClicked(it)) }
                                 )
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                )
                             }
                         }
                     }

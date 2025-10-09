@@ -13,42 +13,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.woowla.compose.icon.collections.ionicons.Ionicons
-import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
-import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import momotalkplus.composeapp.generated.resources.Res
 import momotalkplus.composeapp.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
     onNavigateBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "关于",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Ionicons.Filled.ChevronBack,
-                            contentDescription = "返回",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            MTopBar(
+                title = "关于",
+                onNavigateBack = onNavigateBack
             )
         },
         containerColor = MaterialTheme.colorScheme.background

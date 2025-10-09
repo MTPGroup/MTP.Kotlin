@@ -17,6 +17,5 @@ sealed class ContactDetailIntent {
 
 sealed class ContactDetailSideEffect {
     data class ShowErrorMessage(val message: String) : ContactDetailSideEffect()
-    data class NavigateToChat(val userId: String) : ContactDetailSideEffect()
     data object NavigateToContactsList : ContactDetailSideEffect()
 }

@@ -59,7 +59,7 @@ fun MessageBubble(
     ) {
         if (!isUser) {
             AsyncImage(
-                model = message.sender.avatar ?: "https://v2.xxapi.cn/api/head?return=302",
+                model = message.sender.avatar ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png",
                 contentDescription = "${message.sender.name}的头像",
                 modifier = Modifier
                     .size(40.dp)

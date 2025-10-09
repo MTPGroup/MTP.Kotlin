@@ -8,20 +8,23 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
@@ -47,6 +50,7 @@ fun SwipeableChatListItem(
     val density = LocalDensity.current
     val actionWidth = with(density) { 132.dp.toPx() } // 两个按钮的总宽度
     val scope = rememberCoroutineScope()
+    val colorScheme = MaterialTheme.colorScheme
 
     var offsetX by remember { mutableFloatStateOf(0f) }
     val animatedOffsetX by animateFloatAsState(targetValue = offsetX)
@@ -69,10 +73,10 @@ fun SwipeableChatListItem(
         )
 
         // 前景内容层
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(colorScheme.surface)
                 .offset { IntOffset(animatedOffsetX.roundToInt(), 0) }
                 .draggable(
                     orientation = Orientation.Horizontal,
@@ -111,6 +115,7 @@ private fun BoxScope.SwipeBackground(
     onPinClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val isVisible = offsetX < 0f
 
     Box(
@@ -126,7 +131,7 @@ private fun BoxScope.SwipeBackground(
                 // 置顶按钮
                 ActionButton(
                     icon = Ionicons.Sharp.Pin,
-                    backgroundColor = Color(0xFF2196F3),
+                    backgroundColor = colorScheme.tertiary,
                     contentDescription = "置顶",
                     onClick = onPinClick,
                     modifier = Modifier
@@ -136,7 +141,7 @@ private fun BoxScope.SwipeBackground(
                 // 删除按钮
                 ActionButton(
                     icon = Ionicons.Sharp.Trash,
-                    backgroundColor = Color(0xFFFF5252),
+                    backgroundColor = colorScheme.error,
                     contentDescription = "删除",
                     onClick = onDeleteClick,
                     modifier = Modifier
@@ -159,26 +164,22 @@ private fun ActionButton(
     var pressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (pressed) 0.95f else 1f)
 
-    Surface(
-        modifier = modifier.scale(scale),
-        shape = RectangleShape,
-        color = backgroundColor,
-        onClick = {
-            pressed = true
-            onClick()
-        }
+    Box(
+        modifier = modifier
+            .scale(scale)
+            .background(backgroundColor)
+            .clickable {
+                pressed = true
+                onClick()
+            },
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
+        )
     }
 
     LaunchedEffect(pressed) {
@@ -191,35 +192,46 @@ private fun ActionButton(
 
 @Composable
 private fun ChatContent(chat: Chat) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.secondaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            if (chat.avatarUrl != null) {
-                AsyncImage(
-                    model = chat.avatarUrl,
-                    contentDescription = "${chat.title} 的头像",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Icon(
-                    Ionicons.Outline.Person,
-                    contentDescription = "${chat.title} 的头像",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+        // 头像区域
+        Box(contentAlignment = Alignment.Center) {
+            // 背景光晕
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(colorScheme.primaryContainer.copy(alpha = 0.3f))
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                if (chat.avatarUrl != null) {
+                    AsyncImage(
+                        model = chat.avatarUrl,
+                        contentDescription = "${chat.title} 的头像",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Ionicons.Outline.Person,
+                        contentDescription = "${chat.title} 的头像",
+                        modifier = Modifier.size(28.dp),
+                        tint = colorScheme.onSecondaryContainer
+                    )
+                }
             }
         }
 
@@ -236,8 +248,9 @@ private fun ChatContent(chat: Chat) {
             ) {
                 Text(
                     text = chat.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
+                    color = colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -247,18 +260,20 @@ private fun ChatContent(chat: Chat) {
 
                 Text(
                     text = formatTimestamp(chat.updatedAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariant
                 )
             }
 
-            Text(
-                text = chat.lastMessage ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (chat.lastMessage != null) {
+                Text(
+                    text = chat.lastMessage,
+                    fontSize = 14.sp,
+                    color = colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

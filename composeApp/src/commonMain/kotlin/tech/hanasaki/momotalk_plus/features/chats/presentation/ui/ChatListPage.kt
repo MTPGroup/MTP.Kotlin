@@ -10,7 +10,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.woowla.compose.icon.collections.ionicons.Ionicons
+import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Chatbubbles
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Search
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MSearchBar
@@ -34,6 +40,7 @@ fun ChatListPage(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
+    val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
         onIntent(ChatsIntent.LoadChats)
@@ -55,13 +62,10 @@ fun ChatListPage(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = MaterialTheme.colorScheme.inverseSurface,
-                    contentColor = MaterialTheme.colorScheme.inverseOnSurface
-                )
-            }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(16.dp)
+            )
         },
         topBar = {
             MTopAppBar(
@@ -72,7 +76,7 @@ fun ChatListPage(
                 onActionClick = { onIntent(ChatsIntent.ShowCreateChatDialog) },
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = colorScheme.background
     ) { paddingValues ->
         if (uiState.showCreateChatDialog) {
             CreateChatDialog(
@@ -92,6 +96,7 @@ fun ChatListPage(
                 },
             )
         }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -116,49 +121,77 @@ fun ChatListPage(
             )
 
             // 聊天列表
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                when {
-                    uiState.isLoading -> {
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary
+                            color = colorScheme.primary,
+                            strokeWidth = 3.dp
                         )
                     }
+                }
 
-                    uiState.filteredChatList.isEmpty() -> {
-                        Text(
-                            text = if (uiState.searchQuery.isNotBlank())
-                                "未找到匹配的会话"
-                            else
-                                "暂无会话",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    else -> {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(uiState.filteredChatList, key = { it.id }) { chat ->
-                                SwipeableChatListItem(
-                                    chat = chat,
-                                    onChatClick = { chatId ->
-                                        onIntent(ChatsIntent.ChatClicked(chatId))
-                                    },
-                                    onPinClick = { chatId ->
-                                        onIntent(ChatsIntent.PinChat(chatId))
-                                    },
-                                    onDeleteClick = { chatId ->
-                                        onIntent(ChatsIntent.DeleteChat(chatId))
-                                    }
-                                )
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                uiState.filteredChatList.isEmpty() -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (uiState.searchQuery.isNotBlank())
+                                    Ionicons.Outline.Search
+                                else
+                                    Ionicons.Outline.Chatbubbles,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            )
+                            Text(
+                                text = if (uiState.searchQuery.isNotBlank())
+                                    "未找到匹配的会话"
+                                else
+                                    "暂无会话",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colorScheme.onSurfaceVariant
+                            )
+                            if (uiState.searchQuery.isBlank()) {
+                                Text(
+                                    text = "点击右上角开始新对话",
+                                    fontSize = 14.sp,
+                                    color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                 )
                             }
+                        }
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 4.dp)
+                    ) {
+                        items(uiState.filteredChatList, key = { it.id }) { chat ->
+                            SwipeableChatListItem(
+                                chat = chat,
+                                onChatClick = { chatId ->
+                                    onIntent(ChatsIntent.ChatClicked(chatId))
+                                },
+                                onPinClick = { chatId ->
+                                    onIntent(ChatsIntent.PinChat(chatId))
+                                },
+                                onDeleteClick = { chatId ->
+                                    onIntent(ChatsIntent.DeleteChat(chatId))
+                                }
+                            )
                         }
                     }
                 }

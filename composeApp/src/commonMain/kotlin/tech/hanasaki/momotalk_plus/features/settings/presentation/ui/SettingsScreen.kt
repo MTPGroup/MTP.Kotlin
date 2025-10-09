@@ -15,12 +15,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.woowla.compose.icon.collections.ionicons.Ionicons
-import com.woowla.compose.icon.collections.ionicons.ionicons.Filled
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
-import com.woowla.compose.icon.collections.ionicons.ionicons.filled.ChevronBack
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
 import tech.hanasaki.momotalk_plus.core.theme.AppTheme
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsIntent
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsSideEffect
@@ -66,27 +65,9 @@ fun SettingsScreen(
             }
         },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "设置",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Ionicons.Filled.ChevronBack,
-                            contentDescription = "返回",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            MTopBar(
+                title = "设置",
+                onNavigateBack = onNavigateBack
             )
         },
         containerColor = MaterialTheme.colorScheme.background
