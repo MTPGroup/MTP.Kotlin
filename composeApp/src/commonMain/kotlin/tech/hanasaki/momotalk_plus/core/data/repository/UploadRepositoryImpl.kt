@@ -5,8 +5,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.core.*
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.UploadApi
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.repository.UploadImageRepository
@@ -18,7 +16,7 @@ class UploadImageRepositoryImpl(
         imageData: ImageData,
         path: UploadPath,
         userId: String?,
-    ): IResult<String, AppError> {
+    ): String {
         val pathString = when (path) {
             UploadPath.USER_AVATAR -> "user-avatar"
             UploadPath.USER_BACKGROUND -> "user-background"
@@ -54,14 +52,8 @@ class UploadImageRepositoryImpl(
                 }
             ))
 
-        return try {
-            val response = uploadApi.uploadImage(
-                MultiPartFormDataContent(parts)
-            )
-            IResult.Success(response)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            IResult.Error(AppError(e.message ?: "未知错误"))
-        }
+        return uploadApi.uploadImage(
+            MultiPartFormDataContent(parts)
+        ).data.url
     }
 }

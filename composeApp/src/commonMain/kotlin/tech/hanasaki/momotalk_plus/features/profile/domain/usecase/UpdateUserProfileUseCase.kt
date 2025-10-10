@@ -1,7 +1,5 @@
 package tech.hanasaki.momotalk_plus.features.profile.domain.usecase
 
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 
 /**
@@ -15,23 +13,28 @@ class UpdateUserProfileUseCase(
      *
      * @param name 用户名
      * @param image 用户头像URL（可选）
-     * @return IResult<UserProfile, AppError>
      */
     suspend operator fun invoke(
         name: String,
         image: String? = null,
-    ): IResult<Unit, AppError> {
+    ): Result<Unit> {
         // 验证用户名不为空
         if (name.isBlank()) {
-            return IResult.Error(AppError("用户名不能为空"))
+            return Result.failure(Exception("用户名不能为空"))
         }
 
         // 验证用户名长度
         if (name.length !in 2..50) {
-            return IResult.Error(AppError("用户名长度应在2-50个字符之间"))
+            return Result.failure(Exception("用户名长度应在2-50个字符之间"))
         }
 
-        return repository.updateUserProfile(name, image)
+        try {
+            repository.updateUserProfile(name, image)
+            return Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return Result.failure(e)
+        }
     }
 }
 

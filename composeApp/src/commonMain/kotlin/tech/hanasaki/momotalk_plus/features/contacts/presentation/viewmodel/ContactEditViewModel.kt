@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
@@ -148,35 +147,25 @@ class ContactEditViewModel(
         imageData: ImageData,
         userId: String?,
     ) {
-        try {
+        updateState {
+            it.copy(isUploadingAvatar = true)
+        }
+
+        uploadImageUseCase(
+            imageData,
+            UploadPath.CHARACTER_AVATAR,
+            userId
+        ).onSuccess { avatar ->
             updateState {
-                it.copy(isUploadingAvatar = true)
+                it.copy(
+                    avatarUrl = avatar,
+                    isUploadingAvatar = false
+                )
             }
-
-            when (val result = uploadImageUseCase(imageData, UploadPath.CHARACTER_AVATAR, userId)) {
-                is IResult.Success -> {
-                    updateState {
-                        it.copy(
-                            avatarUrl = result.data,
-                            isUploadingAvatar = false
-                        )
-                    }
-                    sendSideEffect(
-                        ContactEditSideEffect.ShowMessage("头像上传成功")
-                    )
-                }
-
-                is IResult.Error -> {
-                    updateState {
-                        it.copy(isUploadingAvatar = false)
-                    }
-                    sendSideEffect(
-                        ContactEditSideEffect.ShowMessage("头像上传失败: ${result.error.message}")
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            sendSideEffect(
+                ContactEditSideEffect.ShowMessage("头像上传成功")
+            )
+        }.onFailure { e ->
             updateState {
                 it.copy(isUploadingAvatar = false)
             }

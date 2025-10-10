@@ -169,9 +169,15 @@ private fun ProfileHeader(
     isUploadingAvatar: Boolean,
     onUploadAvatar: (ImageData) -> Unit,
 ) {
-    val painter = rememberAsyncImagePainter(
-        user?.avatar ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
-    )
+    val avatarUrl = user?.avatar ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
+
+    // 添加日志
+    LaunchedEffect(user?.avatar) {
+        println("🖼️ [ProfileScreen] 用户头像 URL 变化: ${user?.avatar}")
+        println("🖼️ [ProfileScreen] 最终使用的 URL: $avatarUrl")
+    }
+
+    val painter = rememberAsyncImagePainter(avatarUrl)
     val avatarState by painter.state.collectAsState()
 
     val launchImagePicker = rememberImagePicker { imageData ->

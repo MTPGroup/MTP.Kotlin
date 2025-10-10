@@ -57,7 +57,8 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
-import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.ProfileRemoteDataSource
+import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.api.ProfileApi
+import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.api.createProfileApi
 import tech.hanasaki.momotalk_plus.features.profile.data.repository.ProfileRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
@@ -234,7 +235,10 @@ val chatModule = module {
 
 
 val profileModule = module {
-    factoryOf(::ProfileRemoteDataSource)
+    single<ProfileApi> {
+        get<Ktorfit>().createProfileApi()
+    }
+
     single<ProfileRepository> { ProfileRepositoryImpl(get()) }
 
     factoryOf(::UpdateUserProfileUseCase)

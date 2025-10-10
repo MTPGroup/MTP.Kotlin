@@ -1,7 +1,5 @@
 package tech.hanasaki.momotalk_plus.core.domain.usecase
 
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.repository.UploadImageRepository
@@ -13,10 +11,15 @@ class UploadImageUseCase(
         imagePath: ImageData,
         uploadPath: UploadPath,
         userId: String? = null,
-    ): IResult<String, AppError> =
-        repository.uploadImage(
+    ): Result<String> = try {
+        val response = repository.uploadImage(
             imagePath,
             uploadPath,
             userId
         )
+        Result.success(response)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Result.failure(e)
+    }
 }

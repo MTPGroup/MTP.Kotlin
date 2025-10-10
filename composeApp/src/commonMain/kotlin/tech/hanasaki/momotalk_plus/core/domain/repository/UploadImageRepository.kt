@@ -1,7 +1,6 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
 import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 
@@ -18,5 +17,5 @@ interface UploadImageRepository {
         imageData: ImageData,
         path: UploadPath,
         userId: String? = null,
-    ): IResult<String, AppError>
+    ): String
 }

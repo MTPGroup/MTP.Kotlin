@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.profile.data.model
+package tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.dto
 
 data class UpdateUserRequest(
     val name: String,

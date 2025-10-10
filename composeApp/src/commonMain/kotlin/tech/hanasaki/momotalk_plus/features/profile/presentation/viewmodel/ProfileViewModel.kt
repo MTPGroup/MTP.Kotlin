@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
@@ -92,31 +91,25 @@ class ProfileViewModel(
         }
     }
 
-    private fun saveProfile() {
-        viewModelScope.launch {
-            updateState { it.copy(isSaving = true) }
-
-            when (val result = updateUserProfileUseCase(
-                name = uiState.value.editedName,
-                image = uiState.value.user?.avatar
-            )) {
-                is IResult.Success -> {
-                    updateState {
-                        it.copy(
-                            user = it.user?.copy(name = it.editedName),
-                            originAvatar = it.user?.avatar,
-                            isEditing = false,
-                            isSaving = false,
-                        )
-                    }
-                    sendSideEffect(ProfileSideEffect.ShowMessage("个人资料已更新"))
-                }
-
-                is IResult.Error -> {
-                    updateState { it.copy(isSaving = false) }
-                    sendSideEffect(ProfileSideEffect.ShowMessage(result.error.message))
-                }
+    private suspend fun saveProfile() {
+        updateState { it.copy(isSaving = true) }
+        val currentState = getState()
+        updateUserProfileUseCase(
+            name = currentState.editedName,
+            image = currentState.user?.avatar
+        ).onSuccess {
+            updateState {
+                it.copy(
+                    user = it.user?.copy(name = it.editedName),
+                    originAvatar = it.user?.avatar,
+                    isEditing = false,
+                    isSaving = false,
+                )
             }
+            sendSideEffect(ProfileSideEffect.ShowMessage("个人资料已更新"))
+        }.onFailure { e ->
+            updateState { it.copy(isSaving = false) }
+            sendSideEffect(ProfileSideEffect.ShowMessage("更新个人资料失败: ${e.message}"))
         }
     }
 
@@ -136,33 +129,24 @@ class ProfileViewModel(
         imageData: ImageData,
         userId: String?,
     ) {
-        try {
+        updateState {
+            it.copy(isUploadingAvatar = true)
+        }
+
+        uploadImageUseCase(
+            imageData,
+            UploadPath.USER_AVATAR,
+            userId
+        ).onSuccess { response ->
             updateState {
-                it.copy(isUploadingAvatar = true)
+                it.copy(
+                    user = it.user?.copy(avatar = response),
+                    originAvatar = response,  // 同时更新 originAvatar，避免取消编辑时恢复旧头像
+                    isUploadingAvatar = false
+                )
             }
 
-            when (val result = uploadImageUseCase(imageData, UploadPath.USER_AVATAR, userId)) {
-                is IResult.Success -> {
-
-                    updateState {
-                        it.copy(
-                            user = it.user?.copy(avatar = result.data),
-                            isUploadingAvatar = false
-                        )
-                    }
-                }
-
-                is IResult.Error -> {
-                    updateState {
-                        it.copy(isUploadingAvatar = false)
-                    }
-                    sendSideEffect(
-                        ProfileSideEffect.ShowMessage("头像上传失败: ${result.error.message}")
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }.onFailure { e ->
             updateState {
                 it.copy(isUploadingAvatar = false)
             }
