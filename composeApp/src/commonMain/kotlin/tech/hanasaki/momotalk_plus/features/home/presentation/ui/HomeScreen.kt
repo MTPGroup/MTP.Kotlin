@@ -12,7 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.chats.presentation.ui.ChatsScreen
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.ContactsScreen
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeIntent
@@ -24,7 +24,7 @@ import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeView
 
 @Composable
 fun HomeScreen(
-    currentUser: UserProfile?,
+    currentUser: User?,
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onLogout: () -> Unit,

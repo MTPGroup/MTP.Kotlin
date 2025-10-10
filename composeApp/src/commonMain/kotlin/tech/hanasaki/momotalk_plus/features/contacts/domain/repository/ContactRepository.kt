@@ -1,7 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.contacts.domain.repository
 
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
+import kotlinx.coroutines.flow.Flow
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
 
 interface ContactRepository {
@@ -10,23 +9,20 @@ interface ContactRepository {
      *
      * @param characterId 角色ID
      *
-     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun addContact(characterId: String): IResult<Unit, AppError>
+    suspend fun addContact(characterId: String)
 
     /**
      * 删除联系人
      *
      * @param characterId 角色ID
      *
-     * @return IResult<[Unit], [AppError]>
      */
-    suspend fun deleteContact(characterId: String): IResult<Unit, AppError>
+    suspend fun deleteContact(characterId: String)
 
     /**
      * 获取联系人列表
      *
-     * @return IResult<List<[Contact]>, [AppError]>
      */
-    suspend fun getContacts(): IResult<List<Contact>, AppError>
+    fun getContacts(): Flow<List<Contact>>
 }

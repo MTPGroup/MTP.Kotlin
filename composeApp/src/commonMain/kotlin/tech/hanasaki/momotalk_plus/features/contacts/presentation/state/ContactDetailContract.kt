@@ -10,7 +10,6 @@ data class ContactDetailState(
 )
 
 sealed class ContactDetailIntent {
-    data class LoadContact(val userId: String) : ContactDetailIntent()
     data object ShowDeleteDialog : ContactDetailIntent()
     data class DeleteContact(val userId: String) : ContactDetailIntent()
 }

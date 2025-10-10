@@ -29,7 +29,6 @@ data class ChatsState(
 }
 
 sealed class ChatsIntent {
-    data object LoadChats : ChatsIntent()
     data class DeleteChat(val chatId: String) : ChatsIntent()
     data class PinChat(val chatId: String) : ChatsIntent()
     data class ChatClicked(val chatId: String) : ChatsIntent()

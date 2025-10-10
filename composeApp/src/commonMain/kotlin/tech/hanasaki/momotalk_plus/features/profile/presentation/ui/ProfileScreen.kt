@@ -21,10 +21,9 @@ import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.utils.rememberImagePicker
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileIntent
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileSideEffect
@@ -33,19 +32,15 @@ import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.Profi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    currentUser: UserProfile?,
+    currentUser: User?,
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
-    viewModel: ProfileViewModel = koinViewModel { parametersOf(currentUser) },
+    viewModel: ProfileViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val onIntent = viewModel::processIntent
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        onIntent(ProfileIntent.LoadProfile)
-    }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
@@ -134,7 +129,7 @@ fun ProfileScreen(
                     isEditing = uiState.isEditing,
                     isUploadingAvatar = uiState.isUploadingAvatar,
                     onUploadAvatar = { imageData ->
-                        onIntent(ProfileIntent.UploadAvatar(imageData, currentUser?.id))
+                        onIntent(ProfileIntent.UploadAvatar(imageData, currentUser?.uid))
                     }
                 )
             }
@@ -169,13 +164,13 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileHeader(
-    user: UserProfile?,
+    user: User?,
     isEditing: Boolean,
     isUploadingAvatar: Boolean,
     onUploadAvatar: (ImageData) -> Unit,
 ) {
     val painter = rememberAsyncImagePainter(
-        user?.image ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
+        user?.avatar ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
     )
     val avatarState by painter.state.collectAsState()
 
@@ -390,7 +385,7 @@ private fun ProfileInfoItem(
 
 @Composable
 private fun AccountInfoSection(
-    user: UserProfile?,
+    user: User?,
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -413,15 +408,10 @@ private fun AccountInfoSection(
             ProfileInfoItem(
                 icon = Ionicons.Outline.IdCard,
                 label = "用户ID",
-                value = user?.id ?: "N/A"
+                value = user?.uid ?: "N/A"
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            )
-            ProfileInfoItem(
-                icon = Ionicons.Outline.CheckmarkCircle,
-                label = "邮箱验证",
-                value = if (user?.emailVerified == true) "已验证" else "未验证"
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)

@@ -1,7 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -20,7 +18,6 @@ import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.AlertCircle
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.People
-import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Refresh
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Search
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -43,10 +40,6 @@ fun ContactsManagePage(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val colorScheme = MaterialTheme.colorScheme
-
-    LaunchedEffect(Unit) {
-        onIntent(ContactsManageIntent.LoadAvailableContacts)
-    }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { sideEffect ->
@@ -132,36 +125,6 @@ fun ContactsManagePage(
                                 fontWeight = FontWeight.Medium,
                                 color = colorScheme.onSurfaceVariant
                             )
-                            // 重试按钮
-                            Box(
-                                modifier = Modifier
-                                    .height(44.dp)
-                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(22.dp))
-                                    .background(colorScheme.primaryContainer)
-                                    .clickable {
-                                        onIntent(ContactsManageIntent.LoadAvailableContacts)
-                                    }
-                                    .padding(horizontal = 24.dp, vertical = 10.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Ionicons.Outline.Refresh,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                        tint = colorScheme.onPrimaryContainer
-                                    )
-                                    Text(
-                                        text = "重试",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = colorScheme.onPrimaryContainer
-                                    )
-                                }
-                            }
                         }
                     }
                 }

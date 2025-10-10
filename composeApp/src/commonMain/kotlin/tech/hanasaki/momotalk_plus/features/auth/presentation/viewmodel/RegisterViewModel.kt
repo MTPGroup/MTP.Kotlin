@@ -3,7 +3,6 @@ package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendEmailVerificationUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignUpUserUseCase
@@ -51,32 +50,30 @@ class RegisterViewModel(
 
     private suspend fun sendOTPCode() {
         val currentState = getState()
-        when (val result = sendOTPCodeUseCase(currentState.email)) {
-            is IResult.Success -> {
-                updateState { it.copy(isEmailValid = true, error = null) }
-                sendSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
-            }
-
-            is IResult.Error -> {
-                val errorMessage = result.error.message
-                updateState { it.copy(error = errorMessage) }
-                sendSideEffect(RegisterSideEffect.ShowToast(errorMessage))
-            }
+        sendOTPCodeUseCase(
+            currentState.email
+        ).onSuccess {
+            updateState { it.copy(isEmailValid = true, error = null) }
+            sendSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
         }
+            .onFailure { e ->
+                val errorMessage = e.message
+                updateState { it.copy(error = errorMessage) }
+                sendSideEffect(RegisterSideEffect.ShowToast("验证码发送失败: $errorMessage"))
+            }
     }
 
     private suspend fun verifyEmail() {
         val currentState = getState()
-        when (val result = verifyEmailUseCase(currentState.email, currentState.otpCode)) {
-            is IResult.Success -> {
-                sendSideEffect(RegisterSideEffect.NavigateToSuccessStep)
-            }
-
-            is IResult.Error -> {
-                val errorMessage = result.error.message
-                updateState { it.copy(error = errorMessage) }
-                sendSideEffect(RegisterSideEffect.ShowToast(errorMessage))
-            }
+        verifyEmailUseCase(
+            currentState.email,
+            currentState.otpCode
+        ).onSuccess {
+            sendSideEffect(RegisterSideEffect.NavigateToSuccessStep)
+        }.onFailure { e ->
+            val errorMessage = e.message
+            updateState { it.copy(error = errorMessage) }
+            sendSideEffect(RegisterSideEffect.ShowToast("验证失败: $errorMessage"))
         }
     }
 
@@ -90,21 +87,17 @@ class RegisterViewModel(
         val isEmail = isValidEmail(currentState.email)
         val email = if (isEmail) currentState.email else ""
 
-        when (val result = registerUserUseCase(
+        registerUserUseCase(
             email = email,
             username = currentState.username,
             password = currentState.password,
-        )) {
-            is IResult.Success -> {
-                sendOTPCode()
-                sendSideEffect(RegisterSideEffect.NavigateToNextStep)
-            }
-
-            is IResult.Error -> {
-                val errorMessage = result.error.message
-                updateState { it.copy(error = errorMessage) }
-                sendSideEffect(RegisterSideEffect.ShowToast(errorMessage))
-            }
+        ).onSuccess {
+            sendOTPCode()
+            sendSideEffect(RegisterSideEffect.NavigateToNextStep)
+        }.onFailure { e ->
+            val errorMessage = e.message
+            updateState { it.copy(error = errorMessage) }
+            sendSideEffect(RegisterSideEffect.ShowToast("注册失败: $errorMessage"))
         }
     }
 }

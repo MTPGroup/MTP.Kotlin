@@ -3,7 +3,6 @@ package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignInUserUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginSideEffect
@@ -41,24 +40,21 @@ class LoginViewModel(
         updateState { it.copy(isLoading = true, loginError = null) }
         val currentState = getState()
 
-        when (val loginResult =
-            loginUserUseCase(currentState.email, currentState.password)
-        ) {
-            is IResult.Success -> {
-                updateState { it.copy(isLoading = false, isLoggedIn = true) }
-                sendSideEffect(LoginSideEffect.NavigateToHome)
+        loginUserUseCase(
+            currentState.email,
+            currentState.password
+        ).onSuccess {
+            updateState { it.copy(isLoading = false, isLoggedIn = true) }
+            sendSideEffect(LoginSideEffect.NavigateToHome)
+        }.onFailure { error ->
+            val errorMessage = error.message
+            updateState {
+                it.copy(
+                    isLoading = false,
+                    loginError = errorMessage
+                )
             }
-
-            is IResult.Error -> {
-                val errorMessage = loginResult.error.message
-                updateState {
-                    it.copy(
-                        isLoading = false,
-                        loginError = errorMessage
-                    )
-                }
-                sendSideEffect(LoginSideEffect.ShowToast(errorMessage))
-            }
+            sendSideEffect(LoginSideEffect.ShowToast("登录失败: $errorMessage"))
         }
     }
 }

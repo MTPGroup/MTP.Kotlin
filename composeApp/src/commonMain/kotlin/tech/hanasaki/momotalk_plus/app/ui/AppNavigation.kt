@@ -67,8 +67,8 @@ fun AppNavigation(
     val appState by appViewModel.uiState.collectAsState()
 
     // 监听初始化状态，完成后导航到合适的页面
-    LaunchedEffect(appState.isInitialized) {
-        if (appState.isInitialized) {
+    LaunchedEffect(appState.isLoading, appState.isLoggedIn) {
+        if (!appState.isLoading) {
             val destination = if (appState.isLoggedIn) {
                 NavigationRoute.Home
             } else {

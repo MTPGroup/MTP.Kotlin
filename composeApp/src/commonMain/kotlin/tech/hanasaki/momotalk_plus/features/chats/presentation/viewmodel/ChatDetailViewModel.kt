@@ -1,15 +1,21 @@
 package tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.*
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.ClearChatHistoryUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.GetChatHistoryUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.GetChatInfoUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.SendMessageStreamUseCase
+import tech.hanasaki.momotalk_plus.features.chats.presentation.navigation.ChatsRoute
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatDetailIntent
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatDetailSideEffect
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatDetailState
@@ -23,12 +29,17 @@ class ChatDetailViewModel(
     private val getChatHistoryUseCase: GetChatHistoryUseCase,
     private val sendMessageStreamUseCase: SendMessageStreamUseCase,
     private val clearChatHistoryUseCase: ClearChatHistoryUseCase,
+    savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<ChatDetailState, ChatDetailSideEffect, ChatDetailIntent>(ChatDetailState()) {
+    private val chatId = savedStateHandle.toRoute<ChatsRoute.ChatDetail>().chatId
+
+    init {
+        loadChat(chatId)
+    }
 
     override fun processIntent(intent: ChatDetailIntent) {
         viewModelScope.launch {
             when (intent) {
-                is ChatDetailIntent.LoadChat -> loadChat(intent.chatId)
                 is ChatDetailIntent.InputMessageChanged ->
                     updateState { it.copy(inputMessage = intent.message) }
 
@@ -48,57 +59,53 @@ class ChatDetailViewModel(
     }
 
     private fun loadChat(chatId: String) {
-        viewModelScope.launch {
-            updateState { it.copy(isLoading = true, chatId = chatId) }
-
-            when (val info = getChatInfoUseCase(chatId)) {
-                is IResult.Success -> {
-                    when (val history = getChatHistoryUseCase(chatId)) {
-                        is IResult.Success -> {
-                            updateState {
-                                it.copy(
-                                    isLoading = false,
-                                    title = info.data.title,
-                                    avatar = info.data.avatarUrl,
-                                    characterName = info.data.character.name,
-                                    characterAvatar = info.data.character.avatarUrl,
-                                    messages = history.data,
-                                    error = null
-                                )
-                            }
-                        }
-
-                        is IResult.Error -> {
-                            updateState {
-                                it.copy(
-                                    isLoading = false,
-                                    error = history.error.message
-                                )
-                            }
-                            sendSideEffect(ChatDetailSideEffect.ShowToast(history.error.message))
-                        }
-                    }
+        getChatInfoUseCase(chatId)
+            .onStart {
+                updateState { it.copy(isLoading = true, chatId = chatId) }
+            }.onEach { info ->
+                updateState {
+                    it.copy(
+                        isLoading = false,
+                        title = info.title,
+                        avatar = info.avatarUrl,
+                        characterName = info.character.name,
+                        characterAvatar = info.character.avatarUrl,
+                        error = null
+                    )
                 }
-
-                is IResult.Error -> {
-                    updateState {
-                        it.copy(
-                            isLoading = false,
-                            error = info.error.message
-                        )
-                    }
-                    sendSideEffect(ChatDetailSideEffect.ShowToast(info.error.message))
-                    return@launch
+            }.catch { e ->
+                updateState {
+                    it.copy(
+                        isLoading = false,
+                    )
                 }
-            }
-        }
+                sendSideEffect(ChatDetailSideEffect.ShowToast("加载聊天信息失败: ${e.message}"))
+            }.launchIn(viewModelScope)
+
+        getChatHistoryUseCase(chatId)
+            .onEach { messages ->
+                updateState {
+                    it.copy(
+                        messages = messages,
+                        error = null
+                    )
+                }
+                sendSideEffect(ChatDetailSideEffect.ScrollToBottom)
+            }.catch { e ->
+                updateState {
+                    it.copy(
+                        isLoading = false,
+                    )
+                }
+                sendSideEffect(ChatDetailSideEffect.ShowToast("加载聊天记录失败: ${e.message}"))
+            }.launchIn(viewModelScope)
     }
 
     @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
     private fun sendMessage(
         chatId: String,
         message: String,
-        currentUser: UserProfile?,
+        currentUser: User?,
     ) {
         viewModelScope.launch {
             val userMessage = Message(
@@ -108,7 +115,7 @@ class ChatDetailViewModel(
                 role = MessageSenderRole.USER,
                 sender = MessageSender(
                     name = currentUser?.name ?: "",
-                    avatar = currentUser?.image
+                    avatar = currentUser?.avatar
                 ),
                 type = MessageType.TEXT,
                 createdAt = Clock.System.now().toString(),
@@ -146,69 +153,50 @@ class ChatDetailViewModel(
             }
 
             var finalAiContent = ""
-            sendMessageStreamUseCase(chatId, message).collect { result ->
-                when (result) {
-                    is IResult.Success -> {
-                        when (val event = result.data) {
-                            is StreamEvent.Token -> {
-                                finalAiContent += event.content
-                                updateState {
-                                    val updatedMessages = it.messages.map { msg ->
-                                        if (msg.id == streamingMessageId) {
-                                            msg.copy(content = finalAiContent)
-                                        } else {
-                                            msg
-                                        }
-                                    }
-                                    it.copy(
-                                        messages = updatedMessages
-                                    )
+            sendMessageStreamUseCase(chatId, message).collect { event ->
+                when (event) {
+                    is StreamEvent.Token -> {
+                        finalAiContent += event.content
+                        updateState {
+                            val updatedMessages = it.messages.map { msg ->
+                                if (msg.id == streamingMessageId) {
+                                    msg.copy(content = finalAiContent)
+                                } else {
+                                    msg
                                 }
                             }
-
-                            is StreamEvent.ReflectionChunk -> {
-                            }
-
-                            is StreamEvent.Final -> {
-                                updateState {
-                                    val finalMessages = it.messages.map { msg ->
-                                        if (msg.id == streamingMessageId) {
-                                            msg.copy(
-                                                content = finalAiContent,
-                                                isStreaming = false,
-                                            )
-                                        } else {
-                                            msg
-                                        }
-                                    }
-                                    it.copy(
-                                        messages = finalMessages,
-                                        isStreaming = false,
-                                        isTyping = false,
-                                        streamingMessageId = null,
-                                    )
-                                }
-                                sendSideEffect(ChatDetailSideEffect.ScrollToBottom)
-                            }
-
-                            is StreamEvent.Error -> {
-                                updateState {
-                                    it.copy(
-                                        messages = it.messages.filter { msg ->
-                                            msg.id != streamingMessageId
-                                        },
-                                        isStreaming = false,
-                                        isTyping = false,
-                                        streamingMessageId = null,
-                                        error = event.content
-                                    )
-                                }
-                                sendSideEffect(ChatDetailSideEffect.ShowToast(event.content))
-                            }
+                            it.copy(
+                                messages = updatedMessages
+                            )
                         }
                     }
 
-                    is IResult.Error -> {
+                    is StreamEvent.ReflectionChunk -> {
+                    }
+
+                    is StreamEvent.Final -> {
+                        updateState {
+                            val finalMessages = it.messages.map { msg ->
+                                if (msg.id == streamingMessageId) {
+                                    msg.copy(
+                                        content = finalAiContent,
+                                        isStreaming = false,
+                                    )
+                                } else {
+                                    msg
+                                }
+                            }
+                            it.copy(
+                                messages = finalMessages,
+                                isStreaming = false,
+                                isTyping = false,
+                                streamingMessageId = null,
+                            )
+                        }
+                        sendSideEffect(ChatDetailSideEffect.ScrollToBottom)
+                    }
+
+                    is StreamEvent.Error -> {
                         updateState {
                             it.copy(
                                 messages = it.messages.filter { msg ->
@@ -217,10 +205,10 @@ class ChatDetailViewModel(
                                 isStreaming = false,
                                 isTyping = false,
                                 streamingMessageId = null,
-                                error = result.error.message
+                                error = event.content
                             )
                         }
-                        sendSideEffect(ChatDetailSideEffect.ShowToast(result.error.message))
+                        sendSideEffect(ChatDetailSideEffect.ShowToast(event.content))
                     }
                 }
             }
@@ -228,15 +216,13 @@ class ChatDetailViewModel(
     }
 
     private suspend fun clearChatHistory(chatId: String) {
-        when (val result = clearChatHistoryUseCase(chatId)) {
-            is IResult.Success -> {
+
+        clearChatHistoryUseCase(chatId)
+            .onSuccess {
                 updateState { it.copy(messages = emptyList()) }
             }
-
-            is IResult.Error -> {
-                updateState { it.copy(error = result.error.message) }
-                sendSideEffect(ChatDetailSideEffect.ShowToast(result.error.message))
+            .onFailure { e ->
+                sendSideEffect(ChatDetailSideEffect.ShowToast("清除聊天记录失败: ${e.message}"))
             }
-        }
     }
 }

@@ -1,13 +1,13 @@
 package tech.hanasaki.momotalk_plus.features.profile.presentation.state
 
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 
 /**
  * ProfileState - 个人资料页面状态
  */
 data class ProfileState(
-    val user: UserProfile? = null,
+    val user: User? = null,
     val isLoading: Boolean = false,
     val isEditing: Boolean = false,
     val originAvatar: String? = null,
@@ -20,7 +20,6 @@ data class ProfileState(
  * ProfileIntent - 个人资料页面意图
  */
 sealed interface ProfileIntent {
-    data object LoadProfile : ProfileIntent
     data object StartEdit : ProfileIntent
     data object CancelEdit : ProfileIntent
     data class NameChanged(val name: String) : ProfileIntent

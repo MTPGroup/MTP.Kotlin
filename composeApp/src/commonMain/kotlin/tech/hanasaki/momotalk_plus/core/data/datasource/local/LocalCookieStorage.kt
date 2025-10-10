@@ -1,31 +1,24 @@
-import com.russhwolf.settings.Settings
+package tech.hanasaki.momotalk_plus.core.data.datasource.local
+
 import io.ktor.http.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import tech.hanasaki.momotalk_plus.core.data.datasource.mapper.CookieMapper.toDomain
+import tech.hanasaki.momotalk_plus.core.data.datasource.mapper.CookieMapper.toEntity
+import tech.hanasaki.momotalk_plus.core.domain.model.SerializableCookie
+import tech.hanasaki.momotalk_plus.db.AppDatabase
 
-@Serializable
-data class SerializableCookie(
-    val name: String,
-    val value: String,
-    val encoding: CookieEncoding = CookieEncoding.RAW,
-    val maxAge: Int? = null,
-    val expires: String? = null,
-    val domain: String? = null,
-    val path: String? = null,
-    val secure: Boolean = false,
-    val httpOnly: Boolean = false,
-    val extensions: Map<String, String?> = emptyMap()
-)
 
-class LocalCookieStorage(private val settings: Settings) {
-    private val json = Json { ignoreUnknownKeys = true }
+class LocalCookieStorage(
+    db: AppDatabase,
+) {
+    private val cookieDao = db.cookieDao()
 
-    fun saveCookie(cookie: Cookie, name: String) {
+    suspend fun saveCookie(cookie: Cookie, name: String) {
         try {
             val serializableCookie = SerializableCookie(
                 name = cookie.name,
                 value = cookie.value,
-                encoding = cookie.encoding,
                 maxAge = cookie.maxAge,
                 expires = cookie.expires?.toString(),
                 domain = cookie.domain,
@@ -34,36 +27,21 @@ class LocalCookieStorage(private val settings: Settings) {
                 httpOnly = cookie.httpOnly,
                 extensions = cookie.extensions
             )
-            val cookieJson = json.encodeToString(serializableCookie)
-            settings.putString(name, cookieJson)
+            cookieDao.insertOrReplace(serializableCookie.toEntity())
         } catch (e: Exception) {
             println("Error saving cookie: ${e.message}")
         }
     }
 
-    fun getCookie(name: String): Cookie? {
-        return try {
-            val cookieJson = settings.getStringOrNull(name) ?: return null
-            val serializableCookie = json.decodeFromString<SerializableCookie>(cookieJson)
-            Cookie(
-                name = serializableCookie.name,
-                value = serializableCookie.value,
-                encoding = serializableCookie.encoding,
-                maxAge = serializableCookie.maxAge,
-                expires = null,
-                domain = serializableCookie.domain,
-                path = serializableCookie.path,
-                secure = serializableCookie.secure,
-                httpOnly = serializableCookie.httpOnly,
-                extensions = serializableCookie.extensions
-            )
-        } catch (e: Exception) {
-            println("Error retrieving cookie: ${e.message}")
-            null
-        }
-    }
+    fun getCookie(name: String): Flow<SerializableCookie?> =
+        cookieDao.getByNameAsFlow(name).map { it?.toDomain() }
 
-    fun removeCookie(name: String) {
-        settings.remove(name)
-    }
+    suspend fun getAllCookie(): List<SerializableCookie> =
+        cookieDao.getAllCookie().map { it.toDomain() }
+
+    suspend fun removeCookie(name: String) =
+        cookieDao.deleteByName(name)
+
+    suspend fun clearAll() =
+        cookieDao.deleteAll()
 }

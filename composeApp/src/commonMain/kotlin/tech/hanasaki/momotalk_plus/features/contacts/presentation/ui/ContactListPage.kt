@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemGesturesPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MSearchBar
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopAppBar
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactListIntent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactListSideEffect
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.ui.widgets.ContactListItem
@@ -24,7 +25,7 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactListPage(
-    currentUser: UserProfile?,
+    currentUser: User?,
     onAvatarClick: () -> Unit,
     onNavigateToContactDetail: (String) -> Unit,
     onNavigateToAddContact: () -> Unit,
@@ -36,10 +37,6 @@ fun ContactListPage(
     val snackHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
-
-    LaunchedEffect(Unit) {
-        onIntent(ContactListIntent.LoadContacts)
-    }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
@@ -62,7 +59,11 @@ fun ContactListPage(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(snackHostState) { data ->
+            SnackbarHost(
+                hostState = snackHostState,
+                modifier = Modifier
+                    .systemGesturesPadding()
+            ) { data ->
                 Snackbar(
                     snackbarData = data,
                     containerColor = MaterialTheme.colorScheme.inverseSurface,
@@ -73,7 +74,7 @@ fun ContactListPage(
         topBar = {
             MTopAppBar(
                 title = "联系人",
-                avatarUrl = currentUser?.image,
+                avatarUrl = currentUser?.avatar,
                 username = currentUser?.name ?: "未登录",
                 onAvatarClick = onAvatarClick,
                 onActionClick = {

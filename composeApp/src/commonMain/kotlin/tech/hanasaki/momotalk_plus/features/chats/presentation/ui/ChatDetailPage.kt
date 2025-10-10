@@ -28,7 +28,7 @@ import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Trash
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatDetailIntent
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatDetailSideEffect
 import tech.hanasaki.momotalk_plus.features.chats.presentation.ui.widgets.MessageBubble
@@ -39,7 +39,7 @@ import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatDet
 @Composable
 fun ChatDetailPage(
     chatId: String,
-    currentUser: UserProfile?,
+    currentUser: User?,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ChatDetailViewModel = koinViewModel(),
@@ -54,10 +54,6 @@ fun ChatDetailPage(
 
     // 记录上一次的消息内容长度
     var lastContentLength by remember { mutableStateOf(0) }
-
-    LaunchedEffect(chatId) {
-        onIntent(ChatDetailIntent.LoadChat(chatId))
-    }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->

@@ -1,9 +1,12 @@
 package tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.repository.ContactProvider
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.CreateChatUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.DeleteChatUseCase
@@ -18,12 +21,13 @@ class ChatsViewModel(
     private val createChatUseCase: CreateChatUseCase,
     private val deleteChatUseCase: DeleteChatUseCase,
 ) : BaseViewModel<ChatsState, ChatsSideEffect, ChatsIntent>(ChatsState()) {
+    init {
+        loadChats()
+    }
+
     override fun processIntent(intent: ChatsIntent) {
         viewModelScope.launch {
             when (intent) {
-                is ChatsIntent.LoadChats ->
-                    loadChats()
-
                 is ChatsIntent.DeleteChat ->
                     deleteChat(intent.chatId)
 
@@ -70,70 +74,59 @@ class ChatsViewModel(
         }
     }
 
-    private suspend fun loadChats() {
-        updateState { it.copy(isLoading = true) }
-        when (val result = getChatsUseCase()) {
-            is IResult.Success -> {
+    private fun loadChats() {
+        getChatsUseCase()
+            .onStart {
+                updateState { it.copy(isLoading = true) }
+            }.onEach { chats ->
                 updateState {
                     it.copy(
                         isLoading = false,
-                        chatList = result.data
+                        chatList = chats
                     )
                 }
-            }
+            }.catch { e ->
 
-            is IResult.Error -> {
                 updateState {
                     it.copy(
                         isLoading = false,
-                        error = result.error.message
                     )
                 }
-                sendSideEffect(ChatsSideEffect.ShowToast(result.error.message))
-            }
-        }
+                sendSideEffect(ChatsSideEffect.ShowToast("加载会话失败: ${e.message}"))
+            }.launchIn(viewModelScope)
     }
 
     private suspend fun deleteChat(chatId: String) {
-        when (val result = deleteChatUseCase(chatId)) {
-            is IResult.Success -> {
+        deleteChatUseCase(chatId)
+            .onSuccess {
                 sendSideEffect(ChatsSideEffect.ShowToast("删除会话成功"))
-                loadChats()
+            }.onFailure {
+                sendSideEffect(ChatsSideEffect.ShowToast("删除会话失败: ${it.message}"))
             }
-
-            is IResult.Error -> {
-                updateState {
-                    it.copy(
-                        error = result.error.message
-                    )
-                }
-                sendSideEffect(ChatsSideEffect.ShowToast(result.error.message))
-            }
-        }
     }
 
-    private suspend fun loadAvailableContacts() {
-        updateState { it.copy(isLoadingContacts = true) }
-        when (val result = contactProvider.getAvailableContacts()) {
-            is IResult.Success -> {
+    private fun loadAvailableContacts() {
+        contactProvider.getAvailableContacts()
+            .onStart {
+                updateState { it.copy(isLoadingContacts = true) }
+            }
+            .onEach { contact ->
                 updateState {
                     it.copy(
                         isLoadingContacts = false,
-                        availableContacts = result.data
+                        availableContacts = contact
                     )
                 }
             }
-
-            is IResult.Error -> {
+            .catch { e ->
+                e.printStackTrace()
                 updateState {
                     it.copy(
                         isLoadingContacts = false,
-                        error = result.error.message
                     )
                 }
-                sendSideEffect(ChatsSideEffect.ShowToast(result.error.message))
-            }
-        }
+                sendSideEffect(ChatsSideEffect.ShowToast("加载联系人失败: ${e.message}"))
+            }.launchIn(viewModelScope)
     }
 
     private suspend fun createChat(
@@ -143,28 +136,26 @@ class ChatsViewModel(
         avatarUrl: String,
     ) {
         updateState { it.copy(isCreatingChat = true) }
-        when (val result = createChatUseCase(characterId, title, description, avatarUrl)) {
-            is IResult.Success -> {
-                updateState {
-                    it.copy(
-                        isCreatingChat = false,
-                        showCreateChatDialog = false
-                    )
-                }
-                sendSideEffect(ChatsSideEffect.ShowToast("创建会话成功"))
-                loadChats()
+        createChatUseCase(
+            characterId,
+            title,
+            description,
+            avatarUrl
+        ).onSuccess {
+            updateState {
+                it.copy(
+                    isCreatingChat = false,
+                    showCreateChatDialog = false
+                )
             }
-
-            is IResult.Error -> {
-                println("create chat error: ${result.error.message}")
-                updateState {
-                    it.copy(
-                        isCreatingChat = false,
-                        error = result.error.message
-                    )
-                }
-                sendSideEffect(ChatsSideEffect.ShowToast(result.error.message))
+            sendSideEffect(ChatsSideEffect.ShowToast("创建会话成功"))
+        }.onFailure { e ->
+            updateState {
+                it.copy(
+                    isCreatingChat = false,
+                )
             }
+            sendSideEffect(ChatsSideEffect.ShowToast("创建会话失败: ${e.message}"))
         }
     }
 }

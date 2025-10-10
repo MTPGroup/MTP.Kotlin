@@ -25,7 +25,7 @@ fun formatTimestamp(timestamp: String): String {
 
             else -> {
                 "${dateTime.year}/${dateTime.month.number.toString().padStart(2, '0')}/${
-                    dateTime.dayOfMonth.toString().padStart(2, '0')
+                    dateTime.day.toString().padStart(2, '0')
                 }"
             }
         }

@@ -55,10 +55,6 @@ fun ContactDetailPage(
 
     val colorScheme = MaterialTheme.colorScheme
 
-    LaunchedEffect(Unit) {
-        onIntent(ContactDetailIntent.LoadContact(userId))
-    }
-
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { sideEffect ->
             when (sideEffect) {
@@ -129,7 +125,7 @@ fun ContactDetailPage(
                                     .clip(CircleShape)
                                     .background(colorScheme.surface.copy(alpha = 0.9f))
                                     .clickable(
-                                        enabled = uiState.contact.creator.id == appUiState.currentUser?.id,
+                                        enabled = uiState.contact.creator.id == appUiState.currentUser?.uid,
                                         onClick = { onNavigateToEditContact(userId) }
                                     ),
                                 contentAlignment = Alignment.Center
@@ -138,7 +134,7 @@ fun ContactDetailPage(
                                     Ionicons.Outline.Create,
                                     contentDescription = "编辑",
                                     modifier = Modifier.size(22.dp),
-                                    tint = if (uiState.contact.creator.id == appUiState.currentUser?.id)
+                                    tint = if (uiState.contact.creator.id == appUiState.currentUser?.uid)
                                         colorScheme.primary
                                     else
                                         colorScheme.outline

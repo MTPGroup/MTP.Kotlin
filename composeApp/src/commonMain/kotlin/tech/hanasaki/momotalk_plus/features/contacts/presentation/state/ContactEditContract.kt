@@ -16,7 +16,6 @@ data class ContactEditState(
 )
 
 sealed class ContactEditIndent {
-    data class LoadContactInfo(val contactId: String) : ContactEditIndent()
     data class NameChanged(val name: String) : ContactEditIndent()
     data class SignatureChanged(val signature: String) : ContactEditIndent()
     data class PersonaChanged(val persona: String) : ContactEditIndent()

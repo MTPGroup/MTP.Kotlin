@@ -1,6 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.chats.presentation.state
 
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
 
 data class ChatDetailState(
@@ -19,12 +19,11 @@ data class ChatDetailState(
 )
 
 sealed class ChatDetailIntent {
-    data class LoadChat(val chatId: String) : ChatDetailIntent()
     data class InputMessageChanged(val message: String) : ChatDetailIntent()
     data class SendMessage(
         val chatId: String,
         val message: String,
-        val currentUser: UserProfile?,
+        val currentUser: User?,
     ) : ChatDetailIntent()
 
     data class ClearChatHistory(val chatId: String) : ChatDetailIntent()

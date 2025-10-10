@@ -3,7 +3,6 @@ package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.ResetPasswordUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendPasswordResetEmailUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
@@ -38,19 +37,18 @@ class ForgotPasswordViewModel(
 
     private suspend fun sendVerificationCode() {
         updateState { it.copy(isRequestingCode = true, error = null) }
-        when (val result =
-            sendPasswordResetEmailUseCase(uiState.value.email)) {
-            is IResult.Success -> {
+        sendPasswordResetEmailUseCase(
+            email = getState().email,
+        )
+            .onSuccess {
                 updateState { it.copy(isRequestingCode = false) }
                 sendSideEffect(ForgotPasswordSideEffect.ShowToast("验证码已发送，请检查您的邮箱。"))
             }
-
-            is IResult.Error -> {
-                val errorMessage = result.error.message
+            .onFailure { exception ->
+                val errorMessage = exception.message ?: "发送验证码失败，请稍后重试。"
                 updateState { it.copy(isRequestingCode = false, error = errorMessage) }
                 sendSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
             }
-        }
     }
 
     private suspend fun resetPassword() {
@@ -65,21 +63,17 @@ class ForgotPasswordViewModel(
         }
 
         updateState { it.copy(isLoading = true, error = null) }
-        when (val result = resetPasswordUseCase(
+        resetPasswordUseCase(
             email = currentState.email,
             otp = currentState.otpCode,
             newPassword = currentState.newPassword,
-        )) {
-            is IResult.Success -> {
-                updateState { it.copy(isLoading = false) }
-                sendSideEffect(ForgotPasswordSideEffect.NavigateToSuccess)
-            }
-
-            is IResult.Error -> {
-                val errorMessage = result.error.message
-                updateState { it.copy(isLoading = false, error = errorMessage) }
-                sendSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
-            }
+        ).onSuccess {
+            updateState { it.copy(isLoading = false) }
+            sendSideEffect(ForgotPasswordSideEffect.NavigateToSuccess)
+        }.onFailure { exception ->
+            val errorMessage = exception.message ?: "重置密码失败，请稍后重试。"
+            updateState { it.copy(isLoading = false, error = errorMessage) }
+            sendSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
         }
     }
 }

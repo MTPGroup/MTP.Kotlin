@@ -9,7 +9,14 @@ enum class Visibility {
     PUBLIC,
 
     @SerialName("private")
-    PRIVATE,
+    PRIVATE;
+
+    override fun toString(): String {
+        return when (this) {
+            PUBLIC -> "public"
+            PRIVATE -> "private"
+        }
+    }
 }
 
 @Serializable

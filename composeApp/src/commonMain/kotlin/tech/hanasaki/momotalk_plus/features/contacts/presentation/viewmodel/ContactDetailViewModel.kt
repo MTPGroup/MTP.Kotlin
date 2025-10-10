@@ -1,11 +1,17 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.usecase.CharacterDetailUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.DeleteContactUseCase
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.navigation.ContactsRoute
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailIntent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailSideEffect
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailState
@@ -13,13 +19,17 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactD
 class ContactDetailViewModel(
     private val characterDetailUseCase: CharacterDetailUseCase,
     private val deleteContactUseCase: DeleteContactUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<ContactDetailState, ContactDetailSideEffect, ContactDetailIntent>(ContactDetailState()) {
+    private val characterId: String = savedStateHandle.toRoute<ContactsRoute.ContactDetail>().id
+
+    init {
+        loadContact(characterId)
+    }
+
     override fun processIntent(intent: ContactDetailIntent) {
         viewModelScope.launch {
             when (intent) {
-                is ContactDetailIntent.LoadContact ->
-                    loadContact(intent.userId)
-
                 is ContactDetailIntent.ShowDeleteDialog ->
                     updateState {
                         it.copy(
@@ -34,25 +44,32 @@ class ContactDetailViewModel(
         }
     }
 
-    private suspend fun loadContact(characterId: String) {
-        when (val result = characterDetailUseCase(characterId)) {
-            is IResult.Success -> {
-                updateState {
-                    it.copy(
-                        contact = result.data
-                    )
+    private fun loadContact(characterId: String) {
+        characterDetailUseCase(characterId)
+            .onStart {
+                updateState { it.copy(isLoading = true) }
+            }
+            .onEach { contact ->
+                contact?.let {
+                    updateState {
+                        it.copy(
+                            contact = contact,
+                            isLoading = false
+                        )
+                    }
                 }
             }
-
-            is IResult.Error -> {
-                sendSideEffect(ContactDetailSideEffect.ShowErrorMessage(result.error.message))
+            .catch { e ->
+                e.printStackTrace()
+                updateState { it.copy(isLoading = false) }
+                sendSideEffect(ContactDetailSideEffect.ShowErrorMessage(e.message ?: "未知错误"))
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     private suspend fun deleteContact(characterId: String) {
-        when (val result = deleteContactUseCase(characterId)) {
-            is IResult.Success -> {
+        deleteContactUseCase(characterId)
+            .onSuccess {
                 updateState {
                     it.copy(
                         showDialog = false
@@ -60,10 +77,8 @@ class ContactDetailViewModel(
                 }
                 sendSideEffect(ContactDetailSideEffect.NavigateToContactsList)
             }
-
-            is IResult.Error -> {
-                sendSideEffect(ContactDetailSideEffect.ShowErrorMessage(result.error.message))
+            .onFailure { e ->
+                sendSideEffect(ContactDetailSideEffect.ShowErrorMessage("删除联系人失败: ${e.message}"))
             }
-        }
     }
 }

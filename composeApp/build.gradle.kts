@@ -2,7 +2,6 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,6 +10,13 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.ktorfit)
+    alias(libs.plugins.androidx.room)
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 kotlin {
@@ -29,29 +35,30 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            linkerOpts.add("-lsqlite3")
         }
     }
 
     jvm("desktop")
 
     @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        outputModuleName = "composeApp"
-        browser {
-            val rootDirPath = project.rootDir.path
-            val projectDirPath = project.projectDir.path
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
+    /* wasmJs {
+         outputModuleName = "composeApp"
+         browser {
+             val rootDirPath = project.rootDir.path
+             val projectDirPath = project.projectDir.path
+             commonWebpackConfig {
+                 outputFileName = "composeApp.js"
+                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                     static = (static ?: mutableListOf()).apply {
+                         add(rootDirPath)
+                         add(projectDirPath)
+                     }
+                 }
+             }
+         }
+         binaries.executable()
+     }*/
 
     sourceSets {
         val desktopMain by getting
@@ -94,6 +101,10 @@ kotlin {
             implementation(libs.multiplatform.settings.makeObservable)
             implementation(libs.compose.icon.ionicons)
             implementation(libs.compose.core)
+            implementation(libs.ktorfit)
+            implementation(libs.store)
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
         appleMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -116,6 +127,7 @@ android {
     defaultConfig {
         applicationId = "tech.hanasaki.momotalk_plus"
         minSdk = libs.versions.android.minSdk.get().toInt()
+        //noinspection OldTargetApi
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
@@ -137,8 +149,11 @@ android {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-client-logging:3.3.0")
     debugImplementation(compose.uiTooling)
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+    add("kspIosX64", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
 }
 
 compose.desktop {

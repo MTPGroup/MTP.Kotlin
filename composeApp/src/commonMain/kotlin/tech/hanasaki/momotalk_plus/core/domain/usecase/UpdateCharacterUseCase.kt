@@ -1,7 +1,5 @@
 package tech.hanasaki.momotalk_plus.core.domain.usecase
 
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 
@@ -13,7 +11,7 @@ class UpdateCharacterUseCase(private val repository: CharacterRepository) {
         signature: String,
         avatarUrl: String,
         visibility: Visibility,
-    ): IResult<Unit, AppError> =
+    ): Result<Unit> = try {
         repository.updateCharacter(
             id,
             name,
@@ -21,7 +19,10 @@ class UpdateCharacterUseCase(private val repository: CharacterRepository) {
             signature,
             avatarUrl,
             visibility
-        ).mapError { error ->
-            AppError("更新角色时发生错误: $error")
-        }
+        )
+        Result.success(Unit)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Result.failure(e)
+    }
 }

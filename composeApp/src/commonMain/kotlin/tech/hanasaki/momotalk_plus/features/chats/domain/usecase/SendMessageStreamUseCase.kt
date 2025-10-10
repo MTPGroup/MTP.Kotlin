@@ -1,8 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.chats.domain.usecase
 
 import kotlinx.coroutines.flow.Flow
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatRepository
 
@@ -12,7 +10,7 @@ class SendMessageStreamUseCase(
     operator fun invoke(
         chatId: String,
         message: String,
-    ): Flow<IResult<StreamEvent, AppError>> {
+    ): Flow<StreamEvent> {
         return chatRepository.sendMessageStream(
             chatId = chatId,
             message = message,

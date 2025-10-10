@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MSearchBar
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopAppBar
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatsIntent
 import tech.hanasaki.momotalk_plus.features.chats.presentation.state.ChatsSideEffect
 import tech.hanasaki.momotalk_plus.features.chats.presentation.ui.widgets.CreateChatDialog
@@ -30,7 +30,7 @@ import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsVi
 
 @Composable
 fun ChatListPage(
-    currentUser: UserProfile?,
+    currentUser: User?,
     onNavigateToChatDetails: (String) -> Unit,
     onAvatarClick: () -> Unit,
     viewModel: ChatsViewModel = koinViewModel(),
@@ -41,10 +41,6 @@ fun ChatListPage(
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
     val colorScheme = MaterialTheme.colorScheme
-
-    LaunchedEffect(Unit) {
-        onIntent(ChatsIntent.LoadChats)
-    }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
@@ -64,13 +60,14 @@ fun ChatListPage(
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .systemGesturesPadding()
             )
         },
         topBar = {
             MTopAppBar(
                 title = "",
-                avatarUrl = currentUser?.image,
+                avatarUrl = currentUser?.avatar,
                 username = currentUser?.name ?: "未登录",
                 onAvatarClick = onAvatarClick,
                 onActionClick = { onIntent(ChatsIntent.ShowCreateChatDialog) },

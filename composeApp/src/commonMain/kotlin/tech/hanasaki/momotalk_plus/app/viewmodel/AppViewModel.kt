@@ -2,78 +2,78 @@ package tech.hanasaki.momotalk_plus.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.app.state.AppUiState
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
-import tech.hanasaki.momotalk_plus.core.domain.usecase.GetLoginStateUseCase
-import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
-import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUserUseCase
+import tech.hanasaki.momotalk_plus.core.domain.repository.SessionRepository
+import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveLoginStateUseCase
 
 class AppViewModel(
-    private val getUserInfoUseCase: GetUserInfoUseCase,
-    private val getLoginStateUseCase: GetLoginStateUseCase,
-    private val logoutUserUseCase: LogoutUserUseCase,
+    private val observeCurrentUserUseCase: ObserveCurrentUserUseCase,
+    private val observeLoginStateUseCase: ObserveLoginStateUseCase,
+    private val logoutUseCase: LogoutUseCase,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
+
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
     init {
-        checkUserLoginStatus()
+        observeUserAndLoginState()
     }
 
-    private fun checkUserLoginStatus() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isInitialized = false) }
-            when (val userInfo = getUserInfoUseCase()) {
-                is IResult.Success -> {
-                    println("User info fetched: ${userInfo.data}")
-                    if (userInfo.data != null) {
-                        _uiState.update {
-                            it.copy(
-                                isLoggedIn = true,
-                                currentUser = userInfo.data,
-                                isLoading = false,
-                                isInitialized = true
-                            )
-                        }
-                    } else {
-                        _uiState.update {
-                            it.copy(
-                                isLoggedIn = false,
-                                currentUser = null,
-                                isLoading = false,
-                                isInitialized = true
-                            )
-                        }
-                    }
-                }
 
-                is IResult.Error -> {
-                    val isLoggedIn = getLoginStateUseCase()
-                    println("Error fetching user info: ${userInfo.error}. Login state: $isLoggedIn")
-                    _uiState.update {
-                        it.copy(
-                            isLoggedIn = isLoggedIn,
-                            currentUser = null,
-                            isLoading = false,
-                            isInitialized = true
-                        )
-                    }
+    private fun observeUserAndLoginState() {
+        combine(
+            observeCurrentUserUseCase(),
+            observeLoginStateUseCase()
+        ) { user, isLoggedIn ->
+            Pair(user, isLoggedIn)
+        }
+            .onStart {
+                _uiState.update {
+                    it.copy(
+                        isLoading = true,
+                    )
                 }
             }
-        }
+            .onEach { (user, isLoggedIn) ->
+                _uiState.update {
+                    it.copy(
+                        currentUser = user,
+                        isLoggedIn = isLoggedIn,
+                        isLoading = false,
+                    )
+                }
+            }
+            .catch { error ->
+                error.printStackTrace()
+                _uiState.update {
+                    it.copy(
+                        currentUser = null,
+                        isLoggedIn = false,
+                        isLoading = false,
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     /**
      * 登出用户
+     * 登出后，Flow 会自动推送新的状态到 UI
      */
     fun logout() {
         viewModelScope.launch {
-            logoutUserUseCase()
+            logoutUseCase()
+                .onSuccess {
+                    println("登出用户成功")
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false) }
+                }
         }
     }
 }

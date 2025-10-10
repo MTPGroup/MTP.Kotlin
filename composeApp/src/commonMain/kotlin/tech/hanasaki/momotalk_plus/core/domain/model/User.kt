@@ -2,7 +2,9 @@ package tech.hanasaki.momotalk_plus.core.domain.model
 
 data class User(
     val uid: String,
-    val name: String?,
+    val name: String,
     val avatar: String?,
-    val email: String?,
+    val email: String,
+    val createdAt: String?,
+    val updatedAt: String?,
 )

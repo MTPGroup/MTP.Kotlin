@@ -1,12 +1,15 @@
 package tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
-import tech.hanasaki.momotalk_plus.core.domain.usecase.GetUserInfoUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.UploadImageUseCase
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileIntent
@@ -14,17 +17,19 @@ import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileSi
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileState
 
 class ProfileViewModel(
-    private val getUserInfoUseCase: GetUserInfoUseCase,
+    private val obverseCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
     private val uploadImageUseCase: UploadImageUseCase,
 ) : BaseViewModel<ProfileState, ProfileSideEffect, ProfileIntent>(
     ProfileState()
 ) {
+    init {
+        loadProfile()
+    }
 
     override fun processIntent(intent: ProfileIntent) {
         viewModelScope.launch {
             when (intent) {
-                is ProfileIntent.LoadProfile -> loadProfile()
                 is ProfileIntent.StartEdit -> startEdit()
                 is ProfileIntent.CancelEdit -> cancelEdit()
                 is ProfileIntent.NameChanged -> updateName(intent.name)
@@ -36,28 +41,30 @@ class ProfileViewModel(
         }
     }
 
-    private suspend fun loadProfile() {
+    private fun loadProfile() {
         updateState {
-            it.copy(isLoading = false)
+            it.copy(isLoading = true)
         }
-        when (val result = getUserInfoUseCase()) {
-            is IResult.Success -> {
+        obverseCurrentUserUseCase()
+            .onEach { user ->
                 updateState {
                     it.copy(
-                        user = result.data,
-                        originAvatar = result.data?.image,
+                        user = user,
+                        originAvatar = user?.avatar,
                         isLoading = false
                     )
                 }
             }
-
-            is IResult.Error -> {
+            .catch { error ->
+                error.printStackTrace()
                 updateState {
-                    it.copy(isLoading = false)
+                    it.copy(
+                        isLoading = false,
+                    )
                 }
-                sendSideEffect(ProfileSideEffect.ShowMessage(result.error.message))
+                sendSideEffect(ProfileSideEffect.ShowMessage("加载用户信息失败: ${error.message}"))
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     private fun startEdit() {
@@ -72,7 +79,7 @@ class ProfileViewModel(
     private fun cancelEdit() {
         updateState {
             it.copy(
-                user = it.user?.copy(image = it.originAvatar),
+                user = it.user?.copy(avatar = it.originAvatar),
                 isEditing = false,
                 editedName = it.user?.name ?: ""
             )
@@ -91,13 +98,13 @@ class ProfileViewModel(
 
             when (val result = updateUserProfileUseCase(
                 name = uiState.value.editedName,
-                image = uiState.value.user?.image
+                image = uiState.value.user?.avatar
             )) {
                 is IResult.Success -> {
                     updateState {
                         it.copy(
                             user = it.user?.copy(name = it.editedName),
-                            originAvatar = it.user?.image,
+                            originAvatar = it.user?.avatar,
                             isEditing = false,
                             isSaving = false,
                         )
@@ -139,7 +146,7 @@ class ProfileViewModel(
 
                     updateState {
                         it.copy(
-                            user = it.user?.copy(image = result.data),
+                            user = it.user?.copy(avatar = result.data),
                             isUploadingAvatar = false
                         )
                     }

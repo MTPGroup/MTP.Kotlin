@@ -31,7 +31,7 @@ import com.woowla.compose.icon.collections.ionicons.ionicons.filled.PersonCircle
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.utils.rememberImagePicker
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditIndent
@@ -42,7 +42,7 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactEditPage(
-    currentUser: UserProfile?,
+    currentUser: User?,
     contactId: String,
     onNavigateBack: () -> Unit,
     viewModel: ContactEditViewModel = koinViewModel(),
@@ -58,12 +58,8 @@ fun ContactEditPage(
 
     val launchImagePicker = rememberImagePicker { imageData ->
         if (imageData != null) {
-            onIntent(ContactEditIndent.UploadAvatar(imageData, currentUser?.id))
+            onIntent(ContactEditIndent.UploadAvatar(imageData, currentUser?.uid))
         }
-    }
-
-    LaunchedEffect(Unit) {
-        onIntent(ContactEditIndent.LoadContactInfo(contactId))
     }
 
     LaunchedEffect(viewModel.sideEffect) {

@@ -10,10 +10,16 @@ class UpdateChatUseCase(
         title: String,
         description: String,
         avatarUrl: String,
-    ) = repository.updateChatInfo(
-        chatId = chatId,
-        title = title,
-        description = description,
-        avatarUrl = avatarUrl,
-    )
+    ): Result<Unit> = try {
+        repository.updateChatInfo(
+            chatId = chatId,
+            title = title,
+            description = description,
+            avatarUrl = avatarUrl,
+        )
+        Result.success(Unit)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Result.failure(e)
+    }
 }

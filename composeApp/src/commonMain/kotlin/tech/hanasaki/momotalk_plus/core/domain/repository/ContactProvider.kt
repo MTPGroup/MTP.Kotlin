@@ -1,7 +1,6 @@
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
+import kotlinx.coroutines.flow.Flow
 
 data class ContactInfo(
     val id: String,
@@ -11,5 +10,5 @@ data class ContactInfo(
 )
 
 interface ContactProvider {
-    suspend fun getAvailableContacts(): IResult<List<ContactInfo>, AppError>
+    fun getAvailableContacts(): Flow<List<ContactInfo>>
 }

@@ -1,14 +1,22 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
+import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.domain.usecase.CharacterDetailUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.UpdateCharacterUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.UploadImageUseCase
+import tech.hanasaki.momotalk_plus.features.contacts.presentation.navigation.ContactsRoute
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditIndent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditSideEffect
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactEditState
@@ -17,15 +25,18 @@ class ContactEditViewModel(
     private val updateContactUseCase: UpdateCharacterUseCase,
     private val characterDetailUseCase: CharacterDetailUseCase,
     private val uploadImageUseCase: UploadImageUseCase,
+    private val savedStateHandle: SavedStateHandle,
 ) :
     BaseViewModel<ContactEditState, ContactEditSideEffect, ContactEditIndent>(ContactEditState()) {
+    private val characterId = savedStateHandle.toRoute<ContactsRoute.EditContact>().id
+
+    init {
+        loadContactInfo(characterId)
+    }
 
     override fun processIntent(intent: ContactEditIndent) {
         viewModelScope.launch {
             when (intent) {
-                is ContactEditIndent.LoadContactInfo ->
-                    loadContactInfo(intent.contactId)
-
                 is ContactEditIndent.NameChanged ->
                     updateState {
                         it.copy(name = intent.name)
@@ -60,33 +71,41 @@ class ContactEditViewModel(
         }
     }
 
-    private suspend fun loadContactInfo(characterId: String) {
-        updateState {
-            it.copy(
-                isLoading = true,
-                errorMessage = null
-            )
-        }
-        when (val result = characterDetailUseCase(characterId)) {
-            is IResult.Success -> {
+    private fun loadContactInfo(characterId: String) {
+        characterDetailUseCase(characterId)
+            .onStart {
                 updateState {
                     it.copy(
-                        isLoading = false,
-                        name = result.data.name,
-                        signature = result.data.signature,
-                        persona = result.data.persona,
-                        avatarUrl = result.data.avatarUrl,
-                        visibility = result.data.visibility,
+                        isLoading = true,
+                        errorMessage = null
                     )
                 }
             }
-
-            is IResult.Error -> {
+            .onEach { character ->
+                updateState {
+                    it.copy(
+                        isLoading = false,
+                        name = character?.name ?: "",
+                        signature = character?.signature ?: "",
+                        persona = character?.persona ?: "",
+                        avatarUrl = character?.avatarUrl ?: "",
+                        visibility = character?.visibility ?: Visibility.PUBLIC,
+                    )
+                }
+            }
+            .catch { e ->
+                e.printStackTrace()
+                updateState {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message
+                    )
+                }
                 sendSideEffect(
-                    ContactEditSideEffect.ShowMessage(result.error.message)
+                    ContactEditSideEffect.ShowMessage("加载联系人信息失败: ${e.message}")
                 )
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     private suspend fun updateContactInfo(id: String) {
@@ -97,15 +116,15 @@ class ContactEditViewModel(
             )
         }
         val currentState = getState()
-        when (val result = updateContactUseCase(
+        updateContactUseCase(
             id = id,
             name = currentState.name,
-            signature = currentState.signature,
             persona = currentState.persona,
+            signature = currentState.signature,
             avatarUrl = currentState.avatarUrl,
             visibility = currentState.visibility,
-        )) {
-            is IResult.Success -> {
+        )
+            .onSuccess {
                 updateState {
                     it.copy(isSaving = false)
                 }
@@ -115,21 +134,14 @@ class ContactEditViewModel(
                     )
                 )
             }
-
-            is IResult.Error -> {
-                updateState {
-                    it.copy(
-                        isSaving = false,
-                        errorMessage = result.error.message
-                    )
-                }
+            .onFailure { e ->
+                e.printStackTrace()
                 sendSideEffect(
                     ContactEditSideEffect.ShowMessage(
-                        "联系人信息更新失败: ${result.error.message}"
+                        "联系人信息更新失败: ${e.message}"
                     )
                 )
             }
-        }
     }
 
     private suspend fun uploadAvatar(

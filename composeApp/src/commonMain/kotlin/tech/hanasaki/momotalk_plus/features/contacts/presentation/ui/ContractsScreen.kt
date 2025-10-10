@@ -7,12 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.navigation.ContactsRoute
 
 @Composable
 fun ContactsScreen(
-    currentUser: UserProfile?,
+    currentUser: User?,
     onAvatarClick: () -> Unit,
     onSetBottomBarVisibility: (Boolean) -> Unit,
 ) {

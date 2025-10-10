@@ -29,11 +29,11 @@ import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Cog
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.LogOut
 import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Person
-import tech.hanasaki.momotalk_plus.core.data.model.UserProfile
+import tech.hanasaki.momotalk_plus.core.domain.model.User
 
 @Composable
 fun HomeDrawerContent(
-    currentUser: UserProfile?,
+    currentUser: User?,
     onSettingsClick: () -> Unit,
     onProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
@@ -86,11 +86,11 @@ fun HomeDrawerContent(
 
 @Composable
 private fun DrawerHeader(
-    user: UserProfile?,
+    user: User?,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val painter = rememberAsyncImagePainter(
-        user?.image ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
+        user?.avatar ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
     )
     val avatarState by painter.state.collectAsState()
 

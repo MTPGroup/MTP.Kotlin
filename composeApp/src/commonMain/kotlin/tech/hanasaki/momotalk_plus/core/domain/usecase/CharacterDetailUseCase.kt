@@ -1,13 +1,12 @@
 package tech.hanasaki.momotalk_plus.core.domain.usecase
 
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
 
 class CharacterDetailUseCase(private val repository: CharacterRepository) {
-    suspend operator fun invoke(id: String): IResult<Character, AppError> =
-        repository.getCharacterById(id).mapError { error ->
-            AppError("获取角色详情时发生错误: $error")
-        }
+    operator fun invoke(id: String): Flow<Character?> =
+        repository.getCharacterById(id)
+            .catch { emit(null) }
 }

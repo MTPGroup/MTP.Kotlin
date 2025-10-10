@@ -1,8 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.chats.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import tech.hanasaki.momotalk_plus.core.domain.model.AppError
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Chat
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.ChatWithCharacter
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
@@ -22,19 +20,19 @@ interface ChatRepository {
         title: String,
         description: String?,
         avatarUrl: String?,
-    ): IResult<Unit, AppError>
+    )
 
     /**
      * 获取聊天会话列表
      */
-    suspend fun getChatList(): IResult<List<Chat>, AppError>
+    fun getChatList(): Flow<List<Chat>>
 
     /**
      * 删除聊天会话
      *
      * @param chatId 聊天ID
      */
-    suspend fun deleteChat(chatId: String): IResult<Unit, AppError>
+    suspend fun deleteChat(chatId: String)
 
     /**
      * 更新聊天会话信息
@@ -49,7 +47,7 @@ interface ChatRepository {
         title: String,
         description: String,
         avatarUrl: String,
-    ): IResult<Unit, AppError>
+    )
 
     /**
      * 获取单个聊天会话信息
@@ -57,7 +55,7 @@ interface ChatRepository {
      * @param chatId 聊天ID
      * @return 聊天会话信息
      */
-    suspend fun getChatInfo(chatId: String): IResult<ChatWithCharacter, AppError>
+    fun getChatInfo(chatId: String): Flow<ChatWithCharacter>
 
     /**
      * 获取单个聊天会话历史记录
@@ -66,14 +64,14 @@ interface ChatRepository {
      * @param limits 获取消息数量限制
      *
      */
-    suspend fun getChatHistory(chatId: String, limits: Int? = null): IResult<List<Message>, AppError>
+    fun getChatHistory(chatId: String, limits: Int? = null): Flow<List<Message>>
 
     /**
      * 清除聊天会话历史记录
      *
      * @param chatId 聊天ID
      */
-    suspend fun clearChatHistory(chatId: String): IResult<Unit, AppError>
+    suspend fun clearChatHistory(chatId: String)
 
     /**
      * 流式获取聊天回复
@@ -83,5 +81,5 @@ interface ChatRepository {
     fun sendMessageStream(
         chatId: String,
         message: String,
-    ): Flow<IResult<StreamEvent, AppError>>
+    ): Flow<StreamEvent>
 }

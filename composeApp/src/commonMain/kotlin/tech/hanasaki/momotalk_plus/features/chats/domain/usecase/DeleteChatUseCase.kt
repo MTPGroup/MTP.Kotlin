@@ -5,5 +5,11 @@ import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatReposito
 class DeleteChatUseCase(
     private val repository: ChatRepository,
 ) {
-    suspend operator fun invoke(chatId: String) = repository.deleteChat(chatId)
+    suspend operator fun invoke(chatId: String): Result<Unit> = try {
+        repository.deleteChat(chatId)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Result.failure(e)
+    }
 }

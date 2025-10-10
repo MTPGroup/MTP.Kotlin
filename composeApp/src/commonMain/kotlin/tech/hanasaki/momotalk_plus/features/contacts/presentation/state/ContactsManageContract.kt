@@ -21,7 +21,6 @@ data class ContactsManageState(
 
 sealed class ContactsManageIntent {
     data class UpdateQuery(val query: String) : ContactsManageIntent()
-    data object LoadAvailableContacts : ContactsManageIntent()
     data class AddContact(val userId: String) : ContactsManageIntent()
     data class RemoveContact(val userId: String) : ContactsManageIntent()
 }

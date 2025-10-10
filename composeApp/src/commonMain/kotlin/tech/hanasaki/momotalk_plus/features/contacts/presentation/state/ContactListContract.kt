@@ -23,7 +23,6 @@ sealed class ContactListIntent {
     data object ClearSearchQuery : ContactListIntent()
     data object AddContactClicked : ContactListIntent()
     data class ContactClicked(val contactId: String) : ContactListIntent()
-    data object LoadContacts : ContactListIntent()
 }
 
 sealed class ContactListSideEffect {

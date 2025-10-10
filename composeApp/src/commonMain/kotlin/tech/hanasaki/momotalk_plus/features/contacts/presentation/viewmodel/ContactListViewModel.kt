@@ -1,9 +1,12 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
-import tech.hanasaki.momotalk_plus.core.domain.model.IResult
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.ListContactUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactListIntent
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactListSideEffect
@@ -12,6 +15,10 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactL
 class ContactListViewModel(
     private val listContactUseCase: ListContactUseCase,
 ) : BaseViewModel<ContactListState, ContactListSideEffect, ContactListIntent>(ContactListState()) {
+    init {
+        loadContacts()
+    }
+
     override fun processIntent(intent: ContactListIntent) {
         viewModelScope.launch {
             when (intent) {
@@ -31,9 +38,6 @@ class ContactListViewModel(
                     }
                 }
 
-                is ContactListIntent.LoadContacts ->
-                    loadContacts()
-
                 is ContactListIntent.ContactClicked -> {
                     sendSideEffect(ContactListSideEffect.NavigateToContactDetail(intent.contactId))
                 }
@@ -45,18 +49,19 @@ class ContactListViewModel(
         }
     }
 
-    private suspend fun loadContacts() {
-        updateState { it.copy(isLoading = true, error = null) }
-
-        when (val result = listContactUseCase()) {
-            is IResult.Success -> {
-                updateState { it.copy(isLoading = false, contacts = result.data) }
+    private fun loadContacts() {
+        listContactUseCase()
+            .onStart {
+                updateState { it.copy(isLoading = true, error = null) }
             }
-
-            is IResult.Error -> {
-                updateState { it.copy(isLoading = false, error = result.error.message) }
-                sendSideEffect(ContactListSideEffect.ShowErrorMessage(result.error.message))
+            .onEach { contacts ->
+                updateState { it.copy(isLoading = false, contacts = contacts) }
             }
-        }
+            .catch { e ->
+                e.printStackTrace()
+                updateState { it.copy(isLoading = false) }
+                sendSideEffect(ContactListSideEffect.ShowErrorMessage("加载联系人失败: ${e.message}"))
+            }
+            .launchIn(viewModelScope)
     }
 }

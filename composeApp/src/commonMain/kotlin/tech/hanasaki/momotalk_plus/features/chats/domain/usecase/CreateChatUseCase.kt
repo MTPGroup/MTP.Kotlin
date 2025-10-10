@@ -10,10 +10,16 @@ class CreateChatUseCase(
         title: String,
         description: String,
         avatarUrl: String,
-    ) = repository.createChat(
-        characterId = characterId,
-        title = title,
-        description = description,
-        avatarUrl = avatarUrl,
-    )
+    ): Result<Unit> = try {
+        repository.createChat(
+            characterId = characterId,
+            title = title,
+            description = description,
+            avatarUrl = avatarUrl,
+        )
+        Result.success(Unit)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Result.failure(e)
+    }
 }
