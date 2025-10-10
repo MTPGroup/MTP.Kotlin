@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -76,8 +77,8 @@ fun SwipeableChatListItem(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colorScheme.surface)
                 .offset { IntOffset(animatedOffsetX.roundToInt(), 0) }
+                .background(colorScheme.surface)
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
@@ -116,46 +117,43 @@ private fun BoxScope.SwipeBackground(
     onDeleteClick: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val isVisible = offsetX < 0f
 
     Box(
         modifier = Modifier
             .matchParentSize(),
         contentAlignment = Alignment.CenterEnd
     ) {
-        if (isVisible) {
-            Row(
-                modifier = Modifier.fillMaxHeight(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 置顶按钮
-                ActionButton(
-                    icon = Ionicons.Sharp.Pin,
-                    backgroundColor = colorScheme.tertiary,
-                    contentDescription = "置顶",
-                    onClick = onPinClick,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(66.dp)
-                )
-                // 删除按钮
-                ActionButton(
-                    icon = Ionicons.Sharp.Trash,
-                    backgroundColor = colorScheme.error,
-                    contentDescription = "删除",
-                    onClick = onDeleteClick,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(66.dp)
-                )
-            }
+        Row(
+            modifier = Modifier.fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 置顶按钮
+            ActionButton(
+                icon = Ionicons.Sharp.Pin,
+                backgroundColor = colorScheme.tertiary,
+                contentDescription = "置顶",
+                onClick = onPinClick,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(66.dp)
+            )
+            // 删除按钮
+            ActionButton(
+                icon = Ionicons.Sharp.Trash,
+                backgroundColor = colorScheme.error,
+                contentDescription = "删除",
+                onClick = onDeleteClick,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(66.dp)
+            )
         }
     }
 }
 
 @Composable
 private fun ActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     backgroundColor: Color,
     contentDescription: String,
     onClick: () -> Unit,
