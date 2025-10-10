@@ -7,6 +7,7 @@ interface ChatApi {
     /**
      * 创建聊天会话
      */
+    @Headers("Content-Type: application/json")
     @POST("chats")
     suspend fun createChat(
         @Body request: CreateChatRequest,

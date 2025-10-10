@@ -29,6 +29,7 @@ interface CharacterApi {
     /**
      * 创建新角色
      */
+    @Headers("Content-Type: application/json")
     @POST("characters")
     suspend fun createCharacter(
         @Body request: CreateCharacterRequest,

@@ -14,7 +14,6 @@ class AppViewModel(
     private val observeCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val observeLoginStateUseCase: ObserveLoginStateUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppUiState())

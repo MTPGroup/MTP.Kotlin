@@ -33,6 +33,7 @@ interface AuthApi {
     /**
      * 发送邮箱验证邮件
      */
+    @Headers("Content-Type: application/json")
     @POST("auth/email-otp/send-verification-otp")
     suspend fun sendEmailVerification(
         @Body request: SendEmailVerificationRequest,
@@ -41,6 +42,7 @@ interface AuthApi {
     /**
      * 发送密码重置邮件
      */
+    @Headers("Content-Type: application/json")
     @POST("auth/forget-password/email-otp")
     suspend fun sendForgetPasswordEmail(
         @Body request: SendPasswordResetEmailRequest,
@@ -49,6 +51,7 @@ interface AuthApi {
     /**
      * 验证邮箱验证码
      */
+    @Headers("Content-Type: application/json")
     @POST("auth/email-otp/verify-email")
     suspend fun verifyEmail(
         @Body request: VerifyOTPRequest,
@@ -57,6 +60,7 @@ interface AuthApi {
     /**
      * 重置密码
      */
+    @Headers("Content-Type: application/json")
     @POST("auth/email-otp/reset-password")
     suspend fun resetPassword(
         @Body request: ResetPasswordRequest,

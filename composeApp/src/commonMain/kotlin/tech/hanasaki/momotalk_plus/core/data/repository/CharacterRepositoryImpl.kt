@@ -149,9 +149,12 @@ class CharacterRepositoryImpl(
         return listStore.stream(
             StoreReadRequest.cached(Unit, false)
         )
-            .map {
-                // TODO:
-                it.requireData()
+            .map { response ->
+                when (response) {
+                    is StoreReadResponse.Data -> response.value
+                    is StoreReadResponse.Loading -> response.dataOrNull() ?: emptyList()
+                    else -> emptyList()
+                }
             }
             .catch {
                 emit(emptyList())
@@ -160,8 +163,14 @@ class CharacterRepositoryImpl(
 
     override fun getCharacterById(id: String): Flow<Character?> {
         return detailStore.stream(
-            StoreReadRequest.cached(id, false)
-        ).map { it.requireData() }
+            StoreReadRequest.cached(id, true)
+        ).map { response ->
+            when (response) {
+                is StoreReadResponse.Data -> response.value
+                is StoreReadResponse.Loading -> response.dataOrNull()
+                else -> null
+            }
+        }
     }
 
     override suspend fun updateCharacter(
