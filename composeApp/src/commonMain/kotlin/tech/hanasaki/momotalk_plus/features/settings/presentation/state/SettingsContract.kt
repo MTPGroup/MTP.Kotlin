@@ -15,7 +15,6 @@ sealed class SettingsIntent {
     data class NotificationsToggled(val enabled: Boolean) : SettingsIntent()
     data class SoundToggled(val enabled: Boolean) : SettingsIntent()
     data class VibrationToggled(val enabled: Boolean) : SettingsIntent()
-    data object LoadSettings : SettingsIntent()
     data object AboutClicked : SettingsIntent()
     data object PrivacyPolicyClicked : SettingsIntent()
     data object TermsOfServiceClicked : SettingsIntent()

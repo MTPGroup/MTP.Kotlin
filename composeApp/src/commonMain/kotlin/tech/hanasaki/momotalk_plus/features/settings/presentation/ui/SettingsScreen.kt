@@ -1,11 +1,8 @@
 package tech.hanasaki.momotalk_plus.features.settings.presentation.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -245,7 +242,7 @@ private fun ThemeCard(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         border = if (isSelected) {
-            androidx.compose.foundation.BorderStroke(
+            BorderStroke(
                 width = 2.dp,
                 color = MaterialTheme.colorScheme.primary
             )

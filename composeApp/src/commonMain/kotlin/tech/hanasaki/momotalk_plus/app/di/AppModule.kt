@@ -63,6 +63,11 @@ import tech.hanasaki.momotalk_plus.features.profile.data.repository.ProfileRepos
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
 import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
+import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.api.SettingApi
+import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.api.createSettingApi
+import tech.hanasaki.momotalk_plus.features.settings.data.repository.SettingsRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -244,6 +249,20 @@ val profileModule = module {
     factoryOf(::UpdateUserProfileUseCase)
 }
 
+val settingsModule = module {
+    single<SettingApi> {
+        get<Ktorfit>().createSettingApi()
+    }
+    single<SettingsRepository> {
+        SettingsRepositoryImpl(get(), get())
+    }
+
+    factoryOf(::GetUserSettingsUseCase)
+    factoryOf(::SaveNotificationSettingsUseCase)
+    factoryOf(::SaveSoundSettingsUseCase)
+    factoryOf(::SaveThemeUseCase)
+    factoryOf(::SaveVibrationSettingsUseCase)
+}
 
 val datasourceModule = module {
     factoryOf(::CharacterLocalDataSource)
@@ -279,5 +298,6 @@ val appModule =
         contactModule,
         chatModule,
         profileModule,
+        settingsModule,
         viewModelModule
     )

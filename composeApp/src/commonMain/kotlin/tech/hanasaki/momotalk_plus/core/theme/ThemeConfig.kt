@@ -15,7 +15,7 @@ data class AppTheme(
 
 object PredefinedThemes {
     val Default = AppTheme(
-        id = "default_light",
+        id = "light",
         name = "默认主题",
         colorScheme = androidx.compose.material3.lightColorScheme(
             primary = primaryLight,
@@ -59,7 +59,7 @@ object PredefinedThemes {
     )
 
     val Dark = AppTheme(
-        id = "default_dark",
+        id = "dark",
         name = "夜间模式",
         colorScheme = androidx.compose.material3.darkColorScheme(
             primary = primaryDark,

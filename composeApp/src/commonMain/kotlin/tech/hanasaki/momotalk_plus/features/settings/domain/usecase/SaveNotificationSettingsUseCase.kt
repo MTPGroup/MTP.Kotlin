@@ -5,8 +5,12 @@ import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsR
 class SaveNotificationSettingsUseCase(
     private val repository: SettingsRepository,
 ) {
-    operator fun invoke(enabled: Boolean) {
-        repository.saveNotificationsEnabled(enabled)
-    }
+    suspend operator fun invoke(enabled: Boolean): Result<Unit> =
+        try {
+            repository.saveNotificationsEnabled(enabled)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
 }
-
