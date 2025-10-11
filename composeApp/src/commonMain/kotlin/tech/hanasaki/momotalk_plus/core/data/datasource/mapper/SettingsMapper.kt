@@ -1,18 +1,18 @@
-package tech.hanasaki.momotalk_plus.features.settings.data.datasource.mapper
+package tech.hanasaki.momotalk_plus.core.data.datasource.mapper
 
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.local.entity.SettingsEntity
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.dto.SettingsResponseData
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.Language
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.UserSettings
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.UserTheme
+import tech.hanasaki.momotalk_plus.core.data.datasource.local.entity.SettingsEntity
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.SettingsResponseData
+import tech.hanasaki.momotalk_plus.core.domain.model.Language
+import tech.hanasaki.momotalk_plus.core.domain.model.ThemeName
+import tech.hanasaki.momotalk_plus.core.domain.model.UserSettings
 
 object SettingsMapper {
     fun SettingsEntity.toUserSettings(): UserSettings =
         UserSettings(
             theme = when (theme) {
-                "light" -> UserTheme.LIGHT
-                "dark" -> UserTheme.DARK
-                else -> UserTheme.SYSTEM
+                "light" -> ThemeName.LIGHT
+                "dark" -> ThemeName.DARK
+                else -> ThemeName.SYSTEM
             },
             language = when (language) {
                 "zh-CN" -> Language.CHINESE
@@ -32,9 +32,9 @@ object SettingsMapper {
         return SettingsEntity(
             id = 1,
             theme = when (theme) {
-                UserTheme.LIGHT -> "light"
-                UserTheme.DARK -> "dark"
-                UserTheme.SYSTEM -> "system"
+                ThemeName.LIGHT -> "light"
+                ThemeName.DARK -> "dark"
+                ThemeName.SYSTEM -> "system"
             },
             language = when (language) {
                 Language.CHINESE -> "zh-CN"
@@ -53,9 +53,9 @@ object SettingsMapper {
     fun SettingsResponseData.toUserSettings(): UserSettings =
         UserSettings(
             theme = when (theme) {
-                "light" -> UserTheme.LIGHT
-                "dark" -> UserTheme.DARK
-                else -> UserTheme.SYSTEM
+                "light" -> ThemeName.LIGHT
+                "dark" -> ThemeName.DARK
+                else -> ThemeName.SYSTEM
             },
             language = when (language) {
                 "zh-CN" -> Language.CHINESE

@@ -1,13 +1,13 @@
-package tech.hanasaki.momotalk_plus.features.settings.domain.repository
+package tech.hanasaki.momotalk_plus.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.Language
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.UserSettings
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.UserTheme
+import tech.hanasaki.momotalk_plus.core.domain.model.Language
+import tech.hanasaki.momotalk_plus.core.domain.model.ThemeName
+import tech.hanasaki.momotalk_plus.core.domain.model.UserSettings
 
 interface SettingsRepository {
     fun observeUserSettings(): Flow<UserSettings>
-    suspend fun saveTheme(theme: UserTheme)
+    suspend fun saveTheme(theme: ThemeName)
     suspend fun saveLanguage(language: Language)
     suspend fun saveNotificationsEnabled(enabled: Boolean)
     suspend fun saveSoundEnabled(enabled: Boolean)

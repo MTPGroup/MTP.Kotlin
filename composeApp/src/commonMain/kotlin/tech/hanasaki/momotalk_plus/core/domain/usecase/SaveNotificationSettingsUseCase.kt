@@ -1,6 +1,6 @@
-package tech.hanasaki.momotalk_plus.features.settings.domain.usecase
+package tech.hanasaki.momotalk_plus.core.domain.usecase
 
-import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository
+import tech.hanasaki.momotalk_plus.core.domain.repository.SettingsRepository
 
 class SaveNotificationSettingsUseCase(
     private val repository: SettingsRepository,

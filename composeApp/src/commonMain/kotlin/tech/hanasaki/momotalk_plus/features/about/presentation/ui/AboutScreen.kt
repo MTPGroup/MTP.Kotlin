@@ -80,7 +80,7 @@ fun AboutScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "版本 1.0.0",
+                        text = "版本 1.0.0-alpha",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -176,9 +176,10 @@ fun AboutScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                         TechStackItem("Kotlin Multiplatform")
-                        TechStackItem("Compose Multiplatform")
                         TechStackItem("Material 3")
-                        TechStackItem("Ktor")
+                        TechStackItem("Ktorfit")
+                        TechStackItem("Store5")
+                        TechStackItem("Room")
                         TechStackItem("Koin")
                     }
                 }
@@ -224,7 +225,7 @@ fun AboutScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "© 2024 MomoTalk Plus",
+                        text = "© 2025 MTPGroup",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

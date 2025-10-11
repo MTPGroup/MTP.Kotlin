@@ -1,11 +1,11 @@
-package tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.api
+package tech.hanasaki.momotalk_plus.core.data.datasource.remote.api
 
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Headers
 import de.jensklingenberg.ktorfit.http.PATCH
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.dto.SettingsResponse
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.dto.UpdateSettingsRequest
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.SettingsResponse
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.UpdateSettingsRequest
 
 interface SettingApi {
     /**

@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.settings.data.datasource.local.entity
+package tech.hanasaki.momotalk_plus.core.data.datasource.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

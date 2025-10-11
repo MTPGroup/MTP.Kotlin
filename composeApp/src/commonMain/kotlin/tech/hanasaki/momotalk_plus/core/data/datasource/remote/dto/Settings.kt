@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.dto
+package tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto
 
 import kotlinx.serialization.Serializable
 

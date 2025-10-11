@@ -1,4 +1,4 @@
-package tech.hanasaki.momotalk_plus.features.settings.data.repository
+package tech.hanasaki.momotalk_plus.core.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -6,15 +6,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import org.mobilenativefoundation.store.core5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.*
+import tech.hanasaki.momotalk_plus.core.data.datasource.mapper.SettingsMapper.toEntity
+import tech.hanasaki.momotalk_plus.core.data.datasource.mapper.SettingsMapper.toUserSettings
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.SettingApi
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.UpdateSettingsRequest
+import tech.hanasaki.momotalk_plus.core.domain.model.Language
+import tech.hanasaki.momotalk_plus.core.domain.model.ThemeName
+import tech.hanasaki.momotalk_plus.core.domain.model.UserSettings
+import tech.hanasaki.momotalk_plus.core.domain.repository.SettingsRepository
 import tech.hanasaki.momotalk_plus.db.AppDatabase
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.mapper.SettingsMapper.toEntity
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.mapper.SettingsMapper.toUserSettings
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.api.SettingApi
-import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.dto.UpdateSettingsRequest
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.Language
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.UserSettings
-import tech.hanasaki.momotalk_plus.features.settings.domain.model.UserTheme
-import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository
 import kotlin.time.Duration.Companion.hours
 
 class SettingsRepositoryImpl(
@@ -25,7 +25,7 @@ class SettingsRepositoryImpl(
 
     companion object {
         private val DEFAULT_SETTINGS = UserSettings(
-            theme = UserTheme.SYSTEM,
+            theme = ThemeName.SYSTEM,
             language = Language.CHINESE,
             notificationsEnabled = false,
             soundEnabled = false,
@@ -93,12 +93,12 @@ class SettingsRepositoryImpl(
             }
     }
 
-    override suspend fun saveTheme(theme: UserTheme) {
+    override suspend fun saveTheme(theme: ThemeName) {
         updateSettings { currentSettings ->
             val themeValue = when (theme) {
-                UserTheme.LIGHT -> "light"
-                UserTheme.DARK -> "dark"
-                UserTheme.SYSTEM -> "system"
+                ThemeName.LIGHT -> "light"
+                ThemeName.DARK -> "dark"
+                ThemeName.SYSTEM -> "system"
             }
 
             syncToServer(
