@@ -130,7 +130,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0-beta"
     }
     packaging {
         resources {
