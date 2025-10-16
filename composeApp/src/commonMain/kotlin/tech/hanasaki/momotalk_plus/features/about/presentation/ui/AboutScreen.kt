@@ -54,8 +54,7 @@ fun AboutScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(120.dp)
-                            .padding(16.dp),
+                            .size(120.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
