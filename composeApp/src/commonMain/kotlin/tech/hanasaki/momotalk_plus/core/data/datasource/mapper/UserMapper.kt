@@ -1,39 +1,18 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.mapper
 
-import tech.hanasaki.momotalk_plus.core.data.datasource.local.entity.UserEntity
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.UserProfile
-import tech.hanasaki.momotalk_plus.core.domain.model.User
-
 
 object UserMapper {
-    fun UserProfile.toUser(): User =
-        User(
-            uid = id,
-            name = name,
-            email = email,
-            avatar = image,
+//    @OptIn(ExperimentalTime::class)
+    /*fun UserInfo.toUser(): User {
+        val json = Json { ignoreUnknownKeys = true }
+        val metadata = this.userMetadata?.let { json.decodeFromJsonElement<UserMetadata>(it) }
+        return User(
+            id = id,
+            email = email ?: "",
+            name = metadata?.name ?: "",
+            avatar = metadata?.avatar ?: "",
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
-
-    fun UserEntity.toUser(): User =
-        User(
-            uid = id,
-            name = name,
-            email = email,
-            avatar = image,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-        )
-
-    fun User.toUserEntity(): UserEntity =
-        UserEntity(
-            id = uid,
-            name = name,
-            email = email,
-            image = avatar,
-            createdAt = createdAt,
-            updatedAt = updatedAt
-        )
-
+    }*/
 }

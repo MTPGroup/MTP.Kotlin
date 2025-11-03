@@ -45,7 +45,6 @@ class LoginViewModel(
             currentState.password
         ).onSuccess {
             updateState { it.copy(isLoading = false, isLoggedIn = true) }
-            sendSideEffect(LoginSideEffect.NavigateToHome)
         }.onFailure { error ->
             val errorMessage = error.message
             updateState {

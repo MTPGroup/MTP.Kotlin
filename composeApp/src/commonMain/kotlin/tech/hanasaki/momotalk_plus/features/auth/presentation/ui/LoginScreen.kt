@@ -33,7 +33,6 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.LoginVie
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
     onForgotPassword: () -> Unit,
     onRegister: () -> Unit,
     loginViewModel: LoginViewModel = koinViewModel(),
@@ -45,9 +44,6 @@ fun LoginScreen(
     LaunchedEffect(key1 = loginViewModel.sideEffect) {
         loginViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is LoginSideEffect.NavigateToHome ->
-                    onLoginSuccess()
-
                 LoginSideEffect.NavigateToForgotPassword ->
                     onForgotPassword()
 

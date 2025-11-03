@@ -11,12 +11,14 @@ class UpdateUserProfileUseCase(
     /**
      * 执行更新用户个人资料
      *
+     * @param id 用户id
      * @param name 用户名
-     * @param image 用户头像URL（可选）
+     * @param avatar 用户头像URL（可选）
      */
     suspend operator fun invoke(
+        id: String,
         name: String,
-        image: String? = null,
+        avatar: String? = null,
     ): Result<Unit> {
         // 验证用户名不为空
         if (name.isBlank()) {
@@ -29,7 +31,7 @@ class UpdateUserProfileUseCase(
         }
 
         try {
-            repository.updateUserProfile(name, image)
+            repository.updateUserProfile(id, name, avatar)
             return Result.success(Unit)
         } catch (e: Exception) {
             e.printStackTrace()

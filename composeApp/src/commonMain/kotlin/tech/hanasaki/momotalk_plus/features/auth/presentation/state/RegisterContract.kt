@@ -3,7 +3,6 @@ package tech.hanasaki.momotalk_plus.features.auth.presentation.state
 data class RegisterState(
     val email: String = "",
     val otpCode: String = "",
-    val username: String = "",
     val password: String = "",
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
@@ -14,7 +13,6 @@ data class RegisterState(
 sealed class RegisterIntent {
     data class EmailChanged(val email: String) : RegisterIntent()
     data class OTPCodeChanged(val otpCode: String) : RegisterIntent()
-    data class UsernameChanged(val username: String) : RegisterIntent()
     data class PasswordChanged(val password: String) : RegisterIntent()
     data class ConfirmPasswordChanged(val confirmPassword: String) : RegisterIntent()
 

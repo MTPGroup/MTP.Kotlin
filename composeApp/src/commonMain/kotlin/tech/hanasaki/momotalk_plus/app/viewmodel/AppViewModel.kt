@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.app.state.AppUiState
-import tech.hanasaki.momotalk_plus.core.domain.repository.SessionRepository
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveLoginStateUseCase

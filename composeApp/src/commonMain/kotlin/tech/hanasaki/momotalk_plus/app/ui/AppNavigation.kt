@@ -68,14 +68,15 @@ fun AppNavigation(
 
     // 监听初始化状态，完成后导航到合适的页面
     LaunchedEffect(appState.isLoading, appState.isLoggedIn) {
-        if (!appState.isLoading) {
-            val destination = if (appState.isLoggedIn) {
-                NavigationRoute.Home
-            } else {
-                NavigationRoute.Login
-            }
-            navController.navigate(destination) {
+        if (appState.isLoading) return@LaunchedEffect
+
+        if (appState.isLoggedIn) {
+            navController.navigate(NavigationRoute.Home) {
                 popUpTo(NavigationRoute.Splash) { inclusive = true }
+            }
+        } else {
+            navController.navigate(NavigationRoute.Login) {
+                popUpTo(0) { inclusive = true }
             }
         }
     }
@@ -93,11 +94,6 @@ fun AppNavigation(
         ) {
             composable<NavigationRoute.Login> {
                 LoginScreen(
-                    onLoginSuccess = {
-                        navController.navigate(NavigationRoute.Home) {
-                            popUpTo(NavigationRoute.Login) { inclusive = true }
-                        }
-                    },
                     onForgotPassword = {
                         navController.navigate(NavigationRoute.ForgotPassword)
                     },
@@ -134,9 +130,6 @@ fun AppNavigation(
                 },
                 onLogout = {
                     appViewModel.logout()
-                    navController.navigate(NavigationRoute.Login) {
-                        popUpTo(NavigationRoute.Home) { inclusive = true }
-                    }
                 }
             )
         }
@@ -180,9 +173,6 @@ fun AppNavigation(
                 onNavigateBack = { navController.popBackStack() },
                 onLogout = {
                     appViewModel.logout()
-                    navController.navigate(NavigationRoute.Login) {
-                        popUpTo(NavigationRoute.Home) { inclusive = true }
-                    }
                 }
             )
         }

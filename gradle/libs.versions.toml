@@ -17,14 +17,14 @@ androidx-navigation = "2.9.0"
 composeHotReload = "1.0.0-beta09"
 composeMultiplatform = "1.10.0-alpha02"
 junit = "4.13.2"
-kotlin = "2.2.10"
-ksp = "2.2.10-2.0.2"
+kotlin = "2.2.20"
+ksp = "2.2.20-2.0.4"
 ktorfit = "2.6.4"
 kotlinx-datetime = "0.7.1"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization-json = "1.8.1"
 koin-bom = "4.1.1"
-ktor = "3.2.1"
+ktor = "3.2.3"
 coil = "3.3.0"
 multiplatform-settings = "1.3.0"
 ionicons = "8.0.8"
@@ -32,6 +32,7 @@ compose-core = "1.45.0"
 store = "5.1.0-alpha07"
 room = "2.8.2"
 sqlite = "2.6.1"
+supabase = "3.2.5"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -79,6 +80,21 @@ androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.r
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "room" }
+supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
+supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt" }
+supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
+supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt" }
+supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt" }
+supabase-functions = { module = "io.github.jan-tennert.supabase:functions-kt" }
+
+[bundles]
+supabase = [
+    "supabase-auth",
+    "supabase-postgrest",
+    "supabase-realtime",
+    "supabase-storage",
+    "supabase-functions",
+]
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -125,7 +125,7 @@ fun ContactDetailPage(
                                     .clip(CircleShape)
                                     .background(colorScheme.surface.copy(alpha = 0.9f))
                                     .clickable(
-                                        enabled = uiState.contact.creator.id == appUiState.currentUser?.uid,
+                                        enabled = uiState.contact.creator.id == appUiState.currentUser?.id,
                                         onClick = { onNavigateToEditContact(userId) }
                                     ),
                                 contentAlignment = Alignment.Center
@@ -134,7 +134,7 @@ fun ContactDetailPage(
                                     Ionicons.Outline.Create,
                                     contentDescription = "编辑",
                                     modifier = Modifier.size(22.dp),
-                                    tint = if (uiState.contact.creator.id == appUiState.currentUser?.uid)
+                                    tint = if (uiState.contact.creator.id == appUiState.currentUser?.id)
                                         colorScheme.primary
                                     else
                                         colorScheme.outline

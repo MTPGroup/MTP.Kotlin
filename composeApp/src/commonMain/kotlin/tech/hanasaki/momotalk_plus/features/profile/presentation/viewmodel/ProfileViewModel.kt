@@ -8,17 +8,20 @@ import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
+import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.UploadImageUseCase
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileIntent
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileSideEffect
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileState
+import kotlin.time.ExperimentalTime
 
 class ProfileViewModel(
     private val obverseCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
     private val uploadImageUseCase: UploadImageUseCase,
+    private val logoutUseCase: LogoutUseCase,
 ) : BaseViewModel<ProfileState, ProfileSideEffect, ProfileIntent>(
     ProfileState()
 ) {
@@ -75,10 +78,11 @@ class ProfileViewModel(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun cancelEdit() {
         updateState {
             it.copy(
-                user = it.user?.copy(avatar = it.originAvatar),
+                user = it.user?.copy(avatar = it.originAvatar ?: ""),
                 isEditing = false,
                 editedName = it.user?.name ?: ""
             )
@@ -91,12 +95,14 @@ class ProfileViewModel(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun saveProfile() {
         updateState { it.copy(isSaving = true) }
         val currentState = getState()
         updateUserProfileUseCase(
+            id = currentState.user?.id ?: "",
             name = currentState.editedName,
-            image = currentState.user?.avatar
+            avatar = currentState.user?.avatar
         ).onSuccess {
             updateState {
                 it.copy(
@@ -119,12 +125,11 @@ class ProfileViewModel(
         }
     }
 
-    private fun logout() {
-        viewModelScope.launch {
-            sendSideEffect(ProfileSideEffect.NavigateToLogin)
-        }
+    private suspend fun logout() {
+        logoutUseCase()
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun uploadAvatar(
         imageData: ImageData,
         userId: String?,
@@ -135,13 +140,12 @@ class ProfileViewModel(
 
         uploadImageUseCase(
             imageData,
-            UploadPath.USER_AVATAR,
+            UploadPath.AVATAR,
             userId
         ).onSuccess { response ->
             updateState {
                 it.copy(
                     user = it.user?.copy(avatar = response),
-                    originAvatar = response,  // 同时更新 originAvatar，避免取消编辑时恢复旧头像
                     isUploadingAvatar = false
                 )
             }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
@@ -28,6 +29,7 @@ import tech.hanasaki.momotalk_plus.core.utils.rememberImagePicker
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileIntent
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileSideEffect
 import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
+import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,7 +131,7 @@ fun ProfileScreen(
                     isEditing = uiState.isEditing,
                     isUploadingAvatar = uiState.isUploadingAvatar,
                     onUploadAvatar = { imageData ->
-                        onIntent(ProfileIntent.UploadAvatar(imageData, currentUser?.uid))
+                        onIntent(ProfileIntent.UploadAvatar(imageData, currentUser?.id))
                     }
                 )
             }
@@ -170,12 +172,6 @@ private fun ProfileHeader(
     onUploadAvatar: (ImageData) -> Unit,
 ) {
     val avatarUrl = user?.avatar ?: "https://cdn.hanasaki.tech/avatars/users/default_avatar.png"
-
-    // 添加日志
-    LaunchedEffect(user?.avatar) {
-        println("🖼️ [ProfileScreen] 用户头像 URL 变化: ${user?.avatar}")
-        println("🖼️ [ProfileScreen] 最终使用的 URL: $avatarUrl")
-    }
 
     val painter = rememberAsyncImagePainter(avatarUrl)
     val avatarState by painter.state.collectAsState()
@@ -223,9 +219,10 @@ private fun ProfileHeader(
                         Image(
                             painter = painter,
                             contentDescription = "用户头像",
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(100.dp)
-                                .clip(CircleShape)
+                                .clip(CircleShape),
                         )
                     }
 
@@ -243,7 +240,6 @@ private fun ProfileHeader(
             if (isEditing) {
                 TextButton(
                     onClick = {
-                        println("[ProfileScreen] Upload avatar button clicked")
                         launchImagePicker()
                     },
                     enabled = !isUploadingAvatar
@@ -389,6 +385,7 @@ private fun ProfileInfoItem(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 private fun AccountInfoSection(
     user: User?,
@@ -414,10 +411,7 @@ private fun AccountInfoSection(
             ProfileInfoItem(
                 icon = Ionicons.Outline.IdCard,
                 label = "用户ID",
-                value = user?.uid ?: "N/A"
-            )
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                value = user?.id ?: "N/A"
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
@@ -425,7 +419,7 @@ private fun AccountInfoSection(
             ProfileInfoItem(
                 icon = Ionicons.Outline.Time,
                 label = "注册时间",
-                value = user?.createdAt ?: "N/A"
+                value = user?.createdAt?.toString() ?: ""
             )
         }
     }

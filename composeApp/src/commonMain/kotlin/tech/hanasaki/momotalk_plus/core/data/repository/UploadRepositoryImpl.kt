@@ -1,16 +1,13 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.utils.io.core.*
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.UploadApi
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.storage.storage
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.repository.UploadImageRepository
 
 class UploadImageRepositoryImpl(
-    private val uploadApi: UploadApi,
+    private val supabase: SupabaseClient,
 ) : UploadImageRepository {
     override suspend fun uploadImage(
         imageData: ImageData,
@@ -18,42 +15,17 @@ class UploadImageRepositoryImpl(
         userId: String?,
     ): String {
         val pathString = when (path) {
-            UploadPath.USER_AVATAR -> "user-avatar"
-            UploadPath.USER_BACKGROUND -> "user-background"
-            UploadPath.CHARACTER_AVATAR -> "character-avatar"
-            UploadPath.CHARACTER_BACKGROUND -> "character-background"
-            UploadPath.CHAT_IMAGE -> "chat-image"
+            UploadPath.AVATAR -> "avatar"
+            UploadPath.BACKGROUND -> "background"
             UploadPath.GENERAL -> "general"
         }
 
-        val parts = mutableListOf<PartData>()
-
-        parts.add(PartData.FormItem(pathString, { }, Headers.build {
-            append(HttpHeaders.ContentDisposition, "form-data; name=\"path\"")
-        }))
-
-        println("userId: $userId")
-        userId?.let {
-            parts.add(PartData.FormItem(it, { }, Headers.build {
-                append(HttpHeaders.ContentDisposition, "form-data; name=\"userId\"")
-            }))
+        val bucket = supabase.storage.from(pathString)
+        return bucket.upload(
+            imageData.fileName,
+            imageData.byteArray,
+        ).run {
+            bucket.publicUrl(this.path)
         }
-
-        parts.add(
-            PartData.BinaryItem(
-                provider = { buildPacket { writeFully(imageData.byteArray) } },
-                dispose = { },
-                partHeaders = Headers.build {
-                    append(HttpHeaders.ContentType, imageData.mimeType)
-                    append(
-                        HttpHeaders.ContentDisposition,
-                        "form-data; name=\"image\"; filename=\"${imageData.fileName}\""
-                    )
-                }
-            ))
-
-        return uploadApi.uploadImage(
-            MultiPartFormDataContent(parts)
-        ).data.url
     }
 }

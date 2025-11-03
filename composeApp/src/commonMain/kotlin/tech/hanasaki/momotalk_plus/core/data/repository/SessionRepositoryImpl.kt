@@ -1,159 +1,83 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.annotations.SupabaseExperimental
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.realtime.selectSingleValueAsFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.mobilenativefoundation.store.core5.ExperimentalStoreApi
-import org.mobilenativefoundation.store.store5.*
-import org.mobilenativefoundation.store.store5.impl.extensions.fresh
-import org.mobilenativefoundation.store.store5.impl.extensions.get
-import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
-import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalSessionDataSource
-import tech.hanasaki.momotalk_plus.core.data.datasource.mapper.SessionMapper.toSession
-import tech.hanasaki.momotalk_plus.core.data.datasource.mapper.UserMapper.toUser
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.SessionApi
-import tech.hanasaki.momotalk_plus.core.domain.model.Session
 import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.domain.repository.SessionRepository
-import kotlin.time.Duration.Companion.days
 
+/**
+ * 使用 Supabase 作为单一事实来源的会话仓库实现。
+ *
+ * 这个实现直接利用 supabase-kt 客户端的内置会话管理能力，
+ * 观察其认证状态流来提供用户信息和登录状态。
+ * 这样就无需自定义缓存（Store5）或额外的后端API（SessionApi）来管理会话。
+ */
 class SessionRepositoryImpl(
-    private val sessionApi: SessionApi,
-    private val localSessionDataSource: LocalSessionDataSource,
-    private val cookieStorage: LocalCookieStorage,
+    private val supabase: SupabaseClient,
 ) : SessionRepository {
-    data class SessionWithUser(
-        val session: Session,
-        val user: User,
-    )
 
     /**
-     * 当前会话 Store
-     * 缓存策略: 7天后过期，每次访问时验证有效性
+     * 观察当前登录的用户信息。
+     *
+     * 它通过映射 Supabase 的 `sessionStatus` 流来实现：
+     * - 当用户通过身份验证时，流会发出一个 `User` 对象。
+     * - 在其他状态下（如未登录、加载中），流会发出 `null`。
      */
-    val currentSessionStore: Store<Unit, SessionWithUser> = StoreBuilder
-        .from(
-            fetcher = Fetcher.of { _: Unit ->
-                val response = sessionApi.getSessionInfo()
-                SessionWithUser(
-                    session = response.session.toSession(),
-                    user = response.user.toUser()
-                )
-            },
-            sourceOfTruth = SourceOfTruth.of(
-                reader = { _: Unit ->
-                    localSessionDataSource.observeCurrentSession()
-                        .map { session ->
-                            session?.let {
-                                val user =
-                                    localSessionDataSource.getCurrentSessionWithUser()?.second
-                                user?.let { SessionWithUser(session, user) }
+    @OptIn(SupabaseExperimental::class, ExperimentalCoroutinesApi::class)
+    override fun obverseUser(): Flow<User?> {
+        return supabase.auth.sessionStatus
+            .flatMapLatest { sessionStatus ->
+                when (sessionStatus) {
+                    is SessionStatus.Authenticated -> {
+                        val userId = sessionStatus.session.user?.id
+                        println("$userId")
+                        supabase.from("profiles")
+                            .selectSingleValueAsFlow(User::id) {
+                                User::id eq userId
                             }
-                        }
-                },
-                writer = { _: Unit, data: SessionWithUser ->
-                    localSessionDataSource.saveSessionWithUser(
-                        data.session,
-                        data.user
-                    )
-                },
-                delete = { _: Unit ->
-                    localSessionDataSource.deleteAllSessions()
-                },
-                deleteAll = {
-                    localSessionDataSource.deleteAllSessions()
-                }
-            )
-        )
-        .cachePolicy(
-            MemoryPolicy.Companion.builder<Unit, SessionWithUser>()
-                .setExpireAfterWrite(7.days)
-                .build()
-        )
-        .build()
-
-    /**
-     * 获取当前会话（包含用户）的数据流
-     */
-    fun observeCurrentSessionWithUser(): Flow<SessionWithUser?> {
-        return currentSessionStore.stream(StoreReadRequest.Companion.cached(Unit, refresh = false))
-            .map { response ->
-                when (response) {
-                    is StoreReadResponse.Data -> response.value
-                    is StoreReadResponse.Loading -> null
-                    is StoreReadResponse.Error -> {
-                        println("获取会话失败: ${response.errorMessageOrNull()}")
-                        null
                     }
 
-                    is StoreReadResponse.NoNewData -> null
-                    else -> null
+                    else -> flowOf(null)
                 }
             }
     }
 
-    override suspend fun refreshCurrentSession() {
-        try {
-            currentSessionStore.fresh(Unit)
-        } catch (e: Exception) {
-            println("刷新会话失败: ${e.message}")
-            throw e
-        }
-    }
-
     /**
-     * 获取缓存的当前会话
+     * 观察用户的登录状态。
+     *
+     * - 如果用户已登录，流会发出 `true`。
+     * - 否则发出 `false`。
      */
-    suspend fun getCachedSession(): SessionWithUser {
-        return try {
-            currentSessionStore.get(Unit)
-        } catch (e: Exception) {
-            println("获取会话失败: ${e.message}")
-            throw e
-        }
-    }
-
-
-    /**
-     * 清除会话缓存和本地数据
-     */
-    @OptIn(ExperimentalStoreApi::class)
-    suspend fun clearSession() {
-        sessionApi.logout()
-        currentSessionStore.clear()
-        localSessionDataSource.deleteAllSessions()
-    }
-
-    /**
-     * 验证当前会话是否有效
-     */
-    suspend fun isSessionValid(): Boolean {
-        return try {
-            val data = getCachedSession()
-            data.session.isValid()
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-
-    override fun obverseUser(): Flow<User?> {
-        return observeCurrentSessionWithUser()
-            .map { it?.user }
-    }
-
     override fun obverseLoginState(): Flow<Boolean> {
-        return observeCurrentSessionWithUser()
-            .map { sessionWithUser ->
-                sessionWithUser != null && sessionWithUser.session.isValid()
-            }
+        return obverseUser().map { it != null }
     }
 
-    @OptIn(ExperimentalStoreApi::class)
+    /**
+     * 登出用户。
+     *
+     * 这会调用 Supabase 的 signOut，它会清除本地存储的会话信息。
+     * 由于我们的状态流直接来自 Supabase，UI 会自动更新。
+     */
     override suspend fun logout() {
-        // 清除会话和用户数据
-        currentSessionStore.clear()
-        localSessionDataSource.deleteAllSessions()
-        // 清除所有 Cookie（数据库）
-        cookieStorage.clearAll()
+        supabase.auth.signOut()
+    }
+
+    /**
+     * 刷新当前会话。
+     *
+     * 这是一个可选的辅助函数，用于在需要时强制刷新会话令牌。
+     * supabase-kt 客户端通常会自动处理令牌刷新。
+     */
+    override suspend fun refreshCurrentSession() {
+        supabase.auth.refreshCurrentSession()
     }
 }

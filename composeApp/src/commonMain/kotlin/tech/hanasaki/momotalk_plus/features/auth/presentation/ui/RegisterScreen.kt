@@ -236,23 +236,6 @@ private fun UserInfoStep(
         )
 
         OutlinedTextField(
-            value = uiState.username,
-            onValueChange = { onIntent(RegisterIntent.UsernameChanged(it)) },
-            label = { Text("用户名") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            leadingIcon = {
-                Icon(
-                    imageVector = Ionicons.Outline.PersonCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-            },
-            isError = uiState.error?.contains("用户名") == true,
-            shape = MaterialTheme.shapes.small,
-        )
-
-        OutlinedTextField(
             value = uiState.password,
             onValueChange = { onIntent(RegisterIntent.PasswordChanged(it)) },
             label = { Text("密码 (至少8位)") },

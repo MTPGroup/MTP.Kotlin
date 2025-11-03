@@ -1,6 +1,12 @@
 package tech.hanasaki.momotalk_plus.app.di
 
 import de.jensklingenberg.ktorfit.Ktorfit
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.functions.Functions
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.storage.Storage
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
@@ -17,7 +23,6 @@ import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
-import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalSessionDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.*
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.SessionRepositoryImpl
@@ -26,8 +31,6 @@ import tech.hanasaki.momotalk_plus.core.data.repository.UploadImageRepositoryImp
 import tech.hanasaki.momotalk_plus.core.domain.repository.*
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
 import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
-import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.api.AuthApi
-import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.api.createAuthApi
 import tech.hanasaki.momotalk_plus.features.auth.data.repository.AuthRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.*
@@ -68,8 +71,6 @@ import kotlin.time.Instant
 expect val platformModule: Module
 
 val storageModule = module {
-    single { LocalSessionDataSource(get()) }
-
     single { LocalCookieStorage(get()) }
 }
 
@@ -149,6 +150,21 @@ val networkModule = module {
     }
 }
 
+val supabaseModule = module {
+    single {
+        createSupabaseClient(
+            "http://localhost:8000",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzYwMzcxMjAwLCJleHAiOjE5MTgxMzc2MDB9.iTRneUjIlDRCScBotTjCWzLLeOk0xOMRBpF0PCGK_sU"
+        ) {
+            install(Auth)
+            install(Postgrest)
+            install(Storage)
+            install(Realtime)
+            install(Functions)
+        }
+    }
+}
+
 val themeModule = module {
     single { ThemeManager() }
 }
@@ -176,11 +192,7 @@ val characterModule = module {
 }
 
 val sessionModule = module {
-    single<SessionApi> {
-        get<Ktorfit>().createSessionApi()
-    }
-
-    single<SessionRepository> { SessionRepositoryImpl(get(), get(), get()) }
+    single<SessionRepository> { SessionRepositoryImpl(get()) }
 
     factoryOf(::ObserveCurrentUserUseCase)
     factoryOf(::ObserveLoginStateUseCase)
@@ -188,9 +200,6 @@ val sessionModule = module {
 }
 
 val authModule = module {
-    single<AuthApi> {
-        get<Ktorfit>().createAuthApi()
-    }
     single<AuthRepository> { AuthRepositoryImpl(get()) }
 
     factoryOf(::SignInUserUseCase)
@@ -282,6 +291,7 @@ val appModule =
         platformModule,
         storageModule,
         networkModule,
+        supabaseModule,
         themeModule,
         datasourceModule,
         uploadModule,

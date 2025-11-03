@@ -5,7 +5,7 @@ data class LoginState(
     val password: String = "",
     val isLoading: Boolean = false,
     val loginError: String? = null,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
 )
 
 sealed class LoginIntent {
@@ -18,7 +18,6 @@ sealed class LoginIntent {
 }
 
 sealed class LoginSideEffect {
-    data object NavigateToHome : LoginSideEffect()
     data object NavigateToRegister : LoginSideEffect()
     data object NavigateToForgotPassword : LoginSideEffect()
     data class ShowToast(val message: String) : LoginSideEffect()

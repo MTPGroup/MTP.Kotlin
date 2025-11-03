@@ -1,7 +1,10 @@
 package tech.hanasaki.momotalk_plus.db
 
 import androidx.room.*
-import tech.hanasaki.momotalk_plus.core.data.datasource.local.dao.*
+import tech.hanasaki.momotalk_plus.core.data.datasource.local.dao.CharacterDao
+import tech.hanasaki.momotalk_plus.core.data.datasource.local.dao.CookieDao
+import tech.hanasaki.momotalk_plus.core.data.datasource.local.dao.SettingsDao
+import tech.hanasaki.momotalk_plus.core.data.datasource.local.dao.UserDao
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.entity.*
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.local.dao.ChatDao
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.local.dao.MessageDao
@@ -31,7 +34,6 @@ import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.local.entit
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun characterDao(): CharacterDao
-    abstract fun sessionDao(): SessionDao
     abstract fun cookieDao(): CookieDao
     abstract fun contactDao(): ContactDao
     abstract fun chatDao(): ChatDao

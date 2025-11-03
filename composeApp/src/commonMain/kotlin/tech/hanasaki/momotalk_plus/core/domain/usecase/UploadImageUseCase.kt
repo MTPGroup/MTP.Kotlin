@@ -8,12 +8,12 @@ class UploadImageUseCase(
     private val repository: UploadImageRepository,
 ) {
     suspend operator fun invoke(
-        imagePath: ImageData,
+        imageData: ImageData,
         uploadPath: UploadPath,
         userId: String? = null,
     ): Result<String> = try {
         val response = repository.uploadImage(
-            imagePath,
+            imageData,
             uploadPath,
             userId
         )

@@ -7,12 +7,14 @@ interface ProfileRepository {
     /**
      * 更新用户个人资料
      *
+     * @param id 用户id
      * @param name 用户名
-     * @param image 用户头像URL
+     * @param avatar 用户头像URL
      */
     suspend fun updateUserProfile(
+        id: String,
         name: String,
-        image: String?,
+        avatar: String?,
     )
 }
 

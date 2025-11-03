@@ -1,6 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import io.github.jan.supabase.auth.OtpType
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
@@ -27,9 +28,6 @@ class RegisterViewModel(
                 is RegisterIntent.OTPCodeChanged ->
                     updateState { it.copy(otpCode = intent.otpCode) }
 
-                is RegisterIntent.UsernameChanged ->
-                    updateState { it.copy(username = intent.username) }
-
                 is RegisterIntent.PasswordChanged ->
                     updateState { it.copy(password = intent.password) }
 
@@ -51,7 +49,8 @@ class RegisterViewModel(
     private suspend fun sendOTPCode() {
         val currentState = getState()
         sendOTPCodeUseCase(
-            currentState.email
+            currentState.email,
+            OtpType.Email.SIGNUP,
         ).onSuccess {
             updateState { it.copy(isEmailValid = true, error = null) }
             sendSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
@@ -66,6 +65,7 @@ class RegisterViewModel(
     private suspend fun verifyEmail() {
         val currentState = getState()
         verifyEmailUseCase(
+            OtpType.Email.SIGNUP,
             currentState.email,
             currentState.otpCode
         ).onSuccess {
@@ -89,7 +89,6 @@ class RegisterViewModel(
 
         registerUserUseCase(
             email = email,
-            username = currentState.username,
             password = currentState.password,
         ).onSuccess {
             sendOTPCode()

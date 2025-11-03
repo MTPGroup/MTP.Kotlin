@@ -5,10 +5,9 @@ import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepositor
 class SignUpUserUseCase(private val repository: AuthRepository) {
     suspend operator fun invoke(
         email: String,
-        username: String,
         password: String,
     ): Result<Unit> = try {
-        repository.signUp(email, username, password)
+        repository.signUp(email, password)
         Result.success(Unit)
     } catch (e: Exception) {
         e.printStackTrace()

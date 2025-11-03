@@ -153,7 +153,7 @@ class ContactEditViewModel(
 
         uploadImageUseCase(
             imageData,
-            UploadPath.CHARACTER_AVATAR,
+            UploadPath.AVATAR,
             userId
         ).onSuccess { avatar ->
             updateState {

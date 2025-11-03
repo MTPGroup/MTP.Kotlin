@@ -4,12 +4,14 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.ResetPasswordUseCase
+import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendEmailVerificationUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendPasswordResetEmailUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordSideEffect
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordState
 
 class ForgotPasswordViewModel(
+    private val sendEmailVerificationUseCase: SendEmailVerificationUseCase,
     private val sendPasswordResetEmailUseCase: SendPasswordResetEmailUseCase,
     private val resetPasswordUseCase: ResetPasswordUseCase,
 ) : BaseViewModel<ForgotPasswordState, ForgotPasswordSideEffect, ForgotPasswordIntent>(ForgotPasswordState()) {

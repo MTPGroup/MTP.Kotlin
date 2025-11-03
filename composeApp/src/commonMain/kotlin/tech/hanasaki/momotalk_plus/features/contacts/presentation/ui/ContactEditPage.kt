@@ -58,7 +58,7 @@ fun ContactEditPage(
 
     val launchImagePicker = rememberImagePicker { imageData ->
         if (imageData != null) {
-            onIntent(ContactEditIndent.UploadAvatar(imageData, currentUser?.uid))
+            onIntent(ContactEditIndent.UploadAvatar(imageData, currentUser?.id))
         }
     }
 

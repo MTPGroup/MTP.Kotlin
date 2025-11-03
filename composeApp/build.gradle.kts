@@ -105,6 +105,8 @@ kotlin {
             implementation(libs.store)
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
+            implementation(project.dependencies.platform(libs.supabase.bom))
+            implementation(libs.bundles.supabase)
         }
         appleMain.dependencies {
             implementation(libs.ktor.client.darwin)
