@@ -1,8 +1,11 @@
 package tech.hanasaki.momotalk_plus.features.profile.data.repository
 
 import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
-import tech.hanasaki.momotalk_plus.core.domain.model.User
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
+import io.ktor.http.path
+import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.dto.UpdateUserRequest
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 
 /**
@@ -16,14 +19,10 @@ class ProfileRepositoryImpl(
         name: String,
         avatar: String?,
     ) {
-        supabase.from("profiles")
-            .update({
-                User::name setTo name
-                User::avatar setTo avatar
-            }) {
-                filter {
-                    User::id eq id
-                }
-            }
+        supabase.functions.invoke("profiles") {
+            url { path("profiles") }
+            method = HttpMethod.Put
+            setBody(UpdateUserRequest(username = name, avatar = avatar))
+        }
     }
 }

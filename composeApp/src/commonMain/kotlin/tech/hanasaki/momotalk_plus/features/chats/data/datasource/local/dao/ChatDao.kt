@@ -1,47 +1,33 @@
 package tech.hanasaki.momotalk_plus.features.chats.data.datasource.local.dao
 
-import androidx.room.Dao
-import androidx.room.Query
-import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.local.entity.ChatEntity
 
-@Dao
-interface ChatDao {
-    /**
-     * 获取所有聊天列表
-     */
-    @Query("SELECT * FROM ChatEntity ORDER BY updatedAt DESC")
-    fun getAllChats(): Flow<List<ChatEntity>>
+class ChatDao {
+    private val chats = MutableStateFlow<List<ChatEntity>>(emptyList())
 
-    /**
-     * 根据ID获取聊天
-     */
-    @Query("SELECT * FROM ChatEntity WHERE id = :chatId")
-    fun getChatById(chatId: String): Flow<ChatEntity?>
+    fun getAllChats(): Flow<List<ChatEntity>> = chats
 
-    /**
-     * 插入或更新聊天
-     */
-    @Upsert
-    suspend fun upsert(chat: ChatEntity)
+    fun getChatById(chatId: String): Flow<ChatEntity?> =
+        chats.map { list -> list.firstOrNull { it.id == chatId } }
 
-    /**
-     * 批量插入或更新聊天
-     */
-    @Upsert
-    suspend fun upsertAll(chats: List<ChatEntity>)
+    suspend fun upsert(chat: ChatEntity) {
+        chats.value = chats.value.filterNot { it.id == chat.id } + chat
+    }
 
-    /**
-     * 删除聊天
-     */
-    @Query("DELETE FROM ChatEntity WHERE id = :chatId")
-    suspend fun deleteChat(chatId: String)
+    suspend fun upsertAll(chatsToUpsert: List<ChatEntity>) {
+        val merged = chats.value.associateBy { it.id }.toMutableMap()
+        chatsToUpsert.forEach { merged[it.id] = it }
+        chats.value = merged.values.sortedByDescending { it.updatedAt }
+    }
 
-    /**
-     * 删除所有聊天
-     */
-    @Query("DELETE FROM ChatEntity")
-    suspend fun deleteAll()
+    suspend fun deleteChat(chatId: String) {
+        chats.value = chats.value.filterNot { it.id == chatId }
+    }
+
+    suspend fun deleteAll() {
+        chats.value = emptyList()
+    }
 }
-

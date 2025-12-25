@@ -140,8 +140,7 @@ fun ProfileScreen(
             item {
                 ProfileInfoSection(
                     isEditing = uiState.isEditing,
-                    name = if (uiState.isEditing) uiState.editedName else uiState.user?.name ?: "",
-                    email = uiState.user?.email ?: "",
+                    username = if (uiState.isEditing) uiState.editedName else uiState.user?.username ?: "",
                     onNameChange = { onIntent(ProfileIntent.NameChanged(it)) }
                 )
             }
@@ -254,15 +253,10 @@ private fun ProfileHeader(
                 }
             } else {
                 Text(
-                    text = user?.name ?: "未知用户",
+                    text = user?.username ?: "未知用户",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = user?.email ?: "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -272,8 +266,7 @@ private fun ProfileHeader(
 @Composable
 private fun ProfileInfoSection(
     isEditing: Boolean,
-    name: String,
-    email: String,
+    username: String,
     onNameChange: (String) -> Unit,
 ) {
     Surface(
@@ -295,9 +288,8 @@ private fun ProfileInfoSection(
             )
 
             if (isEditing) {
-                // 编辑模式 - 只允许编辑用户名
                 OutlinedTextField(
-                    value = name,
+                    value = username,
                     onValueChange = onNameChange,
                     label = { Text("用户名") },
                     leadingIcon = {
@@ -314,37 +306,11 @@ private fun ProfileInfoSection(
                         focusedLabelColor = MaterialTheme.colorScheme.primary
                     )
                 )
-
-                // 邮箱只读显示
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                ProfileInfoItem(
-                    icon = Ionicons.Outline.Mail,
-                    label = "邮箱",
-                    value = email
-                )
-                Text(
-                    text = "邮箱地址不可修改",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 36.dp)
-                )
             } else {
-                // 查看模式
                 ProfileInfoItem(
                     icon = Ionicons.Outline.Person,
                     label = "用户名",
-                    value = name
-                )
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-                ProfileInfoItem(
-                    icon = Ionicons.Outline.Mail,
-                    label = "邮箱",
-                    value = email
+                    value = username
                 )
             }
         }

@@ -17,7 +17,7 @@ object MessageMapper {
             chatId = chatId,
             role = when (role) {
                 "user" -> MessageSenderRole.USER
-                "ai" -> MessageSenderRole.AI
+                "assistant", "ai" -> MessageSenderRole.AI
                 else -> MessageSenderRole.USER
             },
             content = content,
@@ -49,5 +49,6 @@ object MessageMapper {
             updatedAt = updatedAt
         )
     }
+
 }
 

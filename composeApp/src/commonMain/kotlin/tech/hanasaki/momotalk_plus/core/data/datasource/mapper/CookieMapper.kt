@@ -17,18 +17,19 @@ object CookieMapper {
             path = path,
             secure = secure,
             httpOnly = httpOnly,
+            extensions = extensions
         )
 
     fun SerializableCookie.toEntity(): CookieEntity =
         CookieEntity(
             name = name,
             value = value,
-            expires = expires ?: "",
-            maxAge = maxAge ?: 0,
-            domain = domain ?: "",
-            path = path ?: "",
+            expires = expires,
+            maxAge = maxAge,
+            domain = domain,
+            path = path,
             secure = secure,
             httpOnly = httpOnly,
-            extensions = "",
+            extensions = extensions
         )
 }

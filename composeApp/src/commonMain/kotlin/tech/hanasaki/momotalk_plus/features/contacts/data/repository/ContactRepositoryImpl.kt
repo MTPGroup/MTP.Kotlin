@@ -1,80 +1,61 @@
 package tech.hanasaki.momotalk_plus.features.contacts.data.repository
 
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.call.body
+import io.ktor.http.HttpMethod
+import io.ktor.http.path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.mobilenativefoundation.store.store5.*
-import org.mobilenativefoundation.store.store5.impl.extensions.fresh
+import kotlinx.coroutines.flow.onStart
 import tech.hanasaki.momotalk_plus.db.AppDatabase
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.mapper.ContactMapper.toContact
 import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.mapper.ContactMapper.toContactEntity
-import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.api.ContactApi
+import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.dto.ContactListResponse
 import tech.hanasaki.momotalk_plus.features.contacts.domain.model.Contact
 import tech.hanasaki.momotalk_plus.features.contacts.domain.repository.ContactRepository
-import kotlin.time.Duration.Companion.days
 
 class ContactRepositoryImpl(
-    private val contactApi: ContactApi,
+    private val supabase: SupabaseClient,
     database: AppDatabase,
 ) : ContactRepository {
     private val contactDao = database.contactDao()
 
-    private val contactsStore: Store<Unit, List<Contact>> = StoreBuilder
-        .from(
-            fetcher = Fetcher.of { _: Unit ->
-                val response = contactApi.getContacts()
-                response.data.contacts
-            },
-            sourceOfTruth = SourceOfTruth.of(
-                reader = { _: Unit ->
-                    contactDao.getContacts().map { contactEntities ->
-                        contactEntities.map { it.toContact() }
-                    }
-                },
-                writer = { _: Unit, contacts: List<Contact> ->
-                    contactDao.deleteAll()
-                    contactDao.upsertAll(contacts.map { it.toContactEntity() })
-                },
-                delete = { _: Unit ->
-                    contactDao.deleteAll()
-                },
-                deleteAll = {
-                    contactDao.deleteAll()
-                }
-            )
-        )
-        .cachePolicy(
-            MemoryPolicy.builder<Unit, List<Contact>>()
-                .setExpireAfterWrite(7.days)
-                .build()
-        )
-        .build()
+    private suspend fun refreshContacts() {
+        runCatching {
+            val response = supabase.functions.invoke("contacts") {
+                url { path("contacts") }
+                method = HttpMethod.Get
+            }
+            val contacts = response.body<ContactListResponse>().data.contacts
+            contactDao.deleteAll()
+            contactDao.upsertAll(contacts.map { it.toContactEntity() })
+        }.onFailure { it.printStackTrace() }
+    }
 
     override suspend fun addContact(characterId: String) {
-        contactApi.addContact(characterId)
-        contactsStore.fresh(Unit)
+        supabase.functions.invoke("contacts") {
+            url { path("contacts", characterId) }
+            method = HttpMethod.Post
+        }
+        refreshContacts()
     }
 
     override suspend fun deleteContact(characterId: String) {
-        contactApi.deleteContact(characterId)
-        contactsStore.fresh(Unit)
+        supabase.functions.invoke("contacts") {
+            url { path("contacts", characterId) }
+            method = HttpMethod.Delete
+        }
+        refreshContacts()
     }
 
     override fun getContacts(): Flow<List<Contact>> {
-        return contactsStore.stream(
-            StoreReadRequest.cached(Unit, refresh = true)
-        ).map { response ->
-            when (response) {
-                is StoreReadResponse.Data -> response.value
-                is StoreReadResponse.Loading -> response.dataOrNull() ?: emptyList()
-                is StoreReadResponse.Error -> {
-                    println("获取联系人失败: ${response.errorMessageOrNull()}")
-                    emptyList()
-                }
-
-                is StoreReadResponse.NoNewData -> emptyList()
-                else -> emptyList()
+        return contactDao.getContacts()
+            .map { contactEntities ->
+                contactEntities.map { it.toContact() }
             }
-        }
+            .onStart {
+                refreshContacts()
+            }
     }
-
 }

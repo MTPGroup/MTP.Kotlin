@@ -17,7 +17,7 @@ interface ChatApi {
      * 获取聊天会话列表
      */
     @GET("chats")
-    suspend fun getChatList(): GetChatListResponse
+    suspend fun getChatList(): ChatListResponse
 
     /**
      * 删除聊天会话
@@ -38,7 +38,7 @@ interface ChatApi {
      * 获取聊天会话信息
      */
     @GET("chats/{chatId}")
-    suspend fun getChatInfo(@Path("chatId") chatId: String): GetChatInfoResponse
+    suspend fun getChatInfo(@Path("chatId") chatId: String): ChatInfoResponse
 
     /**
      * 获取聊天会话中的消息列表
@@ -47,7 +47,7 @@ interface ChatApi {
     suspend fun getChatMessages(
         @Path("chatId") chatId: String,
         @Query("limit") limit: Int? = null,
-    ): GetMessagesResponse
+    ): ChatMessagesResponse
 
     /**
      * 清空聊天会话中的消息

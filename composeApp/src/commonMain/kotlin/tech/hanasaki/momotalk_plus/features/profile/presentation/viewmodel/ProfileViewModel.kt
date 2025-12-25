@@ -73,7 +73,7 @@ class ProfileViewModel(
         updateState {
             it.copy(
                 isEditing = true,
-                editedName = it.user?.name ?: ""
+                editedName = it.user?.username ?: ""
             )
         }
     }
@@ -84,7 +84,7 @@ class ProfileViewModel(
             it.copy(
                 user = it.user?.copy(avatar = it.originAvatar ?: ""),
                 isEditing = false,
-                editedName = it.user?.name ?: ""
+                editedName = it.user?.username ?: ""
             )
         }
     }
@@ -106,7 +106,7 @@ class ProfileViewModel(
         ).onSuccess {
             updateState {
                 it.copy(
-                    user = it.user?.copy(name = it.editedName),
+                    user = it.user?.copy(username = it.editedName),
                     originAvatar = it.user?.avatar,
                     isEditing = false,
                     isSaving = false,

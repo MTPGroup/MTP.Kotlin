@@ -1,23 +1,28 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.local.dao
 
-import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.entity.UserEntity
 
-@Dao
-interface UserDao {
-    @Query("SELECT * FROM UserEntity WHERE id = :id")
-    suspend fun getUserById(id: String): UserEntity?
+class UserDao {
+    private val users = MutableStateFlow<List<UserEntity>>(emptyList())
 
-    @Query("SELECT * FROM UserEntity WHERE id = :id")
-    fun getUserByIdAsFlow(id: String): Flow<UserEntity?>
+    suspend fun getUserById(id: String): UserEntity? = users.value.firstOrNull { it.id == id }
 
-    @Update
-    suspend fun update(userEntity: UserEntity)
+    fun getUserByIdAsFlow(id: String): Flow<UserEntity?> =
+        users.map { list -> list.firstOrNull { it.id == id } }
 
-    @Upsert
-    suspend fun upsert(userEntity: UserEntity)
+    suspend fun update(userEntity: UserEntity) {
+        users.value = users.value.map { if (it.id == userEntity.id) userEntity else it }
+    }
 
-    @Delete
-    suspend fun delete(userEntity: UserEntity)
+    suspend fun upsert(userEntity: UserEntity) {
+        val existing = users.value.firstOrNull { it.id == userEntity.id }
+        users.value = if (existing == null) users.value + userEntity else users.value.map { if (it.id == userEntity.id) userEntity else it }
+    }
+
+    suspend fun delete(userEntity: UserEntity) {
+        users.value = users.value.filterNot { it.id == userEntity.id }
+    }
 }

@@ -18,20 +18,20 @@ data class CreateChatResponse(
 )
 
 @Serializable
-data class GetChatInfoResponse(
+data class ChatInfoResponse(
     val success: Boolean,
     val data: ChatWithCharacter,
 )
 
 @Serializable
-data class GetChatListData(
+data class ChatListData(
     val chats: List<Chat>,
 )
 
 @Serializable
-data class GetChatListResponse(
+data class ChatListResponse(
     val success: Boolean,
-    val data: GetChatListData,
+    val data: ChatListData,
 )
 
 @Serializable

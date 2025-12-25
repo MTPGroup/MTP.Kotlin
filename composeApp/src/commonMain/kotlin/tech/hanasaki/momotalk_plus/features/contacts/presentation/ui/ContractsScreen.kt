@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
 import androidx.compose.runtime.Composable

@@ -30,15 +30,15 @@ data class Pagination(
 )
 
 @Serializable
-data class ListCharacterData(
+data class CharacterListData(
     val characters: List<Character>,
     val pagination: Pagination,
 )
 
 @Serializable
-data class ListCharacterResponse(
+data class CharacterListResponse(
     val success: Boolean,
-    val data: ListCharacterData,
+    val data: CharacterListData,
 )
 
 @Serializable

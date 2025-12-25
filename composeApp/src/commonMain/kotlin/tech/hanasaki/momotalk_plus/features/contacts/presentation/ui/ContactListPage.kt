@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -75,7 +77,7 @@ fun ContactListPage(
             MTopAppBar(
                 title = "联系人",
                 avatarUrl = currentUser?.avatar,
-                username = currentUser?.name ?: "未登录",
+                username = currentUser?.username ?: "未登录",
                 onAvatarClick = onAvatarClick,
                 onActionClick = {
                     onIntent(ContactListIntent.AddContactClicked)

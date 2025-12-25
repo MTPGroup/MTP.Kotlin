@@ -1,11 +1,6 @@
 package tech.hanasaki.momotalk_plus.features.chats.data.datasource.local.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity
 data class ChatEntity(
-    @PrimaryKey
     val id: String,
     val creatorId: String,
     val characterId: String,
@@ -16,4 +11,3 @@ data class ChatEntity(
     val createdAt: String,
     val updatedAt: String,
 )
-

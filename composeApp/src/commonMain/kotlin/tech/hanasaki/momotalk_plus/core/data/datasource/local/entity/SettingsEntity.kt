@@ -1,11 +1,6 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.local.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity
 data class SettingsEntity(
-    @PrimaryKey
     val id: Int = 1,
     val theme: String,
     val language: String,

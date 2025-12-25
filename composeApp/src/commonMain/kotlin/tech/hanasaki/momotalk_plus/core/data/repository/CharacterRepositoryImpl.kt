@@ -1,110 +1,76 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.call.body
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpMethod
+import io.ktor.http.path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import org.mobilenativefoundation.store.store5.*
-import org.mobilenativefoundation.store.store5.impl.extensions.fresh
+import kotlinx.coroutines.flow.onStart
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.CharacterApi
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterDetailResponse
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterListResponse
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CreateCharacterRequest
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.UpdateCharacterRequest
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * Character Store - 管理角色数据的缓存和网络请求
  * 提供智能的缓存策略和数据流
  */
 class CharacterRepositoryImpl(
-    private val characterApi: CharacterApi,
+    private val supabase: SupabaseClient,
     private val localDataSource: CharacterLocalDataSource,
 ) : CharacterRepository {
-    /**
-     * 角色列表 Store
-     * 缓存策略: 30分钟后过期
-     */
-    val listStore: Store<Unit, List<Character>> = StoreBuilder
-        .from(
-            fetcher = Fetcher.of { _: Unit ->
-                val response = characterApi.getCharacters()
-                response.data.characters
-            },
-            sourceOfTruth = SourceOfTruth.of(
-                reader = { _: Unit ->
-                    localDataSource.getCharactersFlow()
-                },
-                writer = { _: Unit, characters: List<Character> ->
-                    localDataSource.saveCharacters(characters)
-                },
-                delete = { _: Unit ->
-                    localDataSource.clearCharacters()
-                },
-                deleteAll = {
-                    localDataSource.clearCharacters()
-                }
-            )
-        )
-        .cachePolicy(
-            MemoryPolicy.builder<Unit, List<Character>>()
-                .setExpireAfterWrite(30.minutes)
-                .build()
-        )
-        .build()
 
-    /**
-     * 单个角色详情 Store
-     * 缓存策略: 15分钟后过期
-     */
-    val detailStore: Store<String, Character> = StoreBuilder
-        .from(
-            fetcher = Fetcher.of { id: String ->
-                val response = characterApi.getCharacterById(id)
-                response.data
-            },
-            sourceOfTruth = SourceOfTruth.of(
-                reader = { id: String ->
-                    localDataSource.getCharacterFlow(id)
-                },
-                writer = { id: String, character: Character ->
-                    localDataSource.saveCharacter(character)
-                },
-                delete = { id: String ->
-                    localDataSource.clearCharacter(id)
-                },
-                deleteAll = {
-                    localDataSource.clearCharacters()
-                }
-            )
-        )
-        .cachePolicy(
-            MemoryPolicy.builder<String, Character>()
-                .setExpireAfterWrite(15.minutes)
-                .build()
-        )
-        .build()
+    private suspend fun refreshCharacterList() {
+        runCatching {
+            val response = supabase.functions.invoke("characters") {
+                url { path("characters") }
+                method = HttpMethod.Get
+            }
+            val characters = response.body<CharacterListResponse>().data.characters
+            localDataSource.clearCharacters()
+            localDataSource.saveCharacters(characters)
+        }.onFailure { it.printStackTrace() }
+    }
+
+    private suspend fun refreshCharacter(id: String) {
+        runCatching {
+            val response = supabase.functions.invoke("characters") {
+                url { path("characters", id) }
+                method = HttpMethod.Get
+            }
+            val character = response.body<CharacterDetailResponse>().data
+            localDataSource.saveCharacter(character)
+        }.onFailure { it.printStackTrace() }
+    }
 
     /**
      * 获取角色列表数据流
-     * @param refresh 是否强制刷新
+     * @param refresh 是否强制刷新（兼容旧签名，若为 true 则触发刷新）
      */
-    fun streamCharacters(refresh: Boolean = false): Flow<StoreReadResponse<List<Character>>> {
-        return listStore.stream(
-            StoreReadRequest.cached(Unit, refresh = refresh)
-        )
+    fun streamCharacters(refresh: Boolean = false): Flow<List<Character>> {
+        return localDataSource.getCharactersFlow()
+            .onStart {
+                refreshCharacterList()
+            }
     }
 
     /**
      * 获取单个角色数据流
      * @param id 角色ID
-     * @param refresh 是否强制刷新
+     * @param refresh 是否强制刷新（兼容旧签名）
      */
-    fun streamCharacter(id: String, refresh: Boolean = false): Flow<StoreReadResponse<Character>> {
-        return detailStore.stream(
-            StoreReadRequest.Companion.cached(id, refresh = refresh)
-        )
+    fun streamCharacter(id: String, refresh: Boolean = false): Flow<Character?> {
+        return localDataSource.getCharacterFlow(id)
+            .onStart {
+                refreshCharacter(id)
+            }
     }
 
     override suspend fun createCharacter(
@@ -124,10 +90,13 @@ class CharacterRepositoryImpl(
         )
 
         try {
-            characterApi.createCharacter(request)
+            supabase.functions.invoke("characters") {
+                url { path("characters") }
+                method = HttpMethod.Post
+                setBody(request)
+            }
 
-            // 刷新列表缓存
-            listStore.fresh(Unit)
+            refreshCharacterList()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -135,26 +104,22 @@ class CharacterRepositoryImpl(
 
     override suspend fun deleteCharacter(id: String) {
         try {
-            characterApi.deleteCharacter(id)
+            supabase.functions.invoke("characters") {
+                url { path("characters", id) }
+                method = HttpMethod.Delete
+            }
 
-            // 刷新缓存
-            listStore.fresh(Unit)
-            detailStore.fresh(id)
+            localDataSource.clearCharacter(id)
+            refreshCharacterList()
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     override fun getAvailableCharacters(): Flow<List<Character>> {
-        return listStore.stream(
-            StoreReadRequest.cached(Unit, false)
-        )
-            .map { response ->
-                when (response) {
-                    is StoreReadResponse.Data -> response.value
-                    is StoreReadResponse.Loading -> response.dataOrNull() ?: emptyList()
-                    else -> emptyList()
-                }
+        return localDataSource.getCharactersFlow()
+            .onStart {
+                refreshCharacterList()
             }
             .catch {
                 emit(emptyList())
@@ -162,15 +127,10 @@ class CharacterRepositoryImpl(
     }
 
     override fun getCharacterById(id: String): Flow<Character?> {
-        return detailStore.stream(
-            StoreReadRequest.cached(id, true)
-        ).map { response ->
-            when (response) {
-                is StoreReadResponse.Data -> response.value
-                is StoreReadResponse.Loading -> response.dataOrNull()
-                else -> null
+        return localDataSource.getCharacterFlow(id)
+            .onStart {
+                refreshCharacter(id)
             }
-        }
     }
 
     override suspend fun updateCharacter(
@@ -190,11 +150,14 @@ class CharacterRepositoryImpl(
                 visibility = visibility
             )
 
-            characterApi.updateCharacter(id, request)
+            supabase.functions.invoke("characters") {
+                url { path("characters", id) }
+                method = HttpMethod.Put
+                setBody(request)
+            }
 
-            // 刷新缓存
-            listStore.fresh(Unit)
-            detailStore.fresh(id)
+            refreshCharacterList()
+            refreshCharacter(id)
         } catch (e: Exception) {
             e.printStackTrace()
         }

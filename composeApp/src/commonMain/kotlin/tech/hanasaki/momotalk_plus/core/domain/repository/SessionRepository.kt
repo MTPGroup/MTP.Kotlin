@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package tech.hanasaki.momotalk_plus.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow

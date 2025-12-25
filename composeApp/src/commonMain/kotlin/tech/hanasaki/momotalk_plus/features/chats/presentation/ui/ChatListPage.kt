@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package tech.hanasaki.momotalk_plus.features.chats.presentation.ui
 
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -68,7 +70,7 @@ fun ChatListPage(
             MTopAppBar(
                 title = "",
                 avatarUrl = currentUser?.avatar,
-                username = currentUser?.name ?: "未登录",
+                username = currentUser?.username ?: "未登录",
                 onAvatarClick = onAvatarClick,
                 onActionClick = { onIntent(ChatsIntent.ShowCreateChatDialog) },
             )

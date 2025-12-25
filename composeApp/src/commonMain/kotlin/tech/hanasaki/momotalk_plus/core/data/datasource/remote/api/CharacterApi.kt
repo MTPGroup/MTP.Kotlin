@@ -16,7 +16,7 @@ interface CharacterApi {
         @Query("visibility") visibility: String = "all",
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 100,
-    ): ListCharacterResponse
+    ): CharacterListResponse
 
     /**
      * 根据ID获取角色详情

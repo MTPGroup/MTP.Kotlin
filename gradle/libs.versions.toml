@@ -29,9 +29,6 @@ coil = "3.3.0"
 multiplatform-settings = "1.3.0"
 ionicons = "8.0.8"
 compose-core = "1.45.0"
-store = "5.1.0-alpha07"
-room = "2.8.2"
-sqlite = "2.6.1"
 supabase = "3.2.5"
 
 [libraries]
@@ -75,11 +72,6 @@ multiplatform-settings-makeObservable = { module = "com.russhwolf:multiplatform-
 compose-icon-ionicons = { module = "com.woowla.compose.icon.collections:ionicons", version.ref = "ionicons" }
 compose-core = { module = "com.composables:core", version.ref = "compose-core" }
 ktorfit = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfit" }
-store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
-androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
-androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
-androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "room" }
 supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt" }
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
@@ -103,7 +95,6 @@ composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "com
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-androidx-room = { id = "androidx.room", version.ref = "room" }
 ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

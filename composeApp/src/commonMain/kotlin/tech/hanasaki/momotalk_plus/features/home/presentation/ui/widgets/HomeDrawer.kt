@@ -165,13 +165,13 @@ private fun DrawerHeader(
         // 用户信息
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = user?.name ?: "未登录",
+                text = user?.username ?: "未登录",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onPrimaryContainer
             )
             Text(
-                text = user?.email ?: "点击登录",
+                text = "点击登录",
                 fontSize = 14.sp,
                 color = colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
             )

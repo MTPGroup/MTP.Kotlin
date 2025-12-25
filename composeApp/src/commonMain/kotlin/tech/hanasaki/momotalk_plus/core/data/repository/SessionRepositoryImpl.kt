@@ -1,11 +1,11 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package tech.hanasaki.momotalk_plus.core.data.repository
 
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.realtime.selectSingleValueAsFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -38,12 +38,7 @@ class SessionRepositoryImpl(
             .flatMapLatest { sessionStatus ->
                 when (sessionStatus) {
                     is SessionStatus.Authenticated -> {
-                        val userId = sessionStatus.session.user?.id
-                        println("$userId")
-                        supabase.from("profiles")
-                            .selectSingleValueAsFlow(User::id) {
-                                User::id eq userId
-                            }
+                        flowOf(null)
                     }
 
                     else -> flowOf(null)

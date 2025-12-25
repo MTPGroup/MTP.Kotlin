@@ -62,9 +62,9 @@ object SettingsMapper {
                 "en-US" -> Language.ENGLISH
                 else -> Language.CHINESE
             },
-            notificationsEnabled = notificationsEnabled,
-            soundEnabled = soundEnabled,
-            vibrationEnabled = vibrationEnabled,
+            notificationsEnabled = notificationsEnabled ?: false,
+            soundEnabled = soundEnabled ?: false,
+            vibrationEnabled = vibrationEnabled ?: false,
             chatBackgroundUrl = chatBackgroundUrl,
             contactBackgroundUrl = contactBackgroundUrl,
             createdAt = createdAt,

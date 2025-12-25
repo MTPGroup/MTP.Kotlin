@@ -2,20 +2,16 @@ package tech.hanasaki.momotalk_plus.core.domain.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import kotlinx.datetime.Instant
 
 @Serializable
-data class User @OptIn(ExperimentalTime::class) constructor(
+data class User(
     val id: String,
-    val name: String,
-    val avatar: String,
-    val email: String,
-    val theme: String,
-    @SerialName("notifications_enabled")
-    val notificationsEnabled: Boolean,
+    val username: String? = null,
+    val avatar: String? = null,
     @SerialName("created_at")
-    val createdAt: Instant?,
+    val createdAt: String? = null,
     @SerialName("updated_at")
-    val updatedAt: Instant?,
+    val updatedAt: String? = null,
 )
+

@@ -1,30 +1,27 @@
 package tech.hanasaki.momotalk_plus.core.data.datasource.local.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.entity.CookieEntity
 
-/**
- * Cookie DAO - 数据库访问对象
- * 封装所有 Cookie 相关的数据库操作
- */
-@Dao
-interface CookieDao {
-    @Query("SELECT * FROM CookieEntity")
-    suspend fun getAllCookie(): List<CookieEntity>
+class CookieDao {
+    private val cookies = MutableStateFlow<List<CookieEntity>>(emptyList())
 
-    @Query("SELECT * FROM CookieEntity WHERE name = :name")
-    fun getByNameAsFlow(name: String): Flow<CookieEntity?>
+    suspend fun getAllCookie(): List<CookieEntity> = cookies.value
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrReplace(cookie: CookieEntity)
+    fun getByNameAsFlow(name: String): Flow<CookieEntity?> =
+        cookies.map { list -> list.firstOrNull { it.name == name } }
 
-    @Query("DELETE FROM CookieEntity WHERE name = :name")
-    suspend fun deleteByName(name: String)
+    suspend fun insertOrReplace(cookie: CookieEntity) {
+        cookies.value = cookies.value.filterNot { it.name == cookie.name && it.domain == cookie.domain && it.path == cookie.path } + cookie
+    }
 
-    @Query("DELETE FROM CookieEntity")
-    suspend fun deleteAll()
+    suspend fun deleteByName(name: String) {
+        cookies.value = cookies.value.filterNot { it.name == name }
+    }
+
+    suspend fun deleteAll() {
+        cookies.value = emptyList()
+    }
 }

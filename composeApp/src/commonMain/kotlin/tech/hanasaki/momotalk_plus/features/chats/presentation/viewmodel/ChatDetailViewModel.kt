@@ -114,7 +114,7 @@ class ChatDetailViewModel(
                 content = message,
                 role = MessageSenderRole.USER,
                 sender = MessageSender(
-                    name = currentUser?.name ?: "",
+                    name = currentUser?.username ?: "",
                     avatar = currentUser?.avatar
                 ),
                 type = MessageType.TEXT,

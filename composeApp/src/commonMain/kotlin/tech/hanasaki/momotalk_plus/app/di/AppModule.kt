@@ -23,7 +23,6 @@ import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.api.*
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.SessionRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.SettingsRepositoryImpl
@@ -38,15 +37,11 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.ForgotPa
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.LoginViewModel
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.RegisterViewModel
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.ChatRemoteDatasource
-import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.api.ChatApi
-import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.api.createChatApi
 import tech.hanasaki.momotalk_plus.features.chats.data.repository.ChatRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatRepository
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.*
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatDetailViewModel
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsViewModel
-import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.api.ContactApi
-import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.api.createContactApi
 import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactProviderImpl
 import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.contacts.domain.repository.ContactRepository
@@ -58,8 +53,6 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
-import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.api.ProfileApi
-import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.api.createProfileApi
 import tech.hanasaki.momotalk_plus.features.profile.data.repository.ProfileRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
@@ -91,51 +84,7 @@ val networkModule = module {
                         ignoreUnknownKeys = true
                     })
                 }
-                install(HttpCookies) {
-                    storage = object : CookiesStorage {
-                        private val delegate = AcceptAllCookiesStorage()
 
-                        override suspend fun get(requestUrl: Url): List<Cookie> {
-                            val mem = delegate.get(requestUrl)
-                            if (mem.isNotEmpty()) return mem
-                            // 优先从数据库读取 Cookie，确保使用最新的有效 Cookie
-                            val cookieStorage = get<LocalCookieStorage>()
-                            val dbCookies = cookieStorage.getAllCookie()
-                            if (dbCookies.isNotEmpty()) {
-                                // 同时更新内存缓存
-                                val cookies = dbCookies.map {
-                                    Cookie(
-                                        name = it.name,
-                                        encoding = CookieEncoding.RAW,
-                                        value = it.value,
-                                        maxAge = it.maxAge,
-                                        expires = it.expires?.takeIf { exp -> exp.isNotBlank() }?.let { exp ->
-                                            GMTDate(
-                                                Instant.parse(exp).toEpochMilliseconds()
-                                            )
-                                        },
-                                        domain = it.domain,
-                                        path = it.path,
-                                        secure = it.secure,
-                                        httpOnly = it.httpOnly,
-                                        extensions = it.extensions
-                                    )
-                                }
-                                return cookies
-                            }
-                            return emptyList()
-                        }
-
-                        override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
-                            delegate.addCookie(requestUrl, cookie)
-                            val cookieStorage = get<LocalCookieStorage>()
-                            cookieStorage.saveCookie(cookie, cookie.name)
-                        }
-
-                        override fun close() = delegate.close()
-
-                    }
-                }
                 install(SSE) {
                     showRetryEvents()
                     showCommentEvents()
@@ -170,19 +119,11 @@ val themeModule = module {
 }
 
 val uploadModule = module {
-    single<UploadApi> {
-        get<Ktorfit>().createUploadApi()
-    }
-
     single<UploadImageRepository> { UploadImageRepositoryImpl(get()) }
 
     factoryOf(::UploadImageUseCase)
 }
 val characterModule = module {
-    single<CharacterApi> {
-        get<Ktorfit>().createCharacterApi()
-    }
-
     single<CharacterRepository> { CharacterRepositoryImpl(get(), get()) }
 
     factoryOf(::CharacterDetailUseCase)
@@ -212,9 +153,6 @@ val authModule = module {
 }
 
 val contactModule = module {
-    single<ContactApi> {
-        get<Ktorfit>().createContactApi()
-    }
     single<ContactRepository> { ContactRepositoryImpl(get(), get()) }
     single<ContactProvider> { ContactProviderImpl(get()) }
 
@@ -224,11 +162,8 @@ val contactModule = module {
 }
 
 val chatModule = module {
-    single<ChatApi> {
-        get<Ktorfit>().createChatApi()
-    }
     factoryOf(::ChatRemoteDatasource)
-    single<ChatRepository> { ChatRepositoryImpl(get(), get(), get()) }
+    single<ChatRepository> { ChatRepositoryImpl(get(), get()) }
 
     factoryOf(::ClearChatHistoryUseCase)
     factoryOf(::CreateChatUseCase)
@@ -242,19 +177,12 @@ val chatModule = module {
 
 
 val profileModule = module {
-    single<ProfileApi> {
-        get<Ktorfit>().createProfileApi()
-    }
-
     single<ProfileRepository> { ProfileRepositoryImpl(get()) }
 
     factoryOf(::UpdateUserProfileUseCase)
 }
 
 val settingsModule = module {
-    single<SettingApi> {
-        get<Ktorfit>().createSettingApi()
-    }
     single<SettingsRepository> {
         SettingsRepositoryImpl(get(), get())
     }
