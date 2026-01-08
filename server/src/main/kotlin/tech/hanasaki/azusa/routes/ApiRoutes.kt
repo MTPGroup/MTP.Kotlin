@@ -3,12 +3,19 @@ package tech.hanasaki.azusa.routes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.plugins.openapi.openAPI
+import io.ktor.server.plugins.swagger.swaggerUI
 import io.ktor.server.routing.*
+import io.ktor.server.auth.jwt.JWTPrincipal
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.sql.selectAll
 import tech.hanasaki.azusa.app.healthRoutes
 import tech.hanasaki.azusa.auth.AuthContext
-import tech.hanasaki.azusa.auth.UserPrincipal
 import tech.hanasaki.azusa.auth.requireAuthContext
 import tech.hanasaki.azusa.common.ApiException
 import tech.hanasaki.azusa.db.ProfilesTable
@@ -16,8 +23,11 @@ import tech.hanasaki.azusa.db.UsersTable
 import tech.hanasaki.azusa.db.dbQuery
 import tech.hanasaki.azusa.permissions.Permissions
 
-fun Application.configureRouting(): Unit {
+fun Application.configureRouting(config: ApplicationConfig): Unit {
     routing {
+        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+        authRoutes(config)
         healthRoutes()
         profileRoutes()
         settingsRoutes()
@@ -374,14 +384,33 @@ private fun Route.knowledgeRoutes(): Unit {
 }
 
 suspend fun ApplicationCall.principalOrNull(): AuthContext? {
-    val principal = principal<UserPrincipal>() ?: return null
+    val principal = principal<JWTPrincipal>() ?: return null
+    val subject = principal.subject ?: return null
+    val userId = runCatching { java.util.UUID.fromString(subject) }.getOrNull() ?: return null
     val profileId = dbQuery {
         ProfilesTable
             .selectAll()
-            .where { ProfilesTable.uid eq EntityID(principal.userId, UsersTable) }
+            .where { ProfilesTable.uid eq EntityID(userId, UsersTable) }
             .limit(1)
             .map { it[ProfilesTable.id].value }
             .singleOrNull()
     } ?: return null
-    return AuthContext(principal.userId, profileId)
+    val emailVerified = dbQuery {
+        UsersTable
+            .selectAll()
+            .where { UsersTable.id eq userId }
+            .limit(1)
+            .map { extractEmailVerified(it[UsersTable.rawUserMetaData]) }
+            .singleOrNull()
+    } ?: false
+    if (!emailVerified) {
+        return null
+    }
+    return AuthContext(userId, profileId)
+}
+
+private fun extractEmailVerified(meta: JsonElement): Boolean {
+    val obj = meta as? JsonObject ?: return false
+    val value = obj["emailVerified"] as? JsonPrimitive ?: return false
+    return value.booleanOrNull ?: false
 }

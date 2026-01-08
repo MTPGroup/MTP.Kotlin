@@ -24,6 +24,24 @@ object UsersTable : UUIDTable("users") {
     val updatedAt: Column<LocalDateTime> = datetime("updated_at")
 }
 
+object EmailOtpsTable : UUIDTable("email_otps") {
+    val email: Column<String> = text("email")
+    val type: Column<String> = varchar("type", 30)
+    val codeHash: Column<String> = text("code_hash")
+    val expiresAt: Column<LocalDateTime> = datetime("expires_at")
+    val createdAt: Column<LocalDateTime> = datetime("created_at")
+    val usedAt: Column<LocalDateTime?> = datetime("used_at").nullable()
+}
+
+object RefreshTokensTable : UUIDTable("refresh_tokens") {
+    val userId: Column<EntityID<UUID>> = reference("user_id", UsersTable, onDelete = ReferenceOption.CASCADE)
+    val tokenHash: Column<String> = text("token_hash")
+    val expiresAt: Column<LocalDateTime> = datetime("expires_at")
+    val createdAt: Column<LocalDateTime> = datetime("created_at")
+    val revokedAt: Column<LocalDateTime?> = datetime("revoked_at").nullable()
+    val replacedBy: Column<EntityID<UUID>?> = optReference("replaced_by", RefreshTokensTable)
+}
+
 object ProfilesTable : UUIDTable("profiles") {
     val uid: Column<EntityID<UUID>> = reference("uid", UsersTable, onDelete = ReferenceOption.CASCADE)
     val username: Column<String> = varchar("username", 50)

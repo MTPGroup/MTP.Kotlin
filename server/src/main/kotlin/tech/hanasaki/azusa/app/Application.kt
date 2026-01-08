@@ -15,5 +15,5 @@ fun Application.module(): Unit {
     configureCors()
     configureStatusPages()
     configureSecurity(environment.config)
-    configureRouting()
+    configureRouting(environment.config)
 }

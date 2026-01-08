@@ -7,11 +7,28 @@ ktor:
 database:
   driver: "org.postgresql.Driver"
   url: ${DB_URL}
-  user: "postgres"
+  user: ${DB_USER}
   password: ${DB_PASSWORD}
   maxPoolSize: 5
 jwt:
-  issuer: "azusa"
-  audience: "azusa"
-  realm: "azusa"
-  secret: "change_me"
+  issuer: ${JWT_ISSUER}
+  audience: ${JWT_AUDIENCE}
+  realm: ${JWT_REALM}
+  secret: ${JWT_SECRET}
+auth:
+  accessTokenMinutes: ${AUTH_ACCESS_TOKEN_MINUTES}
+  refreshTokenDays: ${AUTH_REFRESH_TOKEN_DAYS}
+smtp:
+  host: ${SMTP_HOST}
+  port: ${SMTP_PORT}
+  username: ${SMTP_USERNAME}
+  password: ${SMTP_PASSWORD}
+  from: ${SMTP_FROM}
+  tls: ${SMTP_TLS}
+  enabled: ${SMTP_ENABLED}
+otp:
+  length: ${OTP_LENGTH}
+  expiresMinutes: ${OTP_EXPIRES_MINUTES}
+  minIntervalSeconds: ${OTP_MIN_INTERVAL_SECONDS}
+  maxPerHour: ${OTP_MAX_PER_HOUR}
+  debugReturn: ${OTP_DEBUG_RETURN}

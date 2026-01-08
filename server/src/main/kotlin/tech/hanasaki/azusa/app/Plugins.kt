@@ -5,8 +5,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
@@ -15,7 +16,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.auth.UserPrincipal
 import tech.hanasaki.azusa.common.ApiException
 import java.util.UUID
 
@@ -97,9 +97,8 @@ fun Application.configureSecurity(config: ApplicationConfig): Unit {
             )
             validate { credential ->
                 val subject = credential.subject ?: return@validate null
-                val userId = runCatching { UUID.fromString(subject) }.getOrNull()
-                    ?: return@validate null
-                UserPrincipal(userId)
+                runCatching { UUID.fromString(subject) }.getOrNull() ?: return@validate null
+                JWTPrincipal(credential.payload)
             }
         }
     }

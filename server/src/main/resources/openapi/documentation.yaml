@@ -1,0 +1,317 @@
+openapi: 3.0.3
+info:
+  title: Azusa API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /auth/sign-up/email:
+    post:
+      summary: Sign up with email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpRequest"
+      responses:
+        "200":
+          description: Sign up result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignUpResponse"
+  /auth/sign-in/email:
+    post:
+      summary: Sign in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInWithPasswordRequest"
+      responses:
+        "200":
+          description: Sign in result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignInWithPasswordResponse"
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        "200":
+          description: Refresh result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshTokenResponse"
+  /auth/sign-out:
+    post:
+      summary: Sign out
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignOutRequest"
+      responses:
+        "200":
+          description: Sign out result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignOutResponse"
+  /auth/email-otp/send-verification-otp:
+    post:
+      summary: Send email OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailVerificationRequest"
+      responses:
+        "200":
+          description: OTP send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendEmailVerificationResponse"
+  /auth/email-otp/forget-password:
+    post:
+      summary: Send password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendPasswordResetEmailRequest"
+      responses:
+        "200":
+          description: OTP send result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendPasswordResetEmailResponse"
+  /auth/email-otp/verify-email:
+    post:
+      summary: Verify email OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyOTPRequest"
+      responses:
+        "204":
+          description: Verified
+  /auth/email-otp/reset-password:
+    post:
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Reset result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetPasswordResponse"
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        image:
+          type: string
+          nullable: true
+        emailVerified:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - email
+        - name
+        - emailVerified
+        - createdAt
+        - updatedAt
+    SignUpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        name:
+          type: string
+        password:
+          type: string
+        callbackURL:
+          type: string
+      required:
+        - email
+        - name
+        - password
+        - callbackURL
+    SignUpResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          nullable: true
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+      required:
+        - user
+        - refreshToken
+    SignInWithPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    SignInWithPasswordResponse:
+      type: object
+      properties:
+        redirect:
+          type: boolean
+        token:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+      required:
+        - redirect
+        - token
+        - refreshToken
+        - user
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+    RefreshTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        refreshToken:
+          type: string
+      required:
+        - token
+        - refreshToken
+    SignOutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+    SignOutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+    SendEmailVerificationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        type:
+          type: string
+          enum:
+            - sign-in
+            - reset-password
+            - email-verification
+      required:
+        - email
+        - type
+    SendEmailVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+    SendPasswordResetEmailRequest:
+      type: object
+      properties:
+        email:
+          type: string
+      required:
+        - email
+    SendPasswordResetEmailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+    VerifyOTPRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        otp:
+          type: string
+      required:
+        - email
+        - otp
+    ResetPasswordRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        otp:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - otp
+        - password
+    ResetPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
