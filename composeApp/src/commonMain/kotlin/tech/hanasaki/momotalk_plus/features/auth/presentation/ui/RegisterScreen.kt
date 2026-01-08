@@ -34,14 +34,14 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit,
     viewModel: RegisterViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.container.stateFlow.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 3 }
     val tabTitles = listOf("1. 注册账号", "2. 验证邮箱")
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { effect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is RegisterSideEffect.NavigateToLogin -> onNavigateBack()
                 is RegisterSideEffect.ShowToast -> {
@@ -103,11 +103,11 @@ fun RegisterScreen(
                 when (page) {
                     0 -> UserInfoStep(
                         uiState = uiState,
-                        onIntent = viewModel::processIntent,
+                        onIntent = viewModel::onIntent,
                         onNavigateToLogin = onNavigateBack
                     )
 
-                    1 -> VerificationStep(uiState = uiState, onIntent = viewModel::processIntent)
+                    1 -> VerificationStep(uiState = uiState, onIntent = viewModel::onIntent)
 
                     2 -> ResetSuccessStep(
                         onNavigateToLogin = onNavigateBack,

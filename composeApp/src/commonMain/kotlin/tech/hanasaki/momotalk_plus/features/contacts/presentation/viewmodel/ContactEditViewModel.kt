@@ -1,6 +1,7 @@
 package tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import kotlinx.coroutines.flow.catch
@@ -8,7 +9,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
@@ -25,96 +28,82 @@ class ContactEditViewModel(
     private val characterDetailUseCase: CharacterDetailUseCase,
     private val uploadImageUseCase: UploadImageUseCase,
     private val savedStateHandle: SavedStateHandle,
-) :
-    BaseViewModel<ContactEditState, ContactEditSideEffect, ContactEditIndent>(ContactEditState()) {
+) : ViewModel(), ContainerHost<ContactEditState, ContactEditSideEffect> {
+
+    override val container: Container<ContactEditState, ContactEditSideEffect> =
+        viewModelScope.container(ContactEditState())
+
     private val characterId = savedStateHandle.toRoute<ContactsRoute.EditContact>().id
 
     init {
         loadContactInfo(characterId)
     }
 
-    override fun processIntent(intent: ContactEditIndent) {
-        viewModelScope.launch {
-            when (intent) {
-                is ContactEditIndent.NameChanged ->
-                    updateState {
-                        it.copy(name = intent.name)
-                    }
-
-                is ContactEditIndent.SignatureChanged ->
-                    updateState {
-                        it.copy(signature = intent.signature)
-                    }
-
-                is ContactEditIndent.PersonaChanged ->
-                    updateState {
-                        it.copy(persona = intent.persona)
-                    }
-
-                is ContactEditIndent.AvatarUrlChanged ->
-                    updateState {
-                        it.copy(avatarUrl = intent.avatarUrl)
-                    }
-
-                is ContactEditIndent.VisibilityChanged ->
-                    updateState {
-                        it.copy(visibility = intent.visibility)
-                    }
-
-                is ContactEditIndent.UpdateContactInfo ->
-                    updateContactInfo(intent.id)
-
-                is ContactEditIndent.UploadAvatar ->
-                    uploadAvatar(intent.imageData, intent.userId)
-            }
+    fun onIntent(intent: ContactEditIndent) {
+        when (intent) {
+            is ContactEditIndent.NameChanged -> intent { reduce { state.copy(name = intent.name) } }
+            is ContactEditIndent.SignatureChanged -> intent { reduce { state.copy(signature = intent.signature) } }
+            is ContactEditIndent.PersonaChanged -> intent { reduce { state.copy(persona = intent.persona) } }
+            is ContactEditIndent.AvatarUrlChanged -> intent { reduce { state.copy(avatarUrl = intent.avatarUrl) } }
+            is ContactEditIndent.VisibilityChanged -> intent { reduce { state.copy(visibility = intent.visibility) } }
+            is ContactEditIndent.UpdateContactInfo -> viewModelScope.launch { updateContactInfo(intent.id) }
+            is ContactEditIndent.UploadAvatar -> viewModelScope.launch { uploadAvatar(intent.imageData, intent.userId) }
         }
     }
 
     private fun loadContactInfo(characterId: String) {
         characterDetailUseCase(characterId)
             .onStart {
-                updateState {
-                    it.copy(
-                        isLoading = true,
-                        errorMessage = null
-                    )
+                intent {
+                    reduce {
+                        state.copy(
+                            isLoading = true,
+                            errorMessage = null
+                        )
+                    }
                 }
             }
             .onEach { character ->
-                updateState {
-                    it.copy(
-                        isLoading = false,
-                        name = character?.name ?: "",
-                        signature = character?.signature ?: "",
-                        persona = character?.persona ?: "",
-                        avatarUrl = character?.avatarUrl ?: "",
-                        visibility = character?.visibility ?: Visibility.PUBLIC,
-                    )
+                intent {
+                    reduce {
+                        state.copy(
+                            isLoading = false,
+                            name = character?.name ?: "",
+                            signature = character?.signature ?: "",
+                            persona = character?.persona ?: "",
+                            avatarUrl = character?.avatarUrl ?: "",
+                            visibility = character?.visibility ?: Visibility.PUBLIC,
+                        )
+                    }
                 }
             }
             .catch { e ->
                 e.printStackTrace()
-                updateState {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message
+                intent {
+                    reduce {
+                        state.copy(
+                            isLoading = false,
+                            errorMessage = e.message
+                        )
+                    }
+                    postSideEffect(
+                        ContactEditSideEffect.ShowMessage("加载联系人信息失败: ${e.message}")
                     )
                 }
-                sendSideEffect(
-                    ContactEditSideEffect.ShowMessage("加载联系人信息失败: ${e.message}")
-                )
             }
             .launchIn(viewModelScope)
     }
 
     private suspend fun updateContactInfo(id: String) {
-        updateState {
-            it.copy(
-                isSaving = true,
-                errorMessage = null
-            )
+        intent {
+            reduce {
+                state.copy(
+                    isSaving = true,
+                    errorMessage = null
+                )
+            }
         }
-        val currentState = getState()
+        val currentState = container.stateFlow.value
         updateContactUseCase(
             id = id,
             name = currentState.name,
@@ -124,22 +113,21 @@ class ContactEditViewModel(
             visibility = currentState.visibility,
         )
             .onSuccess {
-                updateState {
-                    it.copy(isSaving = false)
+                intent {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(ContactEditSideEffect.ShowMessage("联系人信息更新成功"))
                 }
-                sendSideEffect(
-                    ContactEditSideEffect.ShowMessage(
-                        "联系人信息更新成功"
-                    )
-                )
             }
             .onFailure { e ->
                 e.printStackTrace()
-                sendSideEffect(
-                    ContactEditSideEffect.ShowMessage(
-                        "联系人信息更新失败: ${e.message}"
+                intent {
+                    reduce { state.copy(isSaving = false) }
+                    postSideEffect(
+                        ContactEditSideEffect.ShowMessage(
+                            "联系人信息更新失败: ${e.message}"
+                        )
                     )
-                )
+                }
             }
     }
 
@@ -147,31 +135,27 @@ class ContactEditViewModel(
         imageData: ImageData,
         userId: String?,
     ) {
-        updateState {
-            it.copy(isUploadingAvatar = true)
-        }
+        intent { reduce { state.copy(isUploadingAvatar = true) } }
 
         uploadImageUseCase(
             imageData,
             UploadPath.AVATAR,
             userId
         ).onSuccess { avatar ->
-            updateState {
-                it.copy(
-                    avatarUrl = avatar,
-                    isUploadingAvatar = false
-                )
+            intent {
+                reduce {
+                    state.copy(
+                        avatarUrl = avatar,
+                        isUploadingAvatar = false
+                    )
+                }
+                postSideEffect(ContactEditSideEffect.ShowMessage("头像上传成功"))
             }
-            sendSideEffect(
-                ContactEditSideEffect.ShowMessage("头像上传成功")
-            )
         }.onFailure { e ->
-            updateState {
-                it.copy(isUploadingAvatar = false)
+            intent {
+                reduce { state.copy(isUploadingAvatar = false) }
+                postSideEffect(ContactEditSideEffect.ShowMessage("头像上传失败: ${e.message}"))
             }
-            sendSideEffect(
-                ContactEditSideEffect.ShowMessage("头像上传失败: ${e.message}")
-            )
         }
     }
 }

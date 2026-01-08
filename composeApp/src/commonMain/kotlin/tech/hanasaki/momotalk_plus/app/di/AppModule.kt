@@ -9,12 +9,9 @@ import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.cookies.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.sse.*
-import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.util.date.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
@@ -59,7 +56,6 @@ import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserPro
 import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
 import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 expect val platformModule: Module
 
@@ -102,8 +98,8 @@ val networkModule = module {
 val supabaseModule = module {
     single {
         createSupabaseClient(
-            "http://localhost:8000",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzYwMzcxMjAwLCJleHAiOjE5MTgxMzc2MDB9.iTRneUjIlDRCScBotTjCWzLLeOk0xOMRBpF0PCGK_sU"
+            "http://127.0.0.1:8000",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2Mzc4MDcyLCJleHAiOjE5MjQwNTgwNzJ9.cwrBICbBHINhojKuJ0pdoHaQguBR28rlPS41bPCh_pI"
         ) {
             install(Auth)
             install(Postgrest)

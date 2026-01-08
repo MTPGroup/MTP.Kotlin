@@ -1,8 +1,10 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.ResetPasswordUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendEmailVerificationUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendPasswordResetEmailUseCase
@@ -14,68 +16,59 @@ class ForgotPasswordViewModel(
     private val sendEmailVerificationUseCase: SendEmailVerificationUseCase,
     private val sendPasswordResetEmailUseCase: SendPasswordResetEmailUseCase,
     private val resetPasswordUseCase: ResetPasswordUseCase,
-) : BaseViewModel<ForgotPasswordState, ForgotPasswordSideEffect, ForgotPasswordIntent>(ForgotPasswordState()) {
+) : ViewModel(), ContainerHost<ForgotPasswordState, ForgotPasswordSideEffect> {
 
-    override fun processIntent(intent: ForgotPasswordIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is ForgotPasswordIntent.EmailChanged ->
-                    updateState { it.copy(email = intent.email, error = null) }
+    override val container: Container<ForgotPasswordState, ForgotPasswordSideEffect> =
+        viewModelScope.container(ForgotPasswordState())
 
-                is ForgotPasswordIntent.PasswordChanged ->
-                    updateState { it.copy(newPassword = intent.newPassword) }
-
-                is ForgotPasswordIntent.VerificationCodeChanged ->
-                    updateState { it.copy(otpCode = intent.code) }
-
-                is ForgotPasswordIntent.SendVerificationCode ->
-                    sendVerificationCode()
-
-                is ForgotPasswordIntent.ResetPasswordClicked ->
-                    resetPassword()
-            }
+    fun onIntent(intent: ForgotPasswordIntent) {
+        when (intent) {
+            is ForgotPasswordIntent.EmailChanged -> intent { reduce { state.copy(email = intent.email, error = null) } }
+            is ForgotPasswordIntent.PasswordChanged -> intent { reduce { state.copy(newPassword = intent.newPassword) } }
+            is ForgotPasswordIntent.VerificationCodeChanged -> intent { reduce { state.copy(otpCode = intent.code) } }
+            is ForgotPasswordIntent.SendVerificationCode -> sendVerificationCode()
+            is ForgotPasswordIntent.ResetPasswordClicked -> resetPassword()
         }
     }
 
-    private suspend fun sendVerificationCode() {
-        updateState { it.copy(isRequestingCode = true, error = null) }
-        sendPasswordResetEmailUseCase(
-            email = getState().email,
-        )
+    private fun sendVerificationCode() = intent {
+        val email = state.email
+        reduce { state.copy(isRequestingCode = true, error = null) }
+        sendPasswordResetEmailUseCase(email = email)
             .onSuccess {
-                updateState { it.copy(isRequestingCode = false) }
-                sendSideEffect(ForgotPasswordSideEffect.ShowToast("验证码已发送，请检查您的邮箱。"))
+                reduce { state.copy(isRequestingCode = false) }
+                postSideEffect(ForgotPasswordSideEffect.ShowToast("验证码已发送，请检查您的邮箱。"))
             }
             .onFailure { exception ->
                 val errorMessage = exception.message ?: "发送验证码失败，请稍后重试。"
-                updateState { it.copy(isRequestingCode = false, error = errorMessage) }
-                sendSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
+                reduce { state.copy(isRequestingCode = false, error = errorMessage) }
+                postSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
             }
     }
 
-    private suspend fun resetPassword() {
-        val currentState = uiState.value
-        if (currentState.newPassword.length < 8) {
-            updateState { it.copy(error = "密码长度至少为8位") }
-            return
+    private fun resetPassword() = intent {
+        val current = state
+        if (current.newPassword.length < 8) {
+            reduce { state.copy(error = "密码长度至少为8位") }
+            return@intent
         }
-        if (currentState.otpCode.isBlank()) {
-            updateState { it.copy(error = "请输入验证码") }
-            return
+        if (current.otpCode.isBlank()) {
+            reduce { state.copy(error = "请输入验证码") }
+            return@intent
         }
 
-        updateState { it.copy(isLoading = true, error = null) }
+        reduce { state.copy(isLoading = true, error = null) }
         resetPasswordUseCase(
-            email = currentState.email,
-            otp = currentState.otpCode,
-            newPassword = currentState.newPassword,
+            email = current.email,
+            otp = current.otpCode,
+            newPassword = current.newPassword,
         ).onSuccess {
-            updateState { it.copy(isLoading = false) }
-            sendSideEffect(ForgotPasswordSideEffect.NavigateToSuccess)
+            reduce { state.copy(isLoading = false) }
+            postSideEffect(ForgotPasswordSideEffect.NavigateToSuccess)
         }.onFailure { exception ->
             val errorMessage = exception.message ?: "重置密码失败，请稍后重试。"
-            updateState { it.copy(isLoading = false, error = errorMessage) }
-            sendSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
+            reduce { state.copy(isLoading = false, error = errorMessage) }
+            postSideEffect(ForgotPasswordSideEffect.ShowToast(errorMessage))
         }
     }
 }

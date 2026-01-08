@@ -1,31 +1,25 @@
 package tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeIntent
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeSideEffect
 import tech.hanasaki.momotalk_plus.features.home.presentation.state.HomeState
 
-class HomeViewModel : BaseViewModel<HomeState, HomeSideEffect, HomeIntent>(HomeState()) {
-    override fun processIntent(intent: HomeIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is HomeIntent.TabSelected ->
-                    updateState { it.copy(currentTab = intent.tab) }
+class HomeViewModel : ViewModel(), ContainerHost<HomeState, HomeSideEffect> {
 
-                HomeIntent.SettingsClicked ->
-                    sendSideEffect(HomeSideEffect.NavigateToSettings)
+    override val container: Container<HomeState, HomeSideEffect> = viewModelScope.container(HomeState())
 
-                HomeIntent.ProfileClicked ->
-                    sendSideEffect(HomeSideEffect.NavigateToProfile)
-
-                HomeIntent.LogoutClicked ->
-                    sendSideEffect(HomeSideEffect.NavigateToLogin)
-
-                is HomeIntent.SetBottomBarVisibility ->
-                    updateState { it.copy(showBottomBar = intent.visible) }
-            }
+    fun onIntent(intent: HomeIntent) {
+        when (intent) {
+            is HomeIntent.TabSelected -> intent { reduce { state.copy(currentTab = intent.tab) } }
+            HomeIntent.SettingsClicked -> intent { postSideEffect(HomeSideEffect.NavigateToSettings) }
+            HomeIntent.ProfileClicked -> intent { postSideEffect(HomeSideEffect.NavigateToProfile) }
+            HomeIntent.LogoutClicked -> intent { postSideEffect(HomeSideEffect.NavigateToLogin) }
+            is HomeIntent.SetBottomBarVisibility -> intent { reduce { state.copy(showBottomBar = intent.visible) } }
         }
     }
 }

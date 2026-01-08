@@ -39,13 +39,13 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val onIntent = viewModel::processIntent
+    val uiState by viewModel.container.stateFlow.collectAsState()
+    val onIntent = viewModel::onIntent
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { effect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is ProfileSideEffect.ShowMessage -> {
                     coroutineScope.launch {

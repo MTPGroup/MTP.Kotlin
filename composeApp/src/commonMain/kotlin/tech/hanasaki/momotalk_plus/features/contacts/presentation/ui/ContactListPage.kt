@@ -33,15 +33,15 @@ fun ContactListPage(
     onNavigateToAddContact: () -> Unit,
     viewModel: ContactListViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val onIntent = viewModel::processIntent
+    val uiState by viewModel.container.stateFlow.collectAsState()
+    val onIntent = viewModel::onIntent
     val coroutineScope = rememberCoroutineScope()
     val snackHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { effect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is ContactListSideEffect.NavigateToContactDetail ->
                     onNavigateToContactDetail(effect.contactId)

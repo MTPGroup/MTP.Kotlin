@@ -1,11 +1,10 @@
 package tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
 import tech.hanasaki.momotalk_plus.core.theme.AppTheme
 import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
@@ -20,39 +19,40 @@ class SettingsViewModel(
     private val saveNotificationSettingsUseCase: SaveNotificationSettingsUseCase,
     private val saveSoundSettingsUseCase: SaveSoundSettingsUseCase,
     private val saveVibrationSettingsUseCase: SaveVibrationSettingsUseCase,
-) : BaseViewModel<SettingsState, SettingsSideEffect, SettingsIntent>(
-    initialState = SettingsState()
-) {
+) : ViewModel(), ContainerHost<SettingsState, SettingsSideEffect> {
+
+    override val container = viewModelScope.container<SettingsState, SettingsSideEffect>(SettingsState())
+
     init {
         loadSettings()
     }
 
-    override fun processIntent(intent: SettingsIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is SettingsIntent.ThemeChanged -> changeTheme(intent.theme)
-                is SettingsIntent.NotificationsToggled -> toggleNotifications(intent.enabled)
-                is SettingsIntent.SoundToggled -> toggleSound(intent.enabled)
-                is SettingsIntent.VibrationToggled -> toggleVibration(intent.enabled)
-                is SettingsIntent.AboutClicked -> navigateToAbout()
-                is SettingsIntent.PrivacyPolicyClicked -> navigateToPrivacyPolicy()
-                is SettingsIntent.TermsOfServiceClicked -> navigateToTermsOfService()
-            }
+    fun onIntent(intent: SettingsIntent) {
+        when (intent) {
+            is SettingsIntent.ThemeChanged -> changeTheme(intent.theme)
+            is SettingsIntent.NotificationsToggled -> toggleNotifications(intent.enabled)
+            is SettingsIntent.SoundToggled -> toggleSound(intent.enabled)
+            is SettingsIntent.VibrationToggled -> toggleVibration(intent.enabled)
+            is SettingsIntent.AboutClicked -> navigateToAbout()
+            is SettingsIntent.PrivacyPolicyClicked -> navigateToPrivacyPolicy()
+            is SettingsIntent.TermsOfServiceClicked -> navigateToTermsOfService()
         }
     }
 
-    private fun loadSettings() {
+    private fun loadSettings() = intent {
         getUserSettingsUseCase()
-            .onEach { userSettings ->
+            .catch { e ->
+                postSideEffect(SettingsSideEffect.ShowMessage("加载设置失败: ${e.message}"))
+            }
+            .collect { userSettings ->
                 val availableThemes = themeManager.getAvailableThemes()
                 val savedTheme = availableThemes.find { it.id == userSettings.theme.name.lowercase() }
                     ?: availableThemes.first()
 
-                // 应用保存的主题
                 themeManager.setTheme(savedTheme)
 
-                updateState {
-                    it.copy(
+                reduce {
+                    state.copy(
                         currentTheme = savedTheme,
                         availableThemes = availableThemes,
                         notificationsEnabled = userSettings.notificationsEnabled,
@@ -60,47 +60,40 @@ class SettingsViewModel(
                         vibrationEnabled = userSettings.vibrationEnabled
                     )
                 }
-
-            }.catch { e ->
-                sendSideEffect(SettingsSideEffect.ShowMessage("加载设置失败: ${e.message}"))
-            }.launchIn(viewModelScope)
+            }
     }
 
-    private suspend fun changeTheme(theme: AppTheme) {
-        // 保存主题到持久化存储
+    private fun changeTheme(theme: AppTheme) = intent {
         saveThemeUseCase(theme.id)
-
-        // 应用主题
         themeManager.setTheme(theme)
-        updateState { it.copy(currentTheme = theme) }
-
-        sendSideEffect(SettingsSideEffect.ShowMessage("主题已切换"))
+        reduce { state.copy(currentTheme = theme) }
+        postSideEffect(SettingsSideEffect.ShowMessage("主题已切换"))
     }
 
-    private suspend fun toggleNotifications(enabled: Boolean) {
+    private fun toggleNotifications(enabled: Boolean) = intent {
         saveNotificationSettingsUseCase(enabled)
-        updateState { it.copy(notificationsEnabled = enabled) }
+        reduce { state.copy(notificationsEnabled = enabled) }
     }
 
-    private suspend fun toggleSound(enabled: Boolean) {
+    private fun toggleSound(enabled: Boolean) = intent {
         saveSoundSettingsUseCase(enabled)
-        updateState { it.copy(soundEnabled = enabled) }
+        reduce { state.copy(soundEnabled = enabled) }
     }
 
-    private suspend fun toggleVibration(enabled: Boolean) {
+    private fun toggleVibration(enabled: Boolean) = intent {
         saveVibrationSettingsUseCase(enabled)
-        updateState { it.copy(vibrationEnabled = enabled) }
+        reduce { state.copy(vibrationEnabled = enabled) }
     }
 
-    private suspend fun navigateToAbout() {
-        sendSideEffect(SettingsSideEffect.NavigateToAbout)
+    private fun navigateToAbout() = intent {
+        postSideEffect(SettingsSideEffect.NavigateToAbout)
     }
 
-    private suspend fun navigateToPrivacyPolicy() {
-        sendSideEffect(SettingsSideEffect.NavigateToPrivacyPolicy)
+    private fun navigateToPrivacyPolicy() = intent {
+        postSideEffect(SettingsSideEffect.NavigateToPrivacyPolicy)
     }
 
-    private suspend fun navigateToTermsOfService() {
-        sendSideEffect(SettingsSideEffect.NavigateToTermsOfService)
+    private fun navigateToTermsOfService() = intent {
+        postSideEffect(SettingsSideEffect.NavigateToTermsOfService)
     }
 }

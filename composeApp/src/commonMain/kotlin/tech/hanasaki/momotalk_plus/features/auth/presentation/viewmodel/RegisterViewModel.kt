@@ -1,9 +1,11 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.auth.OtpType
-import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.utils.isValidEmail
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SendEmailVerificationUseCase
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignUpUserUseCase
@@ -12,91 +14,87 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterInte
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterSideEffect
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.RegisterState
 
-
 class RegisterViewModel(
     private val registerUserUseCase: SignUpUserUseCase,
     private val sendOTPCodeUseCase: SendEmailVerificationUseCase,
     private val verifyEmailUseCase: VerifyEmailUseCase,
-) : BaseViewModel<RegisterState, RegisterSideEffect, RegisterIntent>(RegisterState()) {
+) : ViewModel(), ContainerHost<RegisterState, RegisterSideEffect> {
 
-    override fun processIntent(intent: RegisterIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is RegisterIntent.EmailChanged ->
-                    updateState { it.copy(email = intent.email) }
+    override val container: Container<RegisterState, RegisterSideEffect> =
+        viewModelScope.container(RegisterState())
 
-                is RegisterIntent.OTPCodeChanged ->
-                    updateState { it.copy(otpCode = intent.otpCode) }
-
-                is RegisterIntent.PasswordChanged ->
-                    updateState { it.copy(password = intent.password) }
-
-                is RegisterIntent.ConfirmPasswordChanged ->
-                    updateState { it.copy(confirmPassword = intent.confirmPassword) }
-
-                is RegisterIntent.ResendOTPCodeClicked ->
-                    sendOTPCode()
-
-                is RegisterIntent.VerifyEmailClicked ->
-                    verifyEmail()
-
-                is RegisterIntent.RegisterClicked ->
-                    registerUser()
-            }
+    fun onIntent(intent: RegisterIntent) {
+        when (intent) {
+            is RegisterIntent.EmailChanged -> intent { reduce { state.copy(email = intent.email) } }
+            is RegisterIntent.OTPCodeChanged -> intent { reduce { state.copy(otpCode = intent.otpCode) } }
+            is RegisterIntent.PasswordChanged -> intent { reduce { state.copy(password = intent.password) } }
+            is RegisterIntent.ConfirmPasswordChanged -> intent { reduce { state.copy(confirmPassword = intent.confirmPassword) } }
+            is RegisterIntent.ResendOTPCodeClicked -> sendOTPCode()
+            is RegisterIntent.VerifyEmailClicked -> verifyEmail()
+            is RegisterIntent.RegisterClicked -> registerUser()
         }
     }
 
-    private suspend fun sendOTPCode() {
-        val currentState = getState()
-        sendOTPCodeUseCase(
-            currentState.email,
-            OtpType.Email.SIGNUP,
-        ).onSuccess {
-            updateState { it.copy(isEmailValid = true, error = null) }
-            sendSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 ${currentState.email}"))
-        }
+    private fun sendOTPCode() = intent {
+        val email = state.email
+        reduce { state.copy(isLoading = true, error = null) }
+        sendOTPCodeUseCase(email, OtpType.Email.SIGNUP)
+            .onSuccess {
+                reduce { state.copy(isLoading = false, isEmailValid = true, error = null) }
+                postSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 $email"))
+            }
             .onFailure { e ->
                 val errorMessage = e.message
-                updateState { it.copy(error = errorMessage) }
-                sendSideEffect(RegisterSideEffect.ShowToast("验证码发送失败: $errorMessage"))
+                reduce { state.copy(isLoading = false, error = errorMessage) }
+                postSideEffect(RegisterSideEffect.ShowToast("验证码发送失败: $errorMessage"))
             }
     }
 
-    private suspend fun verifyEmail() {
-        val currentState = getState()
-        verifyEmailUseCase(
-            OtpType.Email.SIGNUP,
-            currentState.email,
-            currentState.otpCode
-        ).onSuccess {
-            sendSideEffect(RegisterSideEffect.NavigateToSuccessStep)
-        }.onFailure { e ->
-            val errorMessage = e.message
-            updateState { it.copy(error = errorMessage) }
-            sendSideEffect(RegisterSideEffect.ShowToast("验证失败: $errorMessage"))
-        }
+    private fun verifyEmail() = intent {
+        val email = state.email
+        val code = state.otpCode
+        reduce { state.copy(isLoading = true, error = null) }
+        verifyEmailUseCase(OtpType.Email.SIGNUP, email, code)
+            .onSuccess {
+                reduce { state.copy(isLoading = false) }
+                postSideEffect(RegisterSideEffect.NavigateToSuccessStep)
+            }
+            .onFailure { e ->
+                val errorMessage = e.message
+                reduce { state.copy(isLoading = false, error = errorMessage) }
+                postSideEffect(RegisterSideEffect.ShowToast("验证失败: $errorMessage"))
+            }
     }
 
-    private suspend fun registerUser() {
-        val currentState = getState()
-        if (currentState.password != currentState.confirmPassword) {
-            updateState { it.copy(error = "两次输入的密码不一致。") }
-            return
+    private fun registerUser() = intent {
+        val current = state
+        if (current.password != current.confirmPassword) {
+            reduce { state.copy(error = "两次输入的密码不一致。") }
+            return@intent
         }
 
-        val isEmail = isValidEmail(currentState.email)
-        val email = if (isEmail) currentState.email else ""
+        val email = if (isValidEmail(current.email)) current.email else ""
+        reduce { state.copy(isLoading = true, error = null) }
 
-        registerUserUseCase(
-            email = email,
-            password = currentState.password,
-        ).onSuccess {
-            sendOTPCode()
-            sendSideEffect(RegisterSideEffect.NavigateToNextStep)
-        }.onFailure { e ->
-            val errorMessage = e.message
-            updateState { it.copy(error = errorMessage) }
-            sendSideEffect(RegisterSideEffect.ShowToast("注册失败: $errorMessage"))
-        }
+        registerUserUseCase(email = email, password = current.password)
+            .onSuccess {
+                sendOTPCodeUseCase(email, OtpType.Email.SIGNUP)
+                    .onSuccess {
+                        reduce { state.copy(isEmailValid = true, error = null) }
+                        postSideEffect(RegisterSideEffect.ShowToast("验证码已发送到 $email"))
+                    }
+                    .onFailure { e ->
+                        val errorMessage = e.message
+                        reduce { state.copy(error = errorMessage) }
+                        postSideEffect(RegisterSideEffect.ShowToast("验证码发送失败: $errorMessage"))
+                    }
+                reduce { state.copy(isLoading = false) }
+                postSideEffect(RegisterSideEffect.NavigateToNextStep)
+            }
+            .onFailure { e ->
+                val errorMessage = e.message
+                reduce { state.copy(isLoading = false, error = errorMessage) }
+                postSideEffect(RegisterSideEffect.ShowToast("注册失败: $errorMessage"))
+            }
     }
 }

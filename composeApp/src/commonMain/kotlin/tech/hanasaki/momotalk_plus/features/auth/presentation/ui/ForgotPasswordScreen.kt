@@ -30,13 +30,13 @@ fun ForgotPasswordScreen(
     onNavigateBack: () -> Unit,
     viewModel: ForgotPasswordViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.container.stateFlow.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { effect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is ForgotPasswordSideEffect.NavigateToSuccess ->
                     coroutineScope.launch {
@@ -71,7 +71,7 @@ fun ForgotPasswordScreen(
         ) { page ->
             // 根据页面索引显示不同内容
             when (page) {
-                0 -> RequestEmailStep(uiState = uiState, onIntent = viewModel::processIntent)
+                0 -> RequestEmailStep(uiState = uiState, onIntent = viewModel::onIntent)
                 1 -> ResetSuccessStep(
                     onNavigateToLogin = onNavigateBack,
                 )

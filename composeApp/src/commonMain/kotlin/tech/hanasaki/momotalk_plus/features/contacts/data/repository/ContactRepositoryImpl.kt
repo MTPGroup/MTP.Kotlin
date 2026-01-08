@@ -24,7 +24,6 @@ class ContactRepositoryImpl(
     private suspend fun refreshContacts() {
         runCatching {
             val response = supabase.functions.invoke("contacts") {
-                url { path("contacts") }
                 method = HttpMethod.Get
             }
             val contacts = response.body<ContactListResponse>().data.contacts
@@ -35,7 +34,7 @@ class ContactRepositoryImpl(
 
     override suspend fun addContact(characterId: String) {
         supabase.functions.invoke("contacts") {
-            url { path("contacts", characterId) }
+            url { path(characterId) }
             method = HttpMethod.Post
         }
         refreshContacts()
@@ -43,7 +42,7 @@ class ContactRepositoryImpl(
 
     override suspend fun deleteContact(characterId: String) {
         supabase.functions.invoke("contacts") {
-            url { path("contacts", characterId) }
+            url { path(characterId) }
             method = HttpMethod.Delete
         }
         refreshContacts()

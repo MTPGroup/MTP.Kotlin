@@ -96,6 +96,7 @@ kotlin {
             implementation(libs.compose.icon.ionicons)
             implementation(libs.compose.core)
             implementation(libs.ktorfit)
+            implementation(libs.orbit.core)
             implementation(project.dependencies.platform(libs.supabase.bom))
             implementation(libs.bundles.supabase)
         }

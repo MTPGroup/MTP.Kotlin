@@ -46,8 +46,8 @@ fun ChatDetailPage(
     modifier: Modifier = Modifier,
     viewModel: ChatDetailViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val onIntent = viewModel::processIntent
+    val uiState by viewModel.container.stateFlow.collectAsState()
+    val onIntent = viewModel::onIntent
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -57,8 +57,8 @@ fun ChatDetailPage(
     // 记录上一次的消息内容长度
     var lastContentLength by remember { mutableStateOf(0) }
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { effect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is ChatDetailSideEffect.ShowToast -> {
                     coroutineScope.launch {
@@ -109,7 +109,7 @@ fun ChatDetailPage(
                     .statusBarsPadding()
                     .height(56.dp)
                     .background(colorScheme.surface)
-                    .padding(horizontal = 4.dp),
+                .padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {

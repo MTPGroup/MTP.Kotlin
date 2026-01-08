@@ -1,8 +1,10 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import tech.hanasaki.momotalk_plus.core.common.BaseViewModel
+import org.orbitmvi.orbit.Container
+import org.orbitmvi.orbit.ContainerHost
+import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.SignInUserUseCase
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginIntent
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginSideEffect
@@ -10,50 +12,34 @@ import tech.hanasaki.momotalk_plus.features.auth.presentation.state.LoginState
 
 class LoginViewModel(
     private val loginUserUseCase: SignInUserUseCase,
-) : BaseViewModel<LoginState, LoginSideEffect, LoginIntent>(LoginState()) {
+) : ViewModel(), ContainerHost<LoginState, LoginSideEffect> {
 
-    override fun processIntent(intent: LoginIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is LoginIntent.EmailChanged ->
-                    updateState { it.copy(email = intent.email) }
+    override val container: Container<LoginState, LoginSideEffect> =
+        viewModelScope.container(LoginState())
 
-                is LoginIntent.PasswordChanged ->
-                    updateState { it.copy(password = intent.password) }
-
-                is LoginIntent.ErrorDismissed ->
-                    updateState { it.copy(loginError = null) }
-
-                is LoginIntent.LoginClicked ->
-                    loginUser()
-
-                is LoginIntent.ForgotPasswordClicked ->
-                    sendSideEffect(LoginSideEffect.NavigateToForgotPassword)
-
-                is LoginIntent.RegisterClicked ->
-                    sendSideEffect(LoginSideEffect.NavigateToRegister)
-            }
+    fun onIntent(intent: LoginIntent) {
+        when (intent) {
+            is LoginIntent.EmailChanged -> intent { reduce { state.copy(email = intent.email) } }
+            is LoginIntent.PasswordChanged -> intent { reduce { state.copy(password = intent.password) } }
+            is LoginIntent.ErrorDismissed -> intent { reduce { state.copy(loginError = null) } }
+            is LoginIntent.LoginClicked -> loginUser()
+            is LoginIntent.ForgotPasswordClicked -> intent { postSideEffect(LoginSideEffect.NavigateToForgotPassword) }
+            is LoginIntent.RegisterClicked -> intent { postSideEffect(LoginSideEffect.NavigateToRegister) }
         }
     }
 
-    private suspend fun loginUser() {
-        updateState { it.copy(isLoading = true, loginError = null) }
-        val currentState = getState()
-
-        loginUserUseCase(
-            currentState.email,
-            currentState.password
-        ).onSuccess {
-            updateState { it.copy(isLoading = false, isLoggedIn = true) }
-        }.onFailure { error ->
-            val errorMessage = error.message
-            updateState {
-                it.copy(
-                    isLoading = false,
-                    loginError = errorMessage
-                )
+    private fun loginUser() = intent {
+        reduce { state.copy(isLoading = true, loginError = null) }
+        val email = state.email
+        val password = state.password
+        loginUserUseCase(email, password)
+            .onSuccess {
+                reduce { state.copy(isLoading = false, isLoggedIn = true) }
             }
-            sendSideEffect(LoginSideEffect.ShowToast("登录失败: $errorMessage"))
-        }
+            .onFailure { error ->
+                val msg = error.message
+                reduce { state.copy(isLoading = false, loginError = msg) }
+                postSideEffect(LoginSideEffect.ShowToast("登录失败: $msg"))
+            }
     }
 }

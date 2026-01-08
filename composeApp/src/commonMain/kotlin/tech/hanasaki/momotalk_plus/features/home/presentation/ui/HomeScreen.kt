@@ -30,14 +30,14 @@ fun HomeScreen(
     onLogout: () -> Unit,
     homeViewModel: HomeViewModel = koinViewModel(),
 ) {
-    val uiState by homeViewModel.uiState.collectAsState()
-    val onIntent = homeViewModel::processIntent
+    val uiState by homeViewModel.container.stateFlow.collectAsState()
+    val onIntent = homeViewModel::onIntent
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(homeViewModel.sideEffect) {
-        homeViewModel.sideEffect.collect { effect ->
+    LaunchedEffect(homeViewModel.container) {
+        homeViewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is HomeSideEffect.NavigateToSettings -> onNavigateToSettings()
                 is HomeSideEffect.NavigateToProfile -> onNavigateToProfile()

@@ -6,6 +6,10 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.call.body
+import io.ktor.http.HttpMethod
+import io.ktor.http.path
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -13,6 +17,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.domain.repository.SessionRepository
+import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.dto.ProfileResponse
 
 /**
  * 使用 Supabase 作为单一事实来源的会话仓库实现。
@@ -38,7 +43,25 @@ class SessionRepositoryImpl(
             .flatMapLatest { sessionStatus ->
                 when (sessionStatus) {
                     is SessionStatus.Authenticated -> {
-                        flowOf(null)
+                        runCatching {
+                            val response = supabase.functions.invoke("profiles") {
+                                method = HttpMethod.Get
+                            }.body<ProfileResponse>()
+                            val profile = response.data
+                            User(
+                                id = profile.id,
+                                username = profile.username ?: profile.uid ?: profile.id,
+                                avatar = profile.avatar,
+                                createdAt = profile.createdAt,
+                                updatedAt = profile.updatedAt,
+                            )
+                        }.fold(
+                            onSuccess = { flowOf(it) },
+                            onFailure = {
+                                it.printStackTrace()
+                                flowOf(null)
+                            }
+                        )
                     }
 
                     else -> flowOf(null)

@@ -48,17 +48,17 @@ fun ContactDetailPage(
     appViewModel: AppViewModel = koinViewModel(),
     viewModel: ContactDetailViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.container.stateFlow.collectAsState()
     val appUiState by appViewModel.uiState.collectAsState()
-    val onIntent = viewModel::processIntent
+    val onIntent = viewModel::onIntent
     val dialogState = rememberDialogState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
     val colorScheme = MaterialTheme.colorScheme
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { sideEffect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { sideEffect ->
             when (sideEffect) {
                 is ContactDetailSideEffect.ShowErrorMessage ->
                     coroutineScope.launch {

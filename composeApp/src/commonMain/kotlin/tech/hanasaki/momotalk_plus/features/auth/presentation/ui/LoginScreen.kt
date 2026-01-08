@@ -37,12 +37,12 @@ fun LoginScreen(
     onRegister: () -> Unit,
     loginViewModel: LoginViewModel = koinViewModel(),
 ) {
-    val uiState by loginViewModel.uiState.collectAsState()
+    val uiState by loginViewModel.container.stateFlow.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(key1 = loginViewModel.sideEffect) {
-        loginViewModel.sideEffect.collect { effect ->
+    LaunchedEffect(loginViewModel.container) {
+        loginViewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 LoginSideEffect.NavigateToForgotPassword ->
                     onForgotPassword()
@@ -73,7 +73,7 @@ fun LoginScreen(
             } else {
                 LoginContent(
                     uiState = uiState,
-                    onIntent = loginViewModel::processIntent
+                    onIntent = loginViewModel::onIntent
                 )
             }
         }

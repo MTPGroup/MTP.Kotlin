@@ -37,15 +37,15 @@ fun ChatListPage(
     onAvatarClick: () -> Unit,
     viewModel: ChatsViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val onIntent = viewModel::processIntent
+    val uiState by viewModel.container.stateFlow.collectAsState()
+    val onIntent = viewModel::onIntent
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
     val colorScheme = MaterialTheme.colorScheme
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { effect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
                 is ChatsSideEffect.NavigateToChatDetails ->
                     onNavigateToChatDetails(effect.chatId)

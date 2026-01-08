@@ -34,15 +34,15 @@ fun ContactsManagePage(
     onNavigateBack: () -> Unit,
     viewModel: ContactsManageViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val onIntent = viewModel::processIntent
+    val uiState by viewModel.container.stateFlow.collectAsState()
+    val onIntent = viewModel::onIntent
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val colorScheme = MaterialTheme.colorScheme
 
-    LaunchedEffect(viewModel.sideEffect) {
-        viewModel.sideEffect.collect { sideEffect ->
+    LaunchedEffect(viewModel.container) {
+        viewModel.container.sideEffectFlow.collect { sideEffect ->
             when (sideEffect) {
                 is ContactsManageSideEffect.ShowToast ->
                     coroutineScope.launch {

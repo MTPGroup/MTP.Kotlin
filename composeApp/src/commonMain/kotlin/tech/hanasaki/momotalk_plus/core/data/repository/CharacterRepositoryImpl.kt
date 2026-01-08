@@ -9,6 +9,7 @@ import io.ktor.http.path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
+
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterDetailResponse
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterListResponse
@@ -30,7 +31,6 @@ class CharacterRepositoryImpl(
     private suspend fun refreshCharacterList() {
         runCatching {
             val response = supabase.functions.invoke("characters") {
-                url { path("characters") }
                 method = HttpMethod.Get
             }
             val characters = response.body<CharacterListResponse>().data.characters
@@ -42,7 +42,7 @@ class CharacterRepositoryImpl(
     private suspend fun refreshCharacter(id: String) {
         runCatching {
             val response = supabase.functions.invoke("characters") {
-                url { path("characters", id) }
+                url { path(id) }
                 method = HttpMethod.Get
             }
             val character = response.body<CharacterDetailResponse>().data
@@ -91,7 +91,6 @@ class CharacterRepositoryImpl(
 
         try {
             supabase.functions.invoke("characters") {
-                url { path("characters") }
                 method = HttpMethod.Post
                 setBody(request)
             }
@@ -105,7 +104,7 @@ class CharacterRepositoryImpl(
     override suspend fun deleteCharacter(id: String) {
         try {
             supabase.functions.invoke("characters") {
-                url { path("characters", id) }
+                url { path(id) }
                 method = HttpMethod.Delete
             }
 
@@ -151,7 +150,7 @@ class CharacterRepositoryImpl(
             )
 
             supabase.functions.invoke("characters") {
-                url { path("characters", id) }
+                url { path(id) }
                 method = HttpMethod.Put
                 setBody(request)
             }

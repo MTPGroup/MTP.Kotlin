@@ -32,7 +32,7 @@ class ChatRepositoryImpl(
         avatarUrl: String?,
     ) {
         supabase.functions.invoke("chats") {
-            url { path("chats", "private") }
+            url { path("private") }
             method = HttpMethod.Post
             setBody(
                 CreateChatRequest(
@@ -47,7 +47,6 @@ class ChatRepositoryImpl(
 
     override fun getChatList(): Flow<List<Chat>> = flow {
         val response = supabase.functions.invoke("chats") {
-            url { path("chats") }
             method = HttpMethod.Get
         }.body<ChatListResponse>()
         emit(response.data.chats)
@@ -55,7 +54,7 @@ class ChatRepositoryImpl(
 
     override suspend fun deleteChat(chatId: String) {
         supabase.functions.invoke("chats") {
-            url { path("chats", chatId) }
+            url { path(chatId) }
             method = HttpMethod.Delete
         }
     }
@@ -67,7 +66,7 @@ class ChatRepositoryImpl(
         avatarUrl: String,
     ) {
         supabase.functions.invoke("chats") {
-            url { path("chats", chatId) }
+            url { path(chatId) }
             method = HttpMethod.Patch
             setBody(
                 UpdateChatInfoRequest(
@@ -81,7 +80,7 @@ class ChatRepositoryImpl(
 
     override fun getChatInfo(chatId: String): Flow<ChatWithCharacter> = flow {
         val response = supabase.functions.invoke("chats") {
-            url { path("chats", chatId) }
+            url { path(chatId) }
             method = HttpMethod.Get
         }.body<ChatInfoResponse>()
         emit(response.data)
@@ -90,7 +89,7 @@ class ChatRepositoryImpl(
     override fun getChatHistory(chatId: String, limits: Int?): Flow<List<Message>> = flow {
         val response = supabase.functions.invoke("chats") {
             url {
-                path("chats", chatId, "messages")
+                path(chatId, "messages")
                 if (limits != null) {
                     parameters.append("limit", limits.toString())
                 }
@@ -102,7 +101,7 @@ class ChatRepositoryImpl(
 
     override suspend fun clearChatHistory(chatId: String) {
         supabase.functions.invoke("chats") {
-            url { path("chats", chatId, "messages") }
+            url { path(chatId, "messages") }
             method = HttpMethod.Delete
         }
     }

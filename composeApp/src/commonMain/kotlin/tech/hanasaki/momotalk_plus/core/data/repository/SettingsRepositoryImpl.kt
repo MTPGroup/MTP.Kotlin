@@ -48,7 +48,6 @@ class SettingsRepositoryImpl(
             .onStart {
                 try {
                     val response = supabase.functions.invoke("settings") {
-                        url { path("settings") }
                         method = HttpMethod.Get
                     }
                     val remoteSettings = response.body<SettingsResponse>().data.toUserSettings()
@@ -176,7 +175,6 @@ class SettingsRepositoryImpl(
     private suspend fun syncToServer(request: UpdateSettingsRequest) {
         try {
             supabase.functions.invoke("settings") {
-                url { path("settings") }
                 method = HttpMethod.Patch
                 setBody(request)
             }
