@@ -139,8 +139,186 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResetPasswordResponse"
+  /profiles:
+    get:
+      summary: Get current profile
+      responses:
+        "200":
+          description: Profile data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+    put:
+      summary: Update profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+  /profiles/avatar:
+    post:
+      summary: Upload avatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upload result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvatarUploadResponse"
+  /settings:
+    get:
+      summary: Get user settings
+      responses:
+        "200":
+          description: Settings data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingsResponse"
+    patch:
+      summary: Update user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettingsRequest"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingsResponse"
 components:
   schemas:
+    ProfileData:
+      type: object
+      properties:
+        id:
+          type: string
+        uid:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          nullable: true
+      required:
+        - id
+    ProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ProfileData"
+      required:
+        - success
+        - message
+        - data
+    UpdateProfileRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+    AvatarUploadData:
+      type: object
+      properties:
+        avatarUrl:
+          type: string
+        profile:
+          $ref: "#/components/schemas/ProfileData"
+      required:
+        - avatarUrl
+        - profile
+    AvatarUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/AvatarUploadData"
+      required:
+        - success
+        - message
+        - data
+    SettingsData:
+      type: object
+      properties:
+        ownerId:
+          type: string
+        theme:
+          type: string
+        chatModels:
+          type: object
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - ownerId
+        - theme
+        - chatModels
+        - createdAt
+        - updatedAt
+    SettingsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/SettingsData"
+      required:
+        - success
+        - message
+        - data
+    UpdateSettingsRequest:
+      type: object
+      properties:
+        theme:
+          type: string
+          nullable: true
+        chatModels:
+          type: object
+          nullable: true
     UserProfile:
       type: object
       properties:

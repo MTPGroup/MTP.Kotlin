@@ -1,35 +1,46 @@
 package tech.hanasaki.azusa.routes
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.plugins.openapi.openAPI
-import io.ktor.server.plugins.swagger.swaggerUI
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.config.*
+import io.ktor.server.plugins.openapi.*
+import io.ktor.server.plugins.swagger.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.auth.jwt.JWTPrincipal
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import io.ktor.utils.io.readAvailable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import tech.hanasaki.azusa.app.healthRoutes
 import tech.hanasaki.azusa.auth.AuthContext
 import tech.hanasaki.azusa.auth.requireAuthContext
 import tech.hanasaki.azusa.common.ApiException
 import tech.hanasaki.azusa.db.ProfilesTable
+import tech.hanasaki.azusa.db.SettingsTable
 import tech.hanasaki.azusa.db.UsersTable
 import tech.hanasaki.azusa.db.dbQuery
 import tech.hanasaki.azusa.permissions.Permissions
+import tech.hanasaki.azusa.storage.S3Config
+import tech.hanasaki.azusa.storage.S3Storage
+import java.io.ByteArrayOutputStream
 
 fun Application.configureRouting(config: ApplicationConfig): Unit {
+    val storageConfig = config.readS3Config()
+    val s3Storage = S3Storage(storageConfig)
     routing {
         openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
         authRoutes(config)
         healthRoutes()
-        profileRoutes()
+        profileRoutes(s3Storage)
         settingsRoutes()
         characterRoutes()
         contactRoutes()
@@ -39,20 +50,126 @@ fun Application.configureRouting(config: ApplicationConfig): Unit {
     }
 }
 
-private fun Route.profileRoutes(): Unit {
+private fun Route.profileRoutes(storage: S3Storage): Unit {
     authenticate("auth-jwt") {
         route("/profiles") {
             get {
-                call.requireAuthContext()
-                call.respondNotImplemented("GET /profiles is not implemented yet")
+                val auth = call.requireAuthContext()
+                val profile = dbQuery {
+                    ProfilesTable
+                        .selectAll()
+                        .where { ProfilesTable.id eq EntityID(auth.profileId, ProfilesTable) }
+                        .limit(1)
+                        .singleOrNull()
+                } ?: throw ApiException(HttpStatusCode.NotFound, "PROFILE_NOT_FOUND", "Profile not found")
+
+                call.respond(
+                    tech.hanasaki.azusa.profile.ProfileResponse(
+                        success = true,
+                        message = "成功获取用户信息",
+                        data = tech.hanasaki.azusa.profile.ProfileData(
+                            id = profile[ProfilesTable.id].value.toString(),
+                            uid = profile[ProfilesTable.uid].value.toString(),
+                            username = profile[ProfilesTable.username],
+                            avatar = profile[ProfilesTable.avatar],
+                            createdAt = profile[ProfilesTable.createdAt].toString(),
+                            updatedAt = profile[ProfilesTable.updatedAt].toString(),
+                        ),
+                    ),
+                )
             }
             put {
-                call.requireAuthContext()
-                call.respondNotImplemented("PUT /profiles is not implemented yet")
+                val auth = call.requireAuthContext()
+                val request = call.receive<tech.hanasaki.azusa.profile.UpdateProfileRequest>()
+                validateProfileUpdate(request)
+
+                val updated = dbQuery {
+                    ProfilesTable
+                        .update({ ProfilesTable.id eq EntityID(auth.profileId, ProfilesTable) }) { row ->
+                            request.username?.let { row[ProfilesTable.username] = it }
+                            if (request.avatar != null) {
+                                row[ProfilesTable.avatar] = request.avatar
+                            }
+                        }
+
+                    ProfilesTable
+                        .selectAll()
+                        .where { ProfilesTable.id eq EntityID(auth.profileId, ProfilesTable) }
+                        .limit(1)
+                        .single()
+                }
+
+                call.respond(
+                    tech.hanasaki.azusa.profile.ProfileResponse(
+                        success = true,
+                        message = "成功更新用户信息",
+                        data = tech.hanasaki.azusa.profile.ProfileData(
+                            id = updated[ProfilesTable.id].value.toString(),
+                            uid = updated[ProfilesTable.uid].value.toString(),
+                            username = updated[ProfilesTable.username],
+                            avatar = updated[ProfilesTable.avatar],
+                            createdAt = updated[ProfilesTable.createdAt].toString(),
+                            updatedAt = updated[ProfilesTable.updatedAt].toString(),
+                        ),
+                    ),
+                )
             }
             post("/avatar") {
-                call.requireAuthContext()
-                call.respondNotImplemented("POST /profiles/avatar is not implemented yet")
+                val auth = call.requireAuthContext()
+                val multipart = call.receiveMultipart()
+                val file = multipart.readFilePart()
+                    ?: throw ApiException(HttpStatusCode.BadRequest, "FILE_REQUIRED", "Avatar file is required")
+
+                try {
+                    val contentType = file.contentType?.toString() ?: ""
+                    if (!ALLOWED_AVATAR_TYPES.contains(contentType)) {
+                        throw ApiException(
+                            HttpStatusCode.BadRequest,
+                            "INVALID_FILE_TYPE",
+                            "Avatar file type is not allowed",
+                        )
+                    }
+
+                    val safeName = makeSafeFileName(file.originalFileName ?: "avatar")
+                    val fileName = "${System.currentTimeMillis()}_$safeName"
+                    val objectKey = "${auth.userId}/$fileName"
+                    val bytes = file.readBytesWithLimit(MAX_AVATAR_SIZE)
+                        ?: throw ApiException(HttpStatusCode.BadRequest, "FILE_TOO_LARGE", "Avatar file is too large")
+                    val avatarUrl = storage.uploadAvatar(objectKey, contentType, bytes)
+
+                    val profile = dbQuery {
+                        ProfilesTable
+                            .update({ ProfilesTable.id eq EntityID(auth.profileId, ProfilesTable) }) { row ->
+                                row[ProfilesTable.avatar] = avatarUrl
+                            }
+
+                        ProfilesTable
+                            .selectAll()
+                            .where { ProfilesTable.id eq EntityID(auth.profileId, ProfilesTable) }
+                            .limit(1)
+                            .single()
+                    }
+
+                    call.respond(
+                        tech.hanasaki.azusa.profile.AvatarUploadResponse(
+                            success = true,
+                            message = "头像上传成功",
+                            data = tech.hanasaki.azusa.profile.AvatarUploadData(
+                                avatarUrl = avatarUrl,
+                                profile = tech.hanasaki.azusa.profile.ProfileData(
+                                    id = profile[ProfilesTable.id].value.toString(),
+                                    uid = profile[ProfilesTable.uid].value.toString(),
+                                    username = profile[ProfilesTable.username],
+                                    avatar = profile[ProfilesTable.avatar],
+                                    createdAt = profile[ProfilesTable.createdAt].toString(),
+                                    updatedAt = profile[ProfilesTable.updatedAt].toString(),
+                                ),
+                            ),
+                        ),
+                    )
+                } finally {
+                    file.dispose()
+                }
             }
         }
     }
@@ -62,12 +179,60 @@ private fun Route.settingsRoutes(): Unit {
     authenticate("auth-jwt") {
         route("/settings") {
             get {
-                call.requireAuthContext()
-                call.respondNotImplemented("GET /settings is not implemented yet")
+                val auth = call.requireAuthContext()
+                val settings = dbQuery {
+                    SettingsTable
+                        .selectAll()
+                        .where { SettingsTable.ownerId eq EntityID(auth.profileId, ProfilesTable) }
+                        .limit(1)
+                        .singleOrNull()
+                } ?: throw ApiException(HttpStatusCode.NotFound, "SETTINGS_NOT_FOUND", "Settings not found")
+
+                call.respond(
+                    tech.hanasaki.azusa.settings.SettingsResponse(
+                        success = true,
+                        message = "成功获取用户设置",
+                        data = tech.hanasaki.azusa.settings.SettingsData(
+                            ownerId = settings[SettingsTable.ownerId].value.toString(),
+                            theme = settings[SettingsTable.theme],
+                            chatModels = settings[SettingsTable.chatModels],
+                            createdAt = settings[SettingsTable.createdAt].toString(),
+                            updatedAt = settings[SettingsTable.updatedAt].toString(),
+                        ),
+                    ),
+                )
             }
             patch {
-                call.requireAuthContext()
-                call.respondNotImplemented("PATCH /settings is not implemented yet")
+                val auth = call.requireAuthContext()
+                val request = call.receive<tech.hanasaki.azusa.settings.UpdateSettingsRequest>()
+
+                val updated = dbQuery {
+                    SettingsTable
+                        .update({ SettingsTable.ownerId eq EntityID(auth.profileId, ProfilesTable) }) { row ->
+                            request.theme?.let { row[SettingsTable.theme] = it }
+                            request.chatModels?.let { row[SettingsTable.chatModels] = it }
+                        }
+
+                    SettingsTable
+                        .selectAll()
+                        .where { SettingsTable.ownerId eq EntityID(auth.profileId, ProfilesTable) }
+                        .limit(1)
+                        .singleOrNull()
+                } ?: throw ApiException(HttpStatusCode.NotFound, "SETTINGS_NOT_FOUND", "Settings not found")
+
+                call.respond(
+                    tech.hanasaki.azusa.settings.SettingsResponse(
+                        success = true,
+                        message = "成功更新用户设置",
+                        data = tech.hanasaki.azusa.settings.SettingsData(
+                            ownerId = updated[SettingsTable.ownerId].value.toString(),
+                            theme = updated[SettingsTable.theme],
+                            chatModels = updated[SettingsTable.chatModels],
+                            createdAt = updated[SettingsTable.createdAt].toString(),
+                            updatedAt = updated[SettingsTable.updatedAt].toString(),
+                        ),
+                    ),
+                )
             }
         }
     }
@@ -413,4 +578,70 @@ private fun extractEmailVerified(meta: JsonElement): Boolean {
     val obj = meta as? JsonObject ?: return false
     val value = obj["emailVerified"] as? JsonPrimitive ?: return false
     return value.booleanOrNull ?: false
+}
+
+private fun ApplicationConfig.readS3Config(): S3Config {
+    return S3Config(
+        endpoint = property("s3.endpoint").getString(),
+        region = property("s3.region").getString(),
+        bucket = property("s3.bucket").getString(),
+        accessKey = property("s3.accessKey").getString(),
+        secretKey = property("s3.secretKey").getString(),
+        publicBaseUrl = property("s3.publicBaseUrl").getString(),
+        forcePathStyle = property("s3.forcePathStyle").getString().toBoolean(),
+    )
+}
+
+private const val MAX_AVATAR_SIZE: Long = 5L * 1024 * 1024
+
+private val ALLOWED_AVATAR_TYPES = setOf(
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+)
+
+private fun validateProfileUpdate(request: tech.hanasaki.azusa.profile.UpdateProfileRequest): Unit {
+    request.username?.let {
+        if (it.isBlank() || it.length > 50) {
+            throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Invalid username")
+        }
+    }
+}
+
+private fun makeSafeFileName(fileName: String): String {
+    val trimmed = fileName.trim()
+    val replacedSpaces = trimmed.replace(Regex("\\s+"), "_")
+    val cleaned = replacedSpaces.replace(Regex("[^A-Za-z0-9._-]"), "")
+    return if (cleaned.isNotEmpty()) cleaned else "avatar"
+}
+
+private suspend fun MultiPartData.readFilePart(): PartData.FileItem? {
+    var result: PartData.FileItem? = null
+    forEachPart { part ->
+        val isTarget = part is PartData.FileItem && (part.name == "file" || part.name == "avatar")
+        if (result == null && isTarget) {
+            result = part
+        } else {
+            part.dispose()
+        }
+    }
+    return result
+}
+
+private suspend fun PartData.FileItem.readBytesWithLimit(maxBytes: Long): ByteArray? {
+    var total = 0L
+    val output = ByteArrayOutputStream()
+    val channel = provider()
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    while (true) {
+        val read = channel.readAvailable(buffer, 0, buffer.size)
+        if (read <= 0) break
+        total += read
+        if (total > maxBytes) {
+            return null
+        }
+        output.write(buffer, 0, read)
+    }
+    return output.toByteArray()
 }

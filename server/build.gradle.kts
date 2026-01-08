@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.openapi)
     implementation(libs.ktor.server.swagger)
+    implementation(libs.aws.sdk.s3)
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.jdbc)
