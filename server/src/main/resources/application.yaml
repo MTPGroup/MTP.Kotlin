@@ -1,0 +1,17 @@
+ktor:
+  application:
+    modules:
+      - tech.hanasaki.azusa.app.ApplicationKt.module
+  deployment:
+    port: 8080
+database:
+  driver: "org.postgresql.Driver"
+  url: ${DB_URL}
+  user: "postgres"
+  password: ${DB_PASSWORD}
+  maxPoolSize: 5
+jwt:
+  issuer: "azusa"
+  audience: "azusa"
+  realm: "azusa"
+  secret: "change_me"
