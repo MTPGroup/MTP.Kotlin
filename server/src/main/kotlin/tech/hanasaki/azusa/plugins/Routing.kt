@@ -7,18 +7,15 @@ import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.auth.api.authRoutes
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
-import tech.hanasaki.azusa.modules.auth.application.service.TokenService
 
 fun Application.configureRouting(): Unit {
     val authService: AuthService by inject()
-    val tokenService: TokenService by inject()
 
     routing {
         openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
         authRoutes(
             authService,
-            tokenService
         )
     }
 }

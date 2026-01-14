@@ -9,7 +9,7 @@ data class SignUpResponse(
 
 @Serializable
 data class SignInWithPasswordResponse(
-    val token: String,
+    val accessToken: String,
     val refreshToken: String,
     val user: UserProfile,
     val expiresIn: Long,
@@ -53,6 +53,7 @@ data class UserProfile(
     val email: String,
     val name: String,
     val avatar: String?,
+    val isEmailVerified: Boolean,
     val createdAt: String,
     val updatedAt: String,
 )

@@ -13,6 +13,7 @@ data class LoginResult(
     val email: Email,
     val username: Username,
     val avatar: AvatarUrl?,
+    val isEmailVerified: Boolean,
     val tokens: TokenPair,
     val createdAt: Instant,
     val updatedAt: Instant,

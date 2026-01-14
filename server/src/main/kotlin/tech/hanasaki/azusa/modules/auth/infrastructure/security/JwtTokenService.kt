@@ -2,12 +2,14 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import kotlinx.datetime.Clock
+import com.auth0.jwt.exceptions.JWTVerificationException
+import kotlinx.datetime.toKotlinInstant
 import tech.hanasaki.azusa.config.JwtConfig
 import tech.hanasaki.azusa.modules.auth.application.service.TokenPair
 import tech.hanasaki.azusa.modules.auth.application.service.TokenService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import java.util.*
 
 class JwtTokenService(
@@ -19,7 +21,7 @@ class JwtTokenService(
     ): TokenPair {
         val algorithm = Algorithm.HMAC256(config.secret)
 
-        val now = Clock.System.now().toEpochMilliseconds()
+        val now = System.currentTimeMillis()
         val accessDurationMillis = config.accessTokenMinutes * 60 * 1000L
         val refreshDurationMillis = config.refreshTokenDays * 24 * 60 * 60 * 1000L
 
@@ -48,7 +50,27 @@ class JwtTokenService(
         return TokenPair(
             accessToken = accessToken,
             refreshToken = refreshToken,
-            expiresIn = accessExpiresAt.time
+            expiresIn = config.accessTokenMinutes * 60L,
+            refreshTokenExpiresAt = refreshExpiresAt.toInstant().toKotlinInstant()
         )
+    }
+
+    override fun verifyRefreshToken(refreshToken: String): UserId {
+        val algorithm = Algorithm.HMAC256(config.secret)
+        val verifier = JWT.require(algorithm)
+            .withIssuer(config.issuer)
+            .withAudience(config.audience)
+            .build()
+
+        try {
+            val decodedJWT = verifier.verify(refreshToken)
+            val userIdString = decodedJWT.subject
+                ?: throw AuthenticationException("Refresh token is missing subject (userId)")
+            return UserId(UUID.fromString(userIdString))
+        } catch (_: JWTVerificationException) {
+            throw AuthenticationException("Invalid or expired refresh token")
+        } catch (_: IllegalArgumentException) {
+            throw AuthenticationException("Invalid userId format in refresh token")
+        }
     }
 }

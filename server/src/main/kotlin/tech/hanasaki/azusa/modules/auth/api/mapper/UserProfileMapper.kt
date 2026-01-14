@@ -8,6 +8,7 @@ fun LoginResult.toUserProfile(): UserProfile = UserProfile(
     email = email.value,
     name = username.value,
     avatar = avatar?.value,
+    isEmailVerified = isEmailVerified,
     createdAt = createdAt.toString(),
     updatedAt = updatedAt.toString(),
 )

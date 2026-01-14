@@ -3,18 +3,18 @@ package tech.hanasaki.azusa.modules.auth.application.service
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
 import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
-import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
-import tech.hanasaki.azusa.modules.auth.domain.model.User
-import tech.hanasaki.azusa.modules.auth.domain.model.UserId
-import tech.hanasaki.azusa.modules.auth.domain.model.UserStatus
+import tech.hanasaki.azusa.modules.auth.domain.model.*
+import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.shared.domain.event.EventPublisher
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import java.security.MessageDigest
 
 class AuthService(
     private val userRepository: UserRepository,
+    private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
     private val tokenService: TokenService,
     private val eventPublisher: EventPublisher,
@@ -23,7 +23,7 @@ class AuthService(
     /**
      * 用户注册
      */
-    suspend fun register(cmd: RegisterCommand): UserId {
+    suspend fun register(cmd: RegisterCommand) {
         val email = cmd.email
 
         if (userRepository.findByEmail(email) != null) {
@@ -42,8 +42,6 @@ class AuthService(
 
         eventPublisher.publishAll(user.domainEvents)
         user.clearDomainEvents()
-
-        return user.id
     }
 
     /**
@@ -68,17 +66,27 @@ class AuthService(
 
         val tokens = tokenService.generateTokens(user.id, user.email!!)
 
+        val refreshToken = RefreshToken(
+            userId = user.id,
+            tokenHash = hashToken(tokens.refreshToken),
+            expiresAt = tokens.refreshTokenExpiresAt,
+        )
+        refreshTokenRepository.save(refreshToken)
+
         userRepository.save(user)
 
-        return LoginResult(
-            userId = UserId(user.id.value),
-            username = user.profile.username,
-            email = user.email!!,
-            avatar = user.profile.avatar,
-            createdAt = user.profile.createdAt,
-            updatedAt = user.profile.updatedAt,
-            tokens = tokens,
-        )
+        return createLoginResult(user, tokens)
+    }
+
+    /**
+     * 用户登出
+     */
+    suspend fun logout(refreshToken: String) {
+        val tokenHash = hashToken(refreshToken)
+        val storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
+        if (storedToken != null) {
+            refreshTokenRepository.revoke(storedToken)
+        }
     }
 
     /**
@@ -93,5 +101,58 @@ class AuthService(
         userRepository.save(user)
         eventPublisher.publishAll(user.domainEvents)
         user.clearDomainEvents()
+    }
+
+    /**
+     * 使用 RefreshToken 刷新 AccessToken
+     */
+    suspend fun refreshToken(refreshToken: String): LoginResult {
+        tokenService.verifyRefreshToken(refreshToken)
+
+        val tokenHash = hashToken(refreshToken)
+        val storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
+            ?: throw AuthenticationException("Refresh token not found")
+
+        if (!storedToken.isValid()) {
+            throw AuthenticationException("Refresh token is expired or has been revoked")
+        }
+        refreshTokenRepository.revoke(storedToken)
+
+        val user = userRepository.findById(storedToken.userId)
+            ?: throw NotFoundException("User not found")
+
+        if (!user.canSignIn()) {
+            throw AuthenticationException("Account is disabled or suspended")
+        }
+
+        val tokens = tokenService.generateTokens(user.id, user.email!!)
+
+        val newRefreshToken = RefreshToken(
+            userId = user.id,
+            tokenHash = hashToken(tokens.refreshToken),
+            expiresAt = tokens.refreshTokenExpiresAt,
+        )
+        refreshTokenRepository.save(newRefreshToken)
+
+        userRepository.save(user)
+
+        return createLoginResult(user, tokens)
+    }
+
+
+    private fun createLoginResult(user: User, tokens: TokenPair) = LoginResult(
+        userId = user.id,
+        username = user.profile.username,
+        email = user.email!!,
+        isEmailVerified = user.isEmailVerified,
+        avatar = user.profile.avatar,
+        createdAt = user.profile.createdAt,
+        updatedAt = user.profile.updatedAt,
+        tokens = tokens,
+    )
+
+    private fun hashToken(token: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(token.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
     }
 }

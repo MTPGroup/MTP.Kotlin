@@ -77,7 +77,7 @@ class AuthRoutesTest {
         }
         assertStatus(HttpStatusCode.OK, signInResponse.status, signInResponse.bodyAsText())
         val signIn = json.decodeFromString<SignInWithPasswordResponse>(signInResponse.bodyAsText())
-        assertTrue(signIn.token.isNotBlank())
+        assertTrue(signIn.accessToken.isNotBlank())
         assertTrue(signIn.refreshToken.isNotBlank())
         assertEquals(email, signIn.user.email)
 
@@ -209,7 +209,7 @@ class AuthRoutesTest {
         }
         assertStatus(HttpStatusCode.OK, signInResponse.status, signInResponse.bodyAsText())
         val signIn = json.decodeFromString<SignInWithPasswordResponse>(signInResponse.bodyAsText())
-        assertTrue(signIn.token.isNotBlank())
+        assertTrue(signIn.accessToken.isNotBlank())
         assertTrue(signIn.refreshToken.isNotBlank())
     }
 

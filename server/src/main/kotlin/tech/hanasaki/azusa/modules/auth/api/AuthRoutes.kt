@@ -7,24 +7,30 @@ import io.ktor.server.routing.*
 import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordRequest
 import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordResponse
 import tech.hanasaki.azusa.modules.auth.api.dto.SignUpRequest
-import tech.hanasaki.azusa.modules.auth.api.dto.SignUpResponse
+import tech.hanasaki.azusa.modules.auth.api.dto.RefreshTokenRequest
 import tech.hanasaki.azusa.modules.auth.api.mapper.toUserProfile
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
-import tech.hanasaki.azusa.modules.auth.application.service.TokenService
 import tech.hanasaki.azusa.shared.infrastructure.utils.ApiException
 
 fun Route.authRoutes(
     authService: AuthService,
-    tokenService: TokenService,
 ) {
     route("/auth") {
         post("/sign-up/email") {
             val request = call.receive<SignUpRequest>()
             validateSignUp(request)
-            val userId = authService.register(request.toCommand())
+
+            authService.register(request.toCommand())
+
+            val loginCommand = SignInWithPasswordRequest(email = request.email, password = request.password).toCommand()
+            val result = authService.login(loginCommand)
+
             call.respond(
-                SignUpResponse(
-                    true
+                SignInWithPasswordResponse(
+                    user = result.toUserProfile(),
+                    accessToken = result.tokens.accessToken,
+                    refreshToken = result.tokens.refreshToken,
+                    expiresIn = result.tokens.expiresIn,
                 ),
             )
         }
@@ -36,7 +42,7 @@ fun Route.authRoutes(
             call.respond(
                 SignInWithPasswordResponse(
                     user = result.toUserProfile(),
-                    token = result.tokens.accessToken,
+                    accessToken = result.tokens.accessToken,
                     refreshToken = result.tokens.refreshToken,
                     expiresIn = result.tokens.expiresIn,
                 ),
@@ -97,22 +103,26 @@ fun Route.authRoutes(
             call.respond(ResetPasswordResponse(success = true))
         }*/
 
-        /* post("/refresh") {
-             val request = call.receive<RefreshTokenRequest>()
-             val userId = refreshTokenUseCase.validate(request.refreshToken)
-             val token = issueToken(jwtConfig, userId, authConfig.accessTokenMinutes)
-             val newRefresh = refreshTokenUseCase.rotate(request.refreshToken)
-             call.respond(RefreshTokenResponse(token = token, refreshToken = newRefresh))
-         }
+        post("/refresh") {
+            val request = call.receive<RefreshTokenRequest>()
+            val result = authService.refreshToken(request.refreshToken)
+            call.respond(
+                SignInWithPasswordResponse(
+                    user = result.toUserProfile(),
+                    accessToken = result.tokens.accessToken,
+                    refreshToken = result.tokens.refreshToken,
+                    expiresIn = result.tokens.expiresIn,
+                )
+            )
+        }
 
-         post("/sign-out") {
-             val body = runCatching { call.receive<SignOutRequest>() }.getOrNull()
-             val refreshToken = body?.refreshToken
-             if (!refreshToken.isNullOrBlank()) {
-                 refreshTokenUseCase.revoke(refreshToken)
-             }
-             call.respond(HttpStatusCode.OK, SignOutResponse(success = true))
-         }*/
+        post("/sign-out") {
+            val request = runCatching { call.receive<RefreshTokenRequest>() }.getOrNull()
+            if (request != null) {
+                authService.logout(request.refreshToken)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
     }
 }
 
