@@ -209,6 +209,667 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SettingsResponse"
+  /characters:
+    get:
+      summary: List characters
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Character list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterListResponse"
+    post:
+      summary: Create character
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCharacterRequest"
+      responses:
+        "201":
+          description: Character created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterDetailResponse"
+  /characters/{id}:
+    get:
+      summary: Get character detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Character detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterDetailResponse"
+    put:
+      summary: Update character
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCharacterRequest"
+      responses:
+        "200":
+          description: Character updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterDetailResponse"
+    delete:
+      summary: Delete character
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Character deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterActionResponse"
+  /characters/{id}/knowledge-bases:
+    get:
+      summary: List character knowledge bases
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Knowledge base list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterKnowledgeBaseResponse"
+    post:
+      summary: Link knowledge base to character
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeBaseLinkRequest"
+      responses:
+        "201":
+          description: Knowledge base linked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterActionResponse"
+  /characters/{id}/knowledge-bases/{kbId}:
+    delete:
+      summary: Unlink knowledge base from character
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: kbId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Knowledge base unlinked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterActionResponse"
+  /contacts:
+    get:
+      summary: List contacts
+      responses:
+        "200":
+          description: Contact list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactListResponse"
+  /contacts/{characterId}:
+    post:
+      summary: Add contact
+      parameters:
+        - in: path
+          name: characterId
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Contact added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactActionResponse"
+    put:
+      summary: Update contact
+      parameters:
+        - in: path
+          name: characterId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContactRequest"
+      responses:
+        "200":
+          description: Contact updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactActionResponse"
+    delete:
+      summary: Delete contact
+      parameters:
+        - in: path
+          name: characterId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Contact deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactActionResponse"
+  /plugins:
+    get:
+      summary: List plugins
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: authorId
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Plugin list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginListResponse"
+    post:
+      summary: Create plugin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePluginRequest"
+      responses:
+        "201":
+          description: Plugin created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginDetailResponse"
+  /plugins/{id}:
+    get:
+      summary: Get plugin detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plugin detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginDetailResponse"
+    put:
+      summary: Update plugin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePluginRequest"
+      responses:
+        "200":
+          description: Plugin updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginDetailResponse"
+    delete:
+      summary: Delete plugin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plugin deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginActionResponse"
+  /plugins/{id}/subscribe:
+    post:
+      summary: Subscribe plugin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscribed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginActionResponse"
+    delete:
+      summary: Unsubscribe plugin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unsubscribed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginActionResponse"
+  /plugins/{id}/like:
+    post:
+      summary: Like plugin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Liked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginActionResponse"
+    delete:
+      summary: Unlike plugin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unliked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginActionResponse"
+  /chats:
+    get:
+      summary: List chats
+      responses:
+        "200":
+          description: Chat list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatListResponse"
+  /chats/private:
+    post:
+      summary: Create private chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePrivateChatRequest"
+      responses:
+        "201":
+          description: Chat created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatDetailResponse"
+  /chats/{chatId}:
+    get:
+      summary: Get chat detail
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Chat detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatDetailResponse"
+    patch:
+      summary: Update chat
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateChatRequest"
+      responses:
+        "200":
+          description: Chat updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatDetailResponse"
+    delete:
+      summary: Delete chat
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Chat deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatActionResponse"
+  /chats/{chatId}/messages:
+    get:
+      summary: List chat messages
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: before
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Message list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatMessagesResponse"
+  /chats/{chatId}/messages/stream:
+    post:
+      summary: Stream chat messages
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /knowledge/bases:
+    get:
+      summary: List knowledge bases
+      parameters:
+        - in: query
+          name: public
+          schema:
+            type: boolean
+          required: false
+        - in: query
+          name: authorId
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Knowledge base list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeBaseListResponse"
+    post:
+      summary: Create knowledge base
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateKnowledgeBaseRequest"
+      responses:
+        "201":
+          description: Knowledge base created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeBaseDetailResponse"
+  /knowledge/bases/{id}:
+    get:
+      summary: Get knowledge base detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Knowledge base detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeBaseDetailResponse"
+    patch:
+      summary: Update knowledge base
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateKnowledgeBaseRequest"
+      responses:
+        "200":
+          description: Knowledge base updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeBaseDetailResponse"
+    delete:
+      summary: Delete knowledge base
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Knowledge base deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeDocumentResponse"
+  /knowledge/bases/{id}/files:
+    get:
+      summary: List knowledge base files
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeFileListResponse"
+  /knowledge/bases/{id}/files/{fileId}:
+    delete:
+      summary: Delete knowledge base file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: fileId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeDocumentResponse"
+  /knowledge/bases/{id}/documents:
+    post:
+      summary: Upload knowledge document
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                metadata:
+                  type: string
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeDocumentJsonRequest"
+      responses:
+        "201":
+          description: Document queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeDocumentResponse"
+  /knowledge/search:
+    post:
+      summary: Search knowledge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeSearchRequest"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeSearchResponse"
 components:
   schemas:
     ProfileData:
@@ -493,3 +1154,713 @@ components:
           type: boolean
       required:
         - success
+    CreateCharacterRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        avatar:
+          type: string
+        originPrompt:
+          type: string
+        isPublic:
+          type: boolean
+    UpdateCharacterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        avatar:
+          type: string
+        originPrompt:
+          type: string
+        isPublic:
+          type: boolean
+    CharacterListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/CharacterListData"
+    CharacterListData:
+      type: object
+      properties:
+        characters:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterSummary"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    CharacterSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        creatorId:
+          type: string
+        name:
+          type: string
+        signature:
+          type: string
+        persona:
+          type: string
+        avatarUrl:
+          type: string
+        isPublic:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        author:
+          $ref: "#/components/schemas/CharacterAuthor"
+    CharacterDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/CharacterDetail"
+    CharacterDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        bio:
+          type: string
+        originPrompt:
+          type: string
+        avatar:
+          type: string
+        isPublic:
+          type: boolean
+        creatorId:
+          type: string
+        authorId:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        author:
+          $ref: "#/components/schemas/CharacterAuthor"
+    CharacterAuthor:
+      type: object
+      properties:
+        id:
+          type: string
+        uid:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+    KnowledgeBaseLinkRequest:
+      type: object
+      required:
+        - knowledgeBaseId
+      properties:
+        knowledgeBaseId:
+          type: string
+        priority:
+          type: integer
+    CharacterKnowledgeBaseResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterKnowledgeBaseLink"
+    CharacterKnowledgeBaseLink:
+      type: object
+      properties:
+        knowledgeBase:
+          $ref: "#/components/schemas/KnowledgeBaseSummary"
+        priority:
+          type: integer
+    KnowledgeBaseSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        authorId:
+          type: string
+        isPublic:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    CharacterActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: string
+    ContactListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ContactListData"
+    ContactListData:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContactItem"
+    ContactItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nickname:
+          type: string
+        avatarUrl:
+          type: string
+        bio:
+          type: string
+        originPrompt:
+          type: string
+        isPublic:
+          type: boolean
+        creatorId:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        author:
+          $ref: "#/components/schemas/ContactAuthor"
+    ContactAuthor:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+    UpdateContactRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+    ContactActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ContactActionData"
+    ContactActionData:
+      type: object
+      properties:
+        message:
+          type: string
+        contactId:
+          type: string
+    CreatePluginRequest:
+      type: object
+      required:
+        - name
+        - description
+        - version
+        - schema
+        - code
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        schema:
+          type: object
+        code:
+          type: string
+    PluginListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PluginListData"
+    PluginListData:
+      type: object
+      properties:
+        plugins:
+          type: array
+          items:
+            $ref: "#/components/schemas/PluginSummary"
+    PluginSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        liked:
+          type: integer
+        isLiked:
+          type: boolean
+        isSubscribed:
+          type: boolean
+        status:
+          type: string
+        schema:
+          type: object
+        code:
+          type: string
+        author:
+          $ref: "#/components/schemas/PluginAuthor"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    PluginDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/PluginDetailData"
+    PluginDetailData:
+      type: object
+      properties:
+        plugin:
+          $ref: "#/components/schemas/PluginDetail"
+    PluginDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        liked:
+          type: integer
+        status:
+          type: string
+        schema:
+          type: object
+        code:
+          type: string
+        author:
+          $ref: "#/components/schemas/PluginAuthor"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    PluginAuthor:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+    PluginActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+    CreatePrivateChatRequest:
+      type: object
+      required:
+        - characterId
+        - name
+      properties:
+        characterId:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+    UpdateChatRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar:
+          type: string
+    SendMessageRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: array
+          items:
+            type: object
+    ChatListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ChatListData"
+    ChatListData:
+      type: object
+      properties:
+        chats:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatSummary"
+    ChatSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        title:
+          type: string
+        isGroup:
+          type: boolean
+        avatar:
+          type: string
+        creatorId:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        characterId:
+          type: string
+    ChatDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ChatDetail"
+    ChatDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        title:
+          type: string
+        isGroup:
+          type: boolean
+        avatar:
+          type: string
+        creatorId:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        owner:
+          $ref: "#/components/schemas/ChatOwner"
+    ChatOwner:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+    ChatMessagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ChatMessagesData"
+    ChatMessagesData:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        next:
+          type: string
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        chatId:
+          type: string
+        role:
+          type: string
+        content:
+          type: object
+        createdAt:
+          type: string
+        sender:
+          $ref: "#/components/schemas/ChatMessageSender"
+    ChatMessageSender:
+      type: object
+      properties:
+        name:
+          type: string
+        avatar:
+          type: string
+    ChatActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/ChatActionData"
+    ChatActionData:
+      type: object
+      properties:
+        id:
+          type: string
+    CreateKnowledgeBaseRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isPublic:
+          type: boolean
+    UpdateKnowledgeBaseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isPublic:
+          type: boolean
+    KnowledgeBaseListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/KnowledgeBaseListData"
+    KnowledgeBaseListData:
+      type: object
+      properties:
+        knowledgeBases:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeBaseSummary"
+    KnowledgeBaseDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/KnowledgeBaseDetailData"
+    KnowledgeBaseDetailData:
+      type: object
+      properties:
+        knowledgeBase:
+          $ref: "#/components/schemas/KnowledgeBaseSummary"
+    KnowledgeBaseSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        isPublic:
+          type: boolean
+        author:
+          $ref: "#/components/schemas/KnowledgeBaseAuthor"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    KnowledgeBaseAuthor:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+    KnowledgeFileListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/KnowledgeFileListData"
+    KnowledgeFileListData:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeFileItem"
+    KnowledgeFileItem:
+      type: object
+      properties:
+        id:
+          type: string
+        fileName:
+          type: string
+        filePath:
+          type: string
+        fileSize:
+          type: integer
+        fileType:
+          type: string
+        status:
+          type: string
+        errorMessage:
+          type: string
+        createdAt:
+          type: string
+    KnowledgeDocumentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/KnowledgeDocumentData"
+    KnowledgeDocumentData:
+      type: object
+      properties:
+        file:
+          $ref: "#/components/schemas/KnowledgeFileItem"
+    KnowledgeDocumentJsonRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+        metadata:
+          type: object
+    KnowledgeSearchRequest:
+      type: object
+      required:
+        - query
+        - knowledgeBaseIds
+      properties:
+        query:
+          type: string
+        knowledgeBaseIds:
+          type: array
+          items:
+            type: string
+        threshold:
+          type: number
+        limit:
+          type: integer
+    KnowledgeSearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: "#/components/schemas/KnowledgeSearchData"
+    KnowledgeSearchData:
+      type: object
+      properties:
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeSearchDocument"
+    KnowledgeSearchDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        similarity:
+          type: number
+        metadata:
+          type: object

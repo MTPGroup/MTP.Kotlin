@@ -1,7 +1,7 @@
 ktor:
   application:
     modules:
-      - tech.hanasaki.azusa.app.ApplicationKt.module
+      - tech.hanasaki.azusa.ApplicationKt.module
   deployment:
     port: 8080
 database:
@@ -15,7 +15,6 @@ jwt:
   audience: ${JWT_AUDIENCE}
   realm: ${JWT_REALM}
   secret: ${JWT_SECRET}
-auth:
   accessTokenMinutes: ${AUTH_ACCESS_TOKEN_MINUTES}
   refreshTokenDays: ${AUTH_REFRESH_TOKEN_DAYS}
 s3:

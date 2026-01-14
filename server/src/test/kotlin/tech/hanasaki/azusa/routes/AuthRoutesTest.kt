@@ -7,8 +7,8 @@ import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import org.testcontainers.containers.PostgreSQLContainer
-import tech.hanasaki.azusa.app.module
-import tech.hanasaki.azusa.auth.*
+import tech.hanasaki.azusa.module
+import tech.hanasaki.azusa.modules.auth.api.dto.*
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -56,18 +56,13 @@ class AuthRoutesTest {
                         email = email,
                         name = "Test User",
                         password = "password123",
-                        callbackURL = "http://localhost",
                     ),
                 ),
             )
         }
         assertStatus(HttpStatusCode.OK, signUpResponse.status, signUpResponse.bodyAsText())
         val signUp = json.decodeFromString<SignUpResponse>(signUpResponse.bodyAsText())
-        assertNotNull(signUp.token)
-        assertTrue(signUp.refreshToken.isNotBlank())
-        assertEquals(email, signUp.user.email)
-        assertEquals("Test User", signUp.user.name)
-        assertTrue(signUp.user.id.isNotBlank())
+        assertNotNull(signUp.success)
 
         val signInResponse = client.post("/auth/sign-in/email") {
             contentType(ContentType.Application.Json)
@@ -142,7 +137,6 @@ class AuthRoutesTest {
                         email = email,
                         name = "Otp User",
                         password = "password123",
-                        callbackURL = "http://localhost",
                     ),
                 ),
             )
@@ -262,7 +256,7 @@ class AuthRoutesTest {
         )
     }
 
-    private fun assertStatus(expected: HttpStatusCode, actual: HttpStatusCode, body: String): Unit {
+    private fun assertStatus(expected: HttpStatusCode, actual: HttpStatusCode, body: String) {
         if (expected != actual) {
             throw AssertionError("expected:<$expected> but was:<$actual>\nbody:\n$body")
         }
