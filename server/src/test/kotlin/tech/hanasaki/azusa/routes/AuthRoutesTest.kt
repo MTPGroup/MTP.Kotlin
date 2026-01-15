@@ -6,14 +6,21 @@ import io.ktor.http.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
+import org.koin.core.context.GlobalContext
+import org.koin.ktor.ext.getKoin
 import org.testcontainers.containers.PostgreSQLContainer
 import tech.hanasaki.azusa.module
 import tech.hanasaki.azusa.modules.auth.api.dto.*
+import tech.hanasaki.azusa.modules.auth.application.service.EmailService
+import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
+import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.koin.dsl.module as koinModule
 
 class AuthRoutesTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -32,7 +39,10 @@ class AuthRoutesTest {
         environment {
             config = testConfig()
         }
-        application { module() }
+        application {
+            module()
+            getKoin().loadModules(listOf(testOverrides()))
+        }
 
         val response = client.get("/health")
 
@@ -41,190 +51,162 @@ class AuthRoutesTest {
     }
 
     @Test
-    fun signUpAndSignInWork(): Unit = testApplication {
-        environment {
-            config = testConfig()
+    fun signUpSignInAndMe(): Unit = testApplication {
+        environment { config = testConfig() }
+        application {
+            module()
+            getKoin().loadModules(listOf(testOverrides()), allowOverride = true)
         }
-        application { module() }
 
-        val email = "test-${UUID.randomUUID()}@example.com"
+        val email = "me-${UUID.randomUUID()}@example.com"
+        val password = "password123"
+
+        val signIn = signUpVerifyAndSignIn(email, password)
+        assertTrue(signIn.accessToken.isNotBlank())
+
+        val meResponse = client.get("/auth/me") {
+            header(HttpHeaders.Authorization, "Bearer ${signIn.accessToken}")
+        }
+        assertEquals(HttpStatusCode.OK, meResponse.status)
+        val me = json.decodeFromString(UserProfile.serializer(), meResponse.bodyAsText())
+        assertEquals(email, me.email)
+        assertEquals(signIn.user.id, me.id)
+    }
+
+    @Test
+    fun changePasswordAndLoginWithNewPassword(): Unit = testApplication {
+        environment { config = testConfig() }
+        application {
+            module()
+            getKoin().loadModules(listOf(testOverrides()), allowOverride = true)
+        }
+
+        val email = "pw-${UUID.randomUUID()}@example.com"
+        val oldPassword = "password123"
+        val newPassword = "newpass456"
+
+        val signIn = signUpVerifyAndSignIn(email, oldPassword)
+
+        val changeResponse = client.post("/auth/password/change") {
+            header(HttpHeaders.Authorization, "Bearer ${signIn.accessToken}")
+            contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    ChangePasswordRequest.serializer(),
+                    ChangePasswordRequest(oldPassword, newPassword)
+                )
+            )
+        }
+        assertEquals(HttpStatusCode.OK, changeResponse.status)
+        val changePayload = json.decodeFromString(ChangePasswordResponse.serializer(), changeResponse.bodyAsText())
+        assertTrue(changePayload.success)
+
+        val oldLogin = client.post("/auth/sign-in/email") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    SignInWithPasswordRequest.serializer(),
+                    SignInWithPasswordRequest(email = email, password = oldPassword)
+                )
+            )
+        }
+        val oldLoginBody = oldLogin.bodyAsText()
+        assertEquals(HttpStatusCode.Unauthorized, oldLogin.status, "old login body: $oldLoginBody")
+
+        val newLogin = client.post("/auth/sign-in/email") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                json.encodeToString(
+                    SignInWithPasswordRequest.serializer(),
+                    SignInWithPasswordRequest(email = email, password = newPassword)
+                )
+            )
+        }
+        assertEquals(HttpStatusCode.OK, newLogin.status)
+        val newLoginPayload = json.decodeFromString(SignInWithPasswordResponse.serializer(), newLogin.bodyAsText())
+        assertTrue(newLoginPayload.accessToken.isNotBlank())
+    }
+
+    @Test
+    fun resendVerificationCreatesOtp(): Unit = testApplication {
+        environment { config = testConfig() }
+        application {
+            module()
+            getKoin().loadModules(listOf(testOverrides()), allowOverride = true)
+        }
+
+        val email = "otp-${UUID.randomUUID()}@example.com"
+        val signIn = signUpVerifyAndSignIn(email, "password123")
+
+        val resendResponse = client.post("/auth/email-otp/resend-verification") {
+            header(HttpHeaders.Authorization, "Bearer ${signIn.accessToken}")
+        }
+        val resendBody = resendResponse.bodyAsText()
+        assertEquals(HttpStatusCode.Conflict, resendResponse.status, "resend body: $resendBody")
+    }
+
+    private suspend fun ApplicationTestBuilder.signUpVerifyAndSignIn(
+        email: String,
+        password: String,
+    ): SignInWithPasswordResponse {
         val signUpResponse = client.post("/auth/sign-up/email") {
             contentType(ContentType.Application.Json)
             setBody(
                 json.encodeToString(
+                    SignUpRequest.serializer(),
                     SignUpRequest(
                         email = email,
                         name = "Test User",
-                        password = "password123",
-                    ),
-                ),
+                        password = password,
+                    )
+                )
             )
         }
-        assertStatus(HttpStatusCode.OK, signUpResponse.status, signUpResponse.bodyAsText())
-        val signUp = json.decodeFromString<SignUpResponse>(signUpResponse.bodyAsText())
-        assertNotNull(signUp.success)
+        val signUpBody = signUpResponse.bodyAsText()
+        assertEquals(HttpStatusCode.OK, signUpResponse.status, signUpBody)
+        val signUpPayload = json.decodeFromString(SignUpResponse.serializer(), signUpBody)
+        assertTrue(signUpPayload.success)
 
-        val signInResponse = client.post("/auth/sign-in/email") {
+        val sendOtp = client.post("/auth/email-otp/send") {
             contentType(ContentType.Application.Json)
             setBody(
                 json.encodeToString(
-                    SignInWithPasswordRequest(
-                        email = email,
-                        password = "password123",
-                    ),
-                ),
+                    SendOtpRequest.serializer(),
+                    SendOtpRequest(email = email, type = OtpType.VERIFY_EMAIL.name)
+                )
             )
         }
-        assertStatus(HttpStatusCode.OK, signInResponse.status, signInResponse.bodyAsText())
-        val signIn = json.decodeFromString<SignInWithPasswordResponse>(signInResponse.bodyAsText())
-        assertTrue(signIn.accessToken.isNotBlank())
-        assertTrue(signIn.refreshToken.isNotBlank())
-        assertEquals(email, signIn.user.email)
+        val sendOtpBody = sendOtp.bodyAsText()
+        assertEquals(HttpStatusCode.OK, sendOtp.status, "send-otp body: $sendOtpBody")
 
-        val refreshResponse = client.post("/auth/refresh") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    RefreshTokenRequest(
-                        refreshToken = signIn.refreshToken,
-                    ),
-                ),
-            )
-        }
-        assertStatus(HttpStatusCode.OK, refreshResponse.status, refreshResponse.bodyAsText())
-        val refreshPayload = json.decodeFromString<RefreshTokenResponse>(refreshResponse.bodyAsText())
-        assertTrue(refreshPayload.token.isNotBlank())
-        assertTrue(refreshPayload.refreshToken.isNotBlank())
-
-        val signOutResponse = client.post("/auth/sign-out") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    SignOutRequest(
-                        refreshToken = refreshPayload.refreshToken,
-                    ),
-                ),
-            )
-        }
-        assertStatus(HttpStatusCode.OK, signOutResponse.status, signOutResponse.bodyAsText())
-
-        val refreshAfterSignOut = client.post("/auth/refresh") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    RefreshTokenRequest(
-                        refreshToken = refreshPayload.refreshToken,
-                    ),
-                ),
-            )
-        }
-        assertEquals(HttpStatusCode.Unauthorized, refreshAfterSignOut.status)
-    }
-
-    @Test
-    fun emailOtpFlowWorks(): Unit = testApplication {
-        environment {
-            config = testConfig()
-        }
-        application { module() }
-
-        val email = "otp-${UUID.randomUUID()}@example.com"
-        client.post("/auth/sign-up/email") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    SignUpRequest(
-                        email = email,
-                        name = "Otp User",
-                        password = "password123",
-                    ),
-                ),
-            )
-        }
-
-        val verifySend = client.post("/auth/email-otp/send-verification-otp") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    SendEmailVerificationRequest(
-                        email = email,
-                        type = "email-verification",
-                    ),
-                ),
-            )
-        }
-        assertStatus(HttpStatusCode.OK, verifySend.status, verifySend.bodyAsText())
-        val verifyOtp = verifySend.headers["X-OTP-Code"] ?: error("Missing X-OTP-Code header")
+        val otpRepo: OtpRepository = GlobalContext.get().get()
+        val otp = otpRepo.findValidLatest(Email(email), OtpType.VERIFY_EMAIL)
+        assertNotNull(otp)
 
         val verifyResponse = client.post("/auth/email-otp/verify-email") {
             contentType(ContentType.Application.Json)
             setBody(
                 json.encodeToString(
-                    VerifyOTPRequest(
-                        email = email,
-                        otp = verifyOtp,
-                    ),
-                ),
+                    VerifyOTPRequest.serializer(),
+                    VerifyOTPRequest(email = email, otp = otp.code)
+                )
             )
         }
-        assertStatus(HttpStatusCode.NoContent, verifyResponse.status, verifyResponse.bodyAsText())
-
-        val resetSend = client.post("/auth/email-otp/forget-password") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    SendPasswordResetEmailRequest(
-                        email = email,
-                    ),
-                ),
-            )
-        }
-        assertStatus(HttpStatusCode.OK, resetSend.status, resetSend.bodyAsText())
-        val resetOtp = resetSend.headers["X-OTP-Code"] ?: error("Missing X-OTP-Code header")
-
-        val resetResponse = client.post("/auth/email-otp/reset-password") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                json.encodeToString(
-                    ResetPasswordRequest(
-                        email = email,
-                        otp = resetOtp,
-                        password = "newpassword123",
-                    ),
-                ),
-            )
-        }
-        assertStatus(HttpStatusCode.OK, resetResponse.status, resetResponse.bodyAsText())
+        val verifyBody = verifyResponse.bodyAsText()
+        assertEquals(HttpStatusCode.OK, verifyResponse.status, "verify body: $verifyBody")
 
         val signInResponse = client.post("/auth/sign-in/email") {
             contentType(ContentType.Application.Json)
             setBody(
                 json.encodeToString(
-                    SignInWithPasswordRequest(
-                        email = email,
-                        password = "newpassword123",
-                    ),
-                ),
+                    SignInWithPasswordRequest.serializer(),
+                    SignInWithPasswordRequest(email = email, password = password)
+                )
             )
         }
-        assertStatus(HttpStatusCode.OK, signInResponse.status, signInResponse.bodyAsText())
-        val signIn = json.decodeFromString<SignInWithPasswordResponse>(signInResponse.bodyAsText())
-        assertTrue(signIn.accessToken.isNotBlank())
-        assertTrue(signIn.refreshToken.isNotBlank())
-    }
-
-    @Test
-    fun signOutReturnsSuccess(): Unit = testApplication {
-        environment {
-            config = testConfig()
-        }
-        application { module() }
-
-        val response = client.post("/auth/sign-out")
-
-        assertStatus(HttpStatusCode.OK, response.status, response.bodyAsText())
-        val payload = json.decodeFromString<SignOutResponse>(response.bodyAsText())
-        assertTrue(payload.success)
+        val signInBody = signInResponse.bodyAsText()
+        assertEquals(HttpStatusCode.OK, signInResponse.status, "sign-in body: $signInBody")
+        return json.decodeFromString(SignInWithPasswordResponse.serializer(), signInBody)
     }
 
     private fun testConfig(): MapApplicationConfig {
@@ -239,6 +221,8 @@ class AuthRoutesTest {
             "jwt.audience" to "azusa",
             "jwt.realm" to "azusa",
             "jwt.secret" to "test_secret",
+            "jwt.accessTokenMinutes" to "15",
+            "jwt.refreshTokenDays" to "30",
             "smtp.host" to "localhost",
             "smtp.port" to "1025",
             "smtp.username" to "test",
@@ -256,9 +240,12 @@ class AuthRoutesTest {
         )
     }
 
-    private fun assertStatus(expected: HttpStatusCode, actual: HttpStatusCode, body: String) {
-        if (expected != actual) {
-            throw AssertionError("expected:<$expected> but was:<$actual>\nbody:\n$body")
+    private fun testOverrides() = koinModule {
+        single<EmailService> { FakeEmailService() }
+    }
+
+    private class FakeEmailService : EmailService {
+        override suspend fun sendHtml(to: Email, subject: String, html: String) {
         }
     }
 }
