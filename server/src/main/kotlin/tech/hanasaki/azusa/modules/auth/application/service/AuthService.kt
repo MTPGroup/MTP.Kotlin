@@ -2,6 +2,7 @@ package tech.hanasaki.azusa.modules.auth.application.service
 
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
+import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
 import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
 import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
@@ -17,6 +18,7 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
     private val tokenService: TokenService,
+    private val emailService: EmailService,
     private val eventPublisher: EventPublisher,
 ) {
 
@@ -92,8 +94,8 @@ class AuthService(
     /**
      * 邮箱验证
      */
-    suspend fun verifyEmail(userId: UserId) {
-        val user = userRepository.findById(userId)
+    suspend fun verifyEmail(email: Email) {
+        val user = userRepository.findByEmail(email)
             ?: throw NotFoundException("User not found")
 
         user.verifyEmail()
@@ -102,6 +104,43 @@ class AuthService(
         eventPublisher.publishAll(user.domainEvents)
         user.clearDomainEvents()
     }
+
+    /**
+     * 重置密码
+     */
+    suspend fun resetPassword(cmd: ResetPasswordCommand) {
+        val user = userRepository.findByEmail(cmd.email)
+            ?: throw NotFoundException("User not found")
+
+        val hashedPassword = passwordEncoder.encode(cmd.newPassword)
+        user.changePassword(PasswordHash(hashedPassword))
+
+        userRepository.save(user)
+    }
+
+    /**
+     * 修改密码
+     */
+    suspend fun changePassword(userId: UserId, oldPassword: String, newPassword: String) {
+        val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
+
+        if (!passwordEncoder.matches(oldPassword, user.passwordHash.value)) {
+            throw AuthenticationException("Invalid credentials")
+        }
+
+        val hashedPassword = passwordEncoder.encode(newPassword)
+        user.changePassword(PasswordHash(hashedPassword))
+
+        userRepository.save(user)
+    }
+
+    /**
+     * 获取用户信息
+     */
+    suspend fun getProfile(userId: UserId): User {
+        return userRepository.findById(userId) ?: throw NotFoundException("User not found")
+    }
+
 
     /**
      * 使用 RefreshToken 刷新 AccessToken

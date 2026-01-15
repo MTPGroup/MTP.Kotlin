@@ -1,19 +1,24 @@
 package tech.hanasaki.azusa.modules.auth.api
 
 import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordRequest
-import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordResponse
-import tech.hanasaki.azusa.modules.auth.api.dto.SignUpRequest
-import tech.hanasaki.azusa.modules.auth.api.dto.RefreshTokenRequest
+import tech.hanasaki.azusa.modules.auth.api.dto.*
 import tech.hanasaki.azusa.modules.auth.api.mapper.toUserProfile
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
+import tech.hanasaki.azusa.modules.auth.application.service.OtpService
+import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
+import tech.hanasaki.azusa.modules.auth.domain.model.UserId
 import tech.hanasaki.azusa.shared.infrastructure.utils.ApiException
+import java.util.*
 
 fun Route.authRoutes(
     authService: AuthService,
+    otpService: OtpService,
 ) {
     route("/auth") {
         post("/sign-up/email") {
@@ -22,17 +27,7 @@ fun Route.authRoutes(
 
             authService.register(request.toCommand())
 
-            val loginCommand = SignInWithPasswordRequest(email = request.email, password = request.password).toCommand()
-            val result = authService.login(loginCommand)
-
-            call.respond(
-                SignInWithPasswordResponse(
-                    user = result.toUserProfile(),
-                    accessToken = result.tokens.accessToken,
-                    refreshToken = result.tokens.refreshToken,
-                    expiresIn = result.tokens.expiresIn,
-                ),
-            )
+            call.respond(SignUpResponse(success = true))
         }
 
         post("/sign-in/email") {
@@ -49,59 +44,42 @@ fun Route.authRoutes(
             )
         }
 
-        /*post("/email-otp/send-verification-otp") {
-            val request = call.receive<SendEmailVerificationRequest>()
-            val type = OtpType.fromValue(request.type)
-                ?: throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Invalid OTP type")
-            val code = emailOtpUseCase.createOtp(request.email, type)
-            val subject = otpSubject(type)
-            val html = otpTemplate(code, otpConfig.expiresMinutes)
-            if (smtpConfig.enabled) {
-                mailer.sendHtml(request.email, subject, html)
-            }
-            if (otpDebug.returnCode) {
-                call.response.headers.append("X-OTP-Code", code)
-            }
-            call.respond(SendEmailVerificationResponse(success = true))
-        }
-
-        post("/email-otp/forget-password") {
-            val request = call.receive<SendPasswordResetEmailRequest>()
-            val code = emailOtpUseCase.createOtp(request.email, OtpType.RESET_PASSWORD)
-            val subject = otpSubject(OtpType.RESET_PASSWORD)
-            val html = otpTemplate(code, otpConfig.expiresMinutes)
-            if (smtpConfig.enabled) {
-                mailer.sendHtml(request.email, subject, html)
-            }
-            if (otpDebug.returnCode) {
-                call.response.headers.append("X-OTP-Code", code)
-            }
-            call.respond(SendPasswordResetEmailResponse(success = true))
+        post("/email-otp/send") {
+            val request = call.receive<SendOtpRequest>()
+            otpService.sendOtp(Email(request.email), OtpType.valueOf(request.type))
+            call.respond(OtpSendResponse(true))
         }
 
         post("/email-otp/verify-email") {
             val request = call.receive<VerifyOTPRequest>()
-            emailOtpUseCase.verifyOtp(request.email, OtpType.VERIFY_EMAIL, request.otp)
-            emailOtpUseCase.markEmailVerified(request.email)
-            val authUser = emailOtpUseCase.getUserProfile(request.email)
+            val email = Email(request.email)
+            otpService.verifyOtp(
+                email,
+                OtpType.VERIFY_EMAIL,
+                request.otp
+            )
+            authService.verifyEmail(email)
             call.respond(
                 VerifyOTPResponse(
-                    token = null,
-                    user = authUser.toUserProfile(),
+                    true
                 ),
             )
         }
 
         post("/email-otp/reset-password") {
             val request = call.receive<ResetPasswordRequest>()
-            emailOtpUseCase.verifyOtp(request.email, OtpType.RESET_PASSWORD, request.otp)
+            val email = Email(request.email)
+            otpService.verifyOtp(
+                email,
+                OtpType.RESET_PASSWORD,
+                request.otp
+            )
             if (request.password.length < 6) {
                 throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Password too short")
             }
-            val newHash = BCrypt.withDefaults().hashToString(12, request.password.toCharArray())
-            emailOtpUseCase.resetPassword(request.email, newHash)
+            authService.resetPassword(request.toCommand())
             call.respond(ResetPasswordResponse(success = true))
-        }*/
+        }
 
         post("/refresh") {
             val request = call.receive<RefreshTokenRequest>()
@@ -122,6 +100,57 @@ fun Route.authRoutes(
                 authService.logout(request.refreshToken)
             }
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        authenticate("auth-jwt") {
+            get("/me") {
+                val principal = call.principal<JWTPrincipal>() ?: throw ApiException(
+                    HttpStatusCode.Unauthorized,
+                    "UNAUTHORIZED",
+                    "Missing authentication"
+                )
+                val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
+
+                val user = authService.getProfile(UserId(userId))
+                call.respond(user.toUserProfile())
+            }
+
+            post("/password/change") {
+                val principal = call.principal<JWTPrincipal>() ?: throw ApiException(
+                    HttpStatusCode.Unauthorized,
+                    "UNAUTHORIZED",
+                    "Missing authentication"
+                )
+                val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
+
+                val request = call.receive<ChangePasswordRequest>()
+                if (request.newPassword.length < 6) {
+                    throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Password too short")
+                }
+                authService.changePassword(UserId(userId), request.oldPassword, request.newPassword)
+                call.respond(ChangePasswordResponse(success = true))
+            }
+
+            post("/email-otp/resend-verification") {
+                val principal = call.principal<JWTPrincipal>() ?: throw ApiException(
+                    HttpStatusCode.Unauthorized,
+                    "UNAUTHORIZED",
+                    "Missing authentication"
+                )
+                val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
+
+                val user = authService.getProfile(UserId(userId))
+                val email = user.email ?: throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Email not set")
+                if (user.isEmailVerified) {
+                    throw ApiException(HttpStatusCode.Conflict, "INVALID_STATE", "Email already verified")
+                }
+
+                otpService.sendOtp(email, OtpType.VERIFY_EMAIL)
+                call.respond(OtpSendResponse(true))
+            }
         }
     }
 }
@@ -146,22 +175,3 @@ private fun validateSignIn(request: SignInWithPasswordRequest) {
         throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Password is required")
     }
 }
-
-//private fun otpSubject(type: OtpType): String {
-//    return when (type) {
-//        OtpType.SIGN_IN -> "Your sign-in code"
-//        OtpType.RESET_PASSWORD -> "Your password reset code"
-//        OtpType.VERIFY_EMAIL -> "Verify your email"
-//    }
-//}
-//
-//private fun otpTemplate(code: String, expiresMinutes: Int): String {
-//    return """
-//        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-//          <h2>Your verification code</h2>
-//          <p>Use the following code to continue:</p>
-//          <div style="font-size: 24px; font-weight: bold; letter-spacing: 4px;">$code</div>
-//          <p>This code expires in $expiresMinutes minutes.</p>
-//        </div>
-//    """.trimIndent()
-//}

@@ -3,6 +3,7 @@ package tech.hanasaki.azusa.modules.auth.api.dto
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
+import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
 
@@ -41,6 +42,12 @@ data class SignOutRequest(
 )
 
 @Serializable
+data class SendOtpRequest(
+    val email: String,
+    val type: String,
+)
+
+@Serializable
 data class SendEmailVerificationRequest(
     val email: String,
     val type: String,
@@ -62,4 +69,15 @@ data class ResetPasswordRequest(
     val email: String,
     val otp: String,
     val password: String,
+) {
+    fun toCommand(): ResetPasswordCommand = ResetPasswordCommand(
+        email = Email(email),
+        newPassword = password
+    )
+}
+
+@Serializable
+data class ChangePasswordRequest(
+    val oldPassword: String,
+    val newPassword: String,
 )

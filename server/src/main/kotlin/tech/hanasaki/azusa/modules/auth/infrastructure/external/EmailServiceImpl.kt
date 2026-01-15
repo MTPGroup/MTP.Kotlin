@@ -1,17 +1,17 @@
-package tech.hanasaki.azusa.shared.infrastructure.external
+package tech.hanasaki.azusa.modules.auth.infrastructure.external
 
-import jakarta.mail.Authenticator
-import jakarta.mail.Message
-import jakarta.mail.PasswordAuthentication
-import jakarta.mail.Session
-import jakarta.mail.Transport
+import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import tech.hanasaki.azusa.config.SmtpConfig
-import java.util.Properties
+import tech.hanasaki.azusa.modules.auth.application.service.EmailService
+import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import java.util.*
 
-class EmailServiceImpl(private val config: SmtpConfig) {
-    fun sendHtml(to: String, subject: String, html: String): Unit {
+class EmailServiceImpl(private val config: SmtpConfig) : EmailService {
+    override suspend fun sendHtml(to: Email, subject: String, html: String) {
+        if (!config.enabled) return
+
         val props = Properties().apply {
             put("mail.smtp.host", config.host)
             put("mail.smtp.port", config.port.toString())
@@ -27,7 +27,7 @@ class EmailServiceImpl(private val config: SmtpConfig) {
 
         val message = MimeMessage(session).apply {
             setFrom(InternetAddress(config.from))
-            setRecipients(Message.RecipientType.TO, InternetAddress.parse(to))
+            setRecipients(Message.RecipientType.TO, InternetAddress.parse(to.value))
             setSubject(subject, "UTF-8")
             setContent(html, "text/html; charset=UTF-8")
         }

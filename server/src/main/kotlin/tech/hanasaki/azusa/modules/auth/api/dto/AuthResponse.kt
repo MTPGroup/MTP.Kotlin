@@ -27,23 +27,22 @@ data class SignOutResponse(
 )
 
 @Serializable
-data class SendEmailVerificationResponse(
-    val success: Boolean,
-)
-
-@Serializable
-data class SendPasswordResetEmailResponse(
+data class OtpSendResponse(
     val success: Boolean,
 )
 
 @Serializable
 data class VerifyOTPResponse(
-    val token: String?,
-    val user: UserProfile,
+    val success: Boolean,
 )
 
 @Serializable
 data class ResetPasswordResponse(
+    val success: Boolean,
+)
+
+@Serializable
+data class ChangePasswordResponse(
     val success: Boolean,
 )
 

@@ -13,3 +13,8 @@ data class LoginCommand(
     val email: Email,
     val password: String,
 )
+
+data class ResetPasswordCommand(
+    val email: Email,
+    val newPassword: String,
+)

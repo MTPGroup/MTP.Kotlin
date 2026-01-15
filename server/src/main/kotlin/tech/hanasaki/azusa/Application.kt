@@ -12,7 +12,6 @@ fun Application.module() {
     configureDi(environment.config)
     configureSerialization()
     configureCors()
-    configureLogging()
     configureStatusPages()
     configureSecurity(environment.config)
     configureRouting()

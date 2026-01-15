@@ -102,6 +102,10 @@ class User(
         addDomainEvent(EmailVerifiedEvent(id, _email!!))
     }
 
+    fun changePassword(newPasswordHash: PasswordHash) {
+        _passwordHash = newPasswordHash
+    }
+
     fun attachEmail(newEmail: Email) {
         _email = newEmail
         _emailVerified = false
