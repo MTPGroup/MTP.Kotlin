@@ -1,71 +1,37 @@
-package tech.hanasaki.azusa.auth.infrastructure.persistence.repository
+package tech.hanasaki.azusa.auth.internal.infrastructure.persistence.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import org.springframework.data.jdbc.core.JdbcAggregateTemplate
 import org.springframework.stereotype.Repository
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.Otp
-import tech.hanasaki.azusa.auth.domain.model.OtpType
-import tech.hanasaki.azusa.auth.domain.repository.OtpRepository
-import java.sql.Timestamp
-import java.util.UUID
-import kotlin.time.toJavaInstant
-import kotlin.time.toKotlinInstant
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.Otp
+import tech.hanasaki.azusa.auth.internal.domain.model.OtpType
+import tech.hanasaki.azusa.auth.internal.domain.repository.OtpRepository
+import tech.hanasaki.azusa.auth.internal.infrastructure.persistence.mapper.OtpEntityMapper
+import java.time.Instant
 
 @Repository
 class JdbcOtpRepository(
-    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val aggregateTemplate: JdbcAggregateTemplate,
+    private val otpRepository: SpringDataOtpEntityRepository,
+    private val mapper: OtpEntityMapper,
 ) : OtpRepository {
     override suspend fun save(otp: Otp): Unit = withContext(Dispatchers.IO) {
-        val params = MapSqlParameterSource()
-            .addValue("id", otp.id)
-            .addValue("email", otp.email.value)
-            .addValue("code", otp.code)
-            .addValue("type", otp.type.name)
-            .addValue("expiresAt", Timestamp.from(otp.expiresAt.toJavaInstant()))
-            .addValue("isUsed", otp.isUsed)
-        jdbcTemplate.update(
-            """
-                insert into public.otp_codes (id, email, code, type, expires_at, is_used)
-                values (:id, :email, :code, :type, :expiresAt, :isUsed)
-            """.trimIndent(),
-            params
-        )
+        val entity = mapper.toEntity(otp)
+        aggregateTemplate.save(entity)
     }
 
     override suspend fun findValidLatest(email: Email, type: OtpType): Otp? = withContext(Dispatchers.IO) {
-        val sql = """
-            select id, email, code, type, expires_at, is_used
-              from public.otp_codes
-             where email = :email and type = :type and is_used = false
-             order by created_at desc
-             limit 1
-        """.trimIndent()
-        jdbcTemplate.query(
-            sql,
-            mapOf("email" to email.value, "type" to type.name)
-        ) { rs, _ ->
-            Otp(
-                id = rs.getObject("id", UUID::class.java),
-                email = Email(rs.getString("email")),
-                code = rs.getString("code"),
-                type = OtpType.valueOf(rs.getString("type")),
-                expiresAt = rs.getTimestamp("expires_at").toInstant().toKotlinInstant(),
-                isUsed = rs.getBoolean("is_used"),
-            )
-        }.singleOrNull()
+        val entity = otpRepository.findFirstByEmailAndTypeAndIsUsedFalseOrderByCreatedAtDesc(email.value, type.value)
+        entity?.let {
+            val domain = mapper.toDomain(it)
+            if (domain.isExpired()) domain else null
+        }
     }
 
     override suspend fun markAsUsed(otp: Otp): Unit = withContext(Dispatchers.IO) {
-        jdbcTemplate.update(
-            """
-                update public.otp_codes
-                   set is_used = true
-                 where id = :id
-            """.trimIndent(),
-            mapOf("id" to otp.id)
-        )
+        val entity = otpRepository.findById(otp.id).orElse(null) ?: return@withContext
+        aggregateTemplate.save(entity.copy(isUsed = true, usedAt = Instant.now()))
     }
 }
