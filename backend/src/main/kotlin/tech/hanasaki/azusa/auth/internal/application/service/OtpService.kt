@@ -14,12 +14,13 @@ import kotlin.time.Duration.Companion.minutes
 class OtpService(
     private val otpRepository: OtpRepository,
     private val emailService: EmailService,
+    private val passwordEncoder: PasswordEncoder,
 ) {
     suspend fun sendOtp(email: Email, type: OtpType) {
         val code = generateCode()
         val otp = Otp(
             email = email,
-            codeHash = code,
+            codeHash = passwordEncoder.encode(code),
             type = type,
             expiresAt = Clock.System.now().plus(3.minutes),
             createAt = Clock.System.now(),
@@ -44,12 +45,8 @@ class OtpService(
         val otp = otpRepository.findValidLatest(email, type)
             ?: throw AuthenticationException("Invalid or expired OTP")
 
-        if (otp.codeHash != code) {
+        if (!passwordEncoder.matches(code, otp.codeHash)) {
             throw AuthenticationException("Invalid OTP code")
-        }
-
-        if (!otp.isExpired()) {
-            throw AuthenticationException("OTP has expired")
         }
 
         // 验证成功，标记为已使用

@@ -19,14 +19,18 @@ class JdbcOtpRepository(
 ) : OtpRepository {
     override suspend fun save(otp: Otp): Unit = withContext(Dispatchers.IO) {
         val entity = mapper.toEntity(otp)
-        aggregateTemplate.save(entity)
+        if (otpRepository.existsById(otp.id)) {
+            aggregateTemplate.save(entity)
+        } else {
+            aggregateTemplate.insert(entity)
+        }
     }
 
     override suspend fun findValidLatest(email: Email, type: OtpType): Otp? = withContext(Dispatchers.IO) {
         val entity = otpRepository.findFirstByEmailAndTypeAndIsUsedFalseOrderByCreatedAtDesc(email.value, type.value)
         entity?.let {
             val domain = mapper.toDomain(it)
-            if (domain.isExpired()) domain else null
+            if (domain.isValid()) domain else null
         }
     }
 

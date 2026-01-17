@@ -25,7 +25,7 @@ class OtpEntityMapper {
         id = otpEntity.id,
         email = Email(otpEntity.email),
         codeHash = otpEntity.codeHash,
-        type = OtpType.valueOf(otpEntity.type),
+        type = OtpType.fromValue(otpEntity.type),
         isUsed = otpEntity.isUsed,
         createAt = otpEntity.createdAt.toKotlinInstant(),
         expiresAt = otpEntity.expiresAt.toKotlinInstant(),
