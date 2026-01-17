@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.shared.infrastructure.external
 
+import org.springframework.stereotype.Component
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
@@ -8,8 +9,7 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import org.springframework.stereotype.Component
-import tech.hanasaki.azusa.config.S3Config
+import tech.hanasaki.azusa.shared.config.S3Config
 import java.net.URI
 
 @Component

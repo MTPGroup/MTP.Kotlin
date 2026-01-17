@@ -4,8 +4,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import tech.hanasaki.azusa.shared.domain.exception.*
-import tech.hanasaki.azusa.shared.infrastructure.utils.ApiException
+import tech.hanasaki.azusa.shared.*
 import kotlin.time.Clock
 
 @RestControllerAdvice
@@ -34,7 +33,7 @@ class GlobalExceptionHandler {
         }
         val payload = ErrorResponse(
             error = ErrorDetail(
-                message = ex.message ?: "Request Failed",
+                message = ex.message,
                 code = code,
                 details = ex.stackTraceToString(),
             ),
