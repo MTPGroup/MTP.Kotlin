@@ -26,15 +26,13 @@ class JdbcUserRepository(
         userEntityRepository.findById(id.value).orElse(null)?.let(mapper::toDomain)
     }
 
-    override suspend fun save(user: User) {
+    override suspend fun save(user: User): Unit =
         withContext(Dispatchers.IO) {
-            val existingUser = userEntityRepository.findById(user.id.value).map { it }.orElse(null)
             val entity = mapper.toEntity(user, Instant.now())
-            if (existingUser == null) {
+            if (userEntityRepository.existsById(user.id.value)) {
                 aggregateTemplate.insert(entity)
             } else {
                 aggregateTemplate.save(entity)
             }
         }
-    }
 }

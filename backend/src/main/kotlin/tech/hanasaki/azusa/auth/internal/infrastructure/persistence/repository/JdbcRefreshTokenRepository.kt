@@ -16,9 +16,8 @@ class JdbcRefreshTokenRepository(
     private val mapper: RefreshTokenEntityMapper,
 ) : RefreshTokenRepository {
     override suspend fun save(refreshToken: RefreshToken): Unit = withContext(Dispatchers.IO) {
-        val existingToken = refreshTokenRepository.findById(refreshToken.id).orElse(null)
         val entity = mapper.toEntity(refreshToken)
-        if (existingToken != null) {
+        if (refreshTokenRepository.existsById(refreshToken.id)) {
             aggregateTemplate.save(entity)
         } else {
             aggregateTemplate.insert(entity)
