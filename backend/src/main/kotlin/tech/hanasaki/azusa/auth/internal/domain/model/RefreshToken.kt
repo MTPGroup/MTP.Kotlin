@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.auth.domain.model
+package tech.hanasaki.azusa.auth.internal.domain.model
 
 import java.util.*
 import kotlin.time.Clock
@@ -8,6 +8,7 @@ data class RefreshToken(
     val id: UUID = UUID.randomUUID(),
     val userId: UserId,
     val tokenHash: String,
+    val createdAt: Instant,
     val expiresAt: Instant,
     val isRevoked: Boolean = false,
 ) {

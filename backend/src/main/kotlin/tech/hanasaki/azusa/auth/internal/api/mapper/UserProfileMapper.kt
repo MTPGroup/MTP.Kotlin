@@ -1,8 +1,8 @@
-package tech.hanasaki.azusa.auth.api.mapper
+package tech.hanasaki.azusa.auth.internal.api.mapper
 
-import tech.hanasaki.azusa.auth.api.dto.UserProfile
-import tech.hanasaki.azusa.auth.application.result.LoginResult
-import tech.hanasaki.azusa.auth.domain.model.User
+import tech.hanasaki.azusa.auth.internal.api.dto.UserProfile
+import tech.hanasaki.azusa.auth.internal.application.result.LoginResult
+import tech.hanasaki.azusa.auth.internal.domain.model.User
 
 fun LoginResult.toUserProfile(): UserProfile = UserProfile(
     id = userId.value.toString(),

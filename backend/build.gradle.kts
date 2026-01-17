@@ -5,6 +5,7 @@ plugins {
     alias(backendLibs.plugins.spring.boot)
     alias(backendLibs.plugins.spring.dependencyManagement)
 }
+val springModulithVersion by extra("1.4.6")
 
 group = "tech.hanasaki"
 version = "0.0.1-SNAPSHOT"
@@ -24,41 +25,37 @@ configurations {
 
 dependencies {
     implementation(platform(backendLibs.spring.boot.bom))
+    implementation(platform(backendLibs.spring.modulith.bom))
 
-    implementation(backendLibs.spring.boot.starter.actuator)
-    implementation(backendLibs.spring.boot.starter.data.jdbc)
-    implementation(backendLibs.spring.boot.starter.mail)
-    implementation(backendLibs.spring.boot.starter.oauth2.resource.server)
-    implementation(backendLibs.spring.boot.starter.security)
-    implementation(backendLibs.spring.boot.starter.validation)
-    implementation(backendLibs.spring.boot.starter.web)
+    implementation(backendLibs.bundles.spring.boot)
+    implementation(backendLibs.bundles.spring.modulith)
+    implementation(backendLibs.bundles.kotlin)
+    implementation(backendLibs.bundles.flyway)
+    implementation(backendLibs.bundles.reactor)
     implementation(backendLibs.jackson.module.kotlin)
-    implementation(backendLibs.kotlinx.serialization.json)
-    implementation(backendLibs.flyway.core)
-    implementation(backendLibs.flyway.database.postgresql)
-    implementation(backendLibs.kotlin.reflect)
-    implementation(backendLibs.kotlinx.datetime)
-    implementation(backendLibs.kotlinx.coroutines.core)
     implementation(backendLibs.java.jwt)
-    implementation(backendLibs.bcrypt)
     implementation(backendLibs.aws.sdk.s3)
 
-    developmentOnly(backendLibs.spring.boot.devtools)
-    developmentOnly(backendLibs.spring.boot.docker.compose)
+    developmentOnly(backendLibs.bundles.spring.boot.dev)
 
     runtimeOnly(backendLibs.postgresql)
+    runtimeOnly(backendLibs.spring.modulith.actuator)
+    runtimeOnly(backendLibs.spring.modulith.observability)
 
     annotationProcessor(backendLibs.spring.boot.configuration.processor)
 
-    testImplementation(backendLibs.spring.boot.starter.test)
-    testImplementation(backendLibs.kotlin.test.junit5)
-    testImplementation(backendLibs.spring.security.test)
+    testImplementation(backendLibs.bundles.test)
     testRuntimeOnly(backendLibs.junit.platform.launcher)
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
+}
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.modulith:spring-modulith-bom:$springModulithVersion")
     }
 }
 

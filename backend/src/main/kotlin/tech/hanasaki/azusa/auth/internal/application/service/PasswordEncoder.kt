@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.auth.application.service
+package tech.hanasaki.azusa.auth.internal.application.service
 
 interface PasswordEncoder {
     fun encode(raw: String): String

@@ -1,11 +1,11 @@
-package tech.hanasaki.azusa.auth.api.dto
+package tech.hanasaki.azusa.auth.internal.api.dto
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.auth.application.command.LoginCommand
-import tech.hanasaki.azusa.auth.application.command.RegisterCommand
-import tech.hanasaki.azusa.auth.application.command.ResetPasswordCommand
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.Username
+import tech.hanasaki.azusa.auth.internal.application.command.LoginCommand
+import tech.hanasaki.azusa.auth.internal.application.command.RegisterCommand
+import tech.hanasaki.azusa.auth.internal.application.command.ResetPasswordCommand
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.Username
 
 @Serializable
 data class SignUpRequest(

@@ -1,8 +1,8 @@
-package tech.hanasaki.azusa.auth.domain.repository
+package tech.hanasaki.azusa.auth.internal.domain.repository
 
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.Otp
-import tech.hanasaki.azusa.auth.domain.model.OtpType
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.Otp
+import tech.hanasaki.azusa.auth.internal.domain.model.OtpType
 
 interface OtpRepository {
     suspend fun save(otp: Otp)

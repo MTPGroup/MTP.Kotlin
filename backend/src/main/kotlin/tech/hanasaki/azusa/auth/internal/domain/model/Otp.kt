@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.auth.domain.model
+package tech.hanasaki.azusa.auth.internal.domain.model
 
 import java.util.*
 import kotlin.time.Clock
@@ -13,10 +13,12 @@ enum class OtpType(val value: String) {
 data class Otp(
     val id: UUID = UUID.randomUUID(),
     val email: Email,
-    val code: String,
+    val codeHash: String,
     val type: OtpType,
+    val createAt: Instant,
     val expiresAt: Instant,
+    val usedAt: Instant? = null,
     val isUsed: Boolean = false,
 ) {
-    fun isValid(now: Instant = Clock.System.now()): Boolean = !isUsed && now <= expiresAt
+    fun isExpired(now: Instant = Clock.System.now()): Boolean = !isUsed && now <= expiresAt
 }

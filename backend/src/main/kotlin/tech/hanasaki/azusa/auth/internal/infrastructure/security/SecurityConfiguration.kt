@@ -22,8 +22,8 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 import tech.hanasaki.azusa.auth.internal.config.JwtConfig
-import tech.hanasaki.azusa.shared.infrastructure.web.ErrorDetail
-import tech.hanasaki.azusa.shared.infrastructure.web.ErrorResponse
+import tech.hanasaki.azusa.shared.ErrorDetail
+import tech.hanasaki.azusa.shared.ErrorResponse
 import java.util.*
 import kotlin.time.Clock
 

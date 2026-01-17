@@ -1,6 +1,6 @@
-package tech.hanasaki.azusa.auth.domain.model
+package tech.hanasaki.azusa.auth.internal.domain.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 
 @JvmInline

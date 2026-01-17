@@ -1,16 +1,16 @@
-package tech.hanasaki.azusa.auth.infrastructure.security
+package tech.hanasaki.azusa.auth.internal.infrastructure.security
 
-import at.favre.lib.crypto.bcrypt.BCrypt
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import tech.hanasaki.azusa.auth.application.service.PasswordEncoder
+import tech.hanasaki.azusa.auth.internal.application.service.PasswordEncoder
 
 @Service
 class PasswordEncoderImpl : PasswordEncoder {
-    private val cost = 12
+    private val passwordEncoder = BCryptPasswordEncoder(12)
 
     override fun encode(raw: String): String =
-        BCrypt.withDefaults().hashToString(cost, raw.toCharArray())
+        passwordEncoder.encode(raw)
 
     override fun matches(raw: String, encoded: String): Boolean =
-        BCrypt.verifyer().verify(raw.toCharArray(), encoded).verified
+        passwordEncoder.matches(raw, encoded)
 }

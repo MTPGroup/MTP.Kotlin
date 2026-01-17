@@ -1,11 +1,11 @@
-package tech.hanasaki.azusa.auth.application.service
+package tech.hanasaki.azusa.auth.internal.application.service
 
 import org.springframework.stereotype.Service
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.Otp
-import tech.hanasaki.azusa.auth.domain.model.OtpType
-import tech.hanasaki.azusa.auth.domain.repository.OtpRepository
-import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.Otp
+import tech.hanasaki.azusa.auth.internal.domain.model.OtpType
+import tech.hanasaki.azusa.auth.internal.domain.repository.OtpRepository
+import tech.hanasaki.azusa.shared.AuthenticationException
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
@@ -19,9 +19,10 @@ class OtpService(
         val code = generateCode()
         val otp = Otp(
             email = email,
-            code = code,
+            codeHash = code,
             type = type,
-            expiresAt = Clock.System.now().plus(3.minutes)
+            expiresAt = Clock.System.now().plus(3.minutes),
+            createAt = Clock.System.now(),
         )
         otpRepository.save(otp)
 
@@ -31,23 +32,23 @@ class OtpService(
             OtpType.SIGN_IN -> "登录验证"
         }
 
-        val html = """
-            <h2>您的验证码为: <b>$code</b></h2>
-            <p>此验证码将会在3分钟后过期.</p>
-        """.trimIndent()
-
-        emailService.sendHtml(email, subject, html)
+        val model = mapOf(
+            "subject" to subject,
+            "code" to code,
+            "minutes" to 3
+        )
+        emailService.sendTemplate(email, subject, "email/otp.html", model)
     }
 
     suspend fun verifyOtp(email: Email, type: OtpType, code: String) {
         val otp = otpRepository.findValidLatest(email, type)
             ?: throw AuthenticationException("Invalid or expired OTP")
 
-        if (otp.code != code) {
+        if (otp.codeHash != code) {
             throw AuthenticationException("Invalid OTP code")
         }
 
-        if (!otp.isValid()) {
+        if (!otp.isExpired()) {
             throw AuthenticationException("OTP has expired")
         }
 

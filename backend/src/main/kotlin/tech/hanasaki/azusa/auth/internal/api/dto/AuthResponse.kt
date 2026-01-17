@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.auth.api.dto
+package tech.hanasaki.azusa.auth.internal.api.dto
 
 import kotlinx.serialization.Serializable
 

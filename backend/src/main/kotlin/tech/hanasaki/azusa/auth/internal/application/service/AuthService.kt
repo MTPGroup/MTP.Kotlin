@@ -1,22 +1,17 @@
-package tech.hanasaki.azusa.auth.application.service
+package tech.hanasaki.azusa.auth.internal.application.service
 
 import org.springframework.stereotype.Service
-import tech.hanasaki.azusa.auth.application.command.LoginCommand
-import tech.hanasaki.azusa.auth.application.command.RegisterCommand
-import tech.hanasaki.azusa.auth.application.command.ResetPasswordCommand
-import tech.hanasaki.azusa.auth.application.result.LoginResult
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.PasswordHash
-import tech.hanasaki.azusa.auth.domain.model.RefreshToken
-import tech.hanasaki.azusa.auth.domain.model.User
-import tech.hanasaki.azusa.auth.domain.model.UserId
-import tech.hanasaki.azusa.auth.domain.model.UserStatus
-import tech.hanasaki.azusa.auth.domain.repository.RefreshTokenRepository
-import tech.hanasaki.azusa.auth.domain.repository.UserRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
-import tech.hanasaki.azusa.shared.domain.exception.ConflictException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.auth.internal.application.command.LoginCommand
+import tech.hanasaki.azusa.auth.internal.application.command.RegisterCommand
+import tech.hanasaki.azusa.auth.internal.application.command.ResetPasswordCommand
+import tech.hanasaki.azusa.auth.internal.application.result.LoginResult
+import tech.hanasaki.azusa.auth.internal.domain.model.*
+import tech.hanasaki.azusa.auth.internal.domain.repository.RefreshTokenRepository
+import tech.hanasaki.azusa.auth.internal.domain.repository.UserRepository
+import tech.hanasaki.azusa.shared.EventPublisher
+import tech.hanasaki.azusa.shared.AuthenticationException
+import tech.hanasaki.azusa.shared.ConflictException
+import tech.hanasaki.azusa.shared.NotFoundException
 import java.security.MessageDigest
 
 @Service
@@ -40,7 +35,7 @@ class AuthService(
 
         val hashedPassword = passwordEncoder.encode(cmd.password)
 
-        val user = User.Companion.register(
+        val user = User.register(
             email = cmd.email,
             hashedPassword = PasswordHash(hashedPassword),
             username = cmd.username,
@@ -78,6 +73,7 @@ class AuthService(
             userId = user.id,
             tokenHash = hashToken(tokens.refreshToken),
             expiresAt = tokens.refreshTokenExpiresAt,
+            createdAt = tokens.createdAt
         )
         refreshTokenRepository.save(refreshToken)
 
@@ -176,6 +172,7 @@ class AuthService(
             userId = user.id,
             tokenHash = hashToken(tokens.refreshToken),
             expiresAt = tokens.refreshTokenExpiresAt,
+            createdAt = tokens.createdAt
         )
         refreshTokenRepository.save(newRefreshToken)
 

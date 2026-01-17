@@ -1,11 +1,12 @@
-package tech.hanasaki.azusa.auth.application.service
+package tech.hanasaki.azusa.auth.internal.application.service
 
-import kotlinx.datetime.Instant
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.UserId
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.UserId
+import kotlin.time.Instant
 
 data class TokenPair(
     val accessToken: String,
+    val createdAt: Instant,
     val refreshToken: String,
     val expiresIn: Long,
     val refreshTokenExpiresAt: Instant,

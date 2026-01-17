@@ -1,8 +1,8 @@
-package tech.hanasaki.azusa.auth.domain.repository
+package tech.hanasaki.azusa.auth.internal.domain.repository
 
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.User
-import tech.hanasaki.azusa.auth.domain.model.UserId
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.User
+import tech.hanasaki.azusa.auth.internal.domain.model.UserId
 
 
 interface UserRepository {

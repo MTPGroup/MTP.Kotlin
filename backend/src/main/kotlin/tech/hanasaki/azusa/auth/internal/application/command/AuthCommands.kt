@@ -1,7 +1,7 @@
-package tech.hanasaki.azusa.auth.application.command
+package tech.hanasaki.azusa.auth.internal.application.command
 
-import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.auth.domain.model.Username
+import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.Username
 
 data class RegisterCommand(
     val email: Email,

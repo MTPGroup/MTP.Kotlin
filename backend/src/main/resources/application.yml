@@ -5,17 +5,24 @@ spring:
     compose:
       file: backend/compose.yaml
   flyway:
-    enabled: false
+    enabled: true
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      auto-commit: true
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+  freemarker:
+    cache: false
+    suffix: .html
+    charset: UTF-8
+    template-loader-path: classpath:/templates/
 
 server:
   port: 8080
-
-database:
-  driver: "org.postgresql.Driver"
-  url: ${DB_URL}
-  user: ${DB_USER}
-  password: ${DB_PASSWORD}
-  maxPoolSize: 5
 
 jwt:
   issuer: ${JWT_ISSUER}
@@ -35,13 +42,13 @@ s3:
   forcePathStyle: ${S3_FORCE_PATH_STYLE}
 
 smtp:
-  host: ${SMTP_HOST}
-  port: ${SMTP_PORT}
-  username: ${SMTP_USERNAME}
-  password: ${SMTP_PASSWORD}
-  from: ${SMTP_FROM}
-  tls: ${SMTP_TLS}
-  enabled: ${SMTP_ENABLED}
+  host: ${SMTP_HOST:localhost}
+  port: ${SMTP_PORT:1025}
+  username: ${SMTP_USERNAME:user}
+  password: ${SMTP_PASSWORD:password}
+  from: ${SMTP_FROM:no-reply@localhost}
+  tls: ${SMTP_TLS:false}
+  enabled: ${SMTP_ENABLED:true}
 
 otp:
   length: ${OTP_LENGTH}
