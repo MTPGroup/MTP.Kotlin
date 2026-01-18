@@ -4,6 +4,9 @@ spring:
   docker:
     compose:
       file: backend/compose.yaml
+  modulith:
+    events:
+      republish-outstanding-events-on-restart: true
   flyway:
     enabled: true
   datasource:
@@ -56,3 +59,7 @@ otp:
   minIntervalSeconds: ${OTP_MIN_INTERVAL_SECONDS}
   maxPerHour: ${OTP_MAX_PER_HOUR}
   debugReturn: ${OTP_DEBUG_RETURN}
+
+logging:
+  level:
+    org.springframework.modulith: DEBUG

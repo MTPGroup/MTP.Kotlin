@@ -1,21 +1,20 @@
 package tech.hanasaki.azusa.auth.internal.infrastructure.external
 
 import freemarker.template.Configuration
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.springframework.mail.javamail.JavaMailSenderImpl
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
-import tech.hanasaki.azusa.auth.internal.application.service.EmailService
+import tech.hanasaki.azusa.auth.internal.application.port.NotificationService
 import tech.hanasaki.azusa.auth.internal.config.SmtpConfig
 import tech.hanasaki.azusa.auth.internal.domain.model.Email
+import tech.hanasaki.azusa.auth.internal.domain.model.OtpType
 
 @Service
-class EmailServiceImpl(
+class EmailNotificationService(
     private val config: SmtpConfig,
     private val freemarkerConfig: Configuration,
-) : EmailService {
+) : NotificationService {
 
     private val mailSender by lazy {
         JavaMailSenderImpl().apply {
@@ -33,27 +32,25 @@ class EmailServiceImpl(
         }
     }
 
-    override suspend fun sendHtml(to: Email, subject: String, html: String) {
+    override fun sendOtp(email: Email, code: String, type: OtpType) {
         if (!config.enabled) return
 
-        withContext(Dispatchers.IO) {
-            val mimeMessage = mailSender.createMimeMessage()
-            val helper = MimeMessageHelper(mimeMessage, true, "UTF-8")
-
-            helper.setFrom(config.from)
-            helper.setTo(to.value)
-            helper.setSubject(subject)
-            helper.setText(html, true)
-
-            mailSender.send(mimeMessage)
+        val subject = when (type) {
+            OtpType.VERIFY_EMAIL -> "验证您的邮箱"
+            OtpType.RESET_PASSWORD -> "重置您的密码"
+            OtpType.SIGN_IN -> "登录验证"
         }
-    }
 
-    override suspend fun sendTemplate(to: Email, subject: String, templateName: String, model: Map<String, Any>) {
-        val content = withContext(Dispatchers.IO) {
-            val template = freemarkerConfig.getTemplate(templateName)
-            FreeMarkerTemplateUtils.processTemplateIntoString(template, model)
-        }
-        sendHtml(to, subject, content)
+        val model = mapOf("subject" to subject, "code" to code, "minutes" to 3)
+        val template = freemarkerConfig.getTemplate("email/otp.html")
+        val content = FreeMarkerTemplateUtils.processTemplateIntoString(template, model)
+
+        val mimeMessage = mailSender.createMimeMessage()
+        val helper = MimeMessageHelper(mimeMessage, true, "UTF-8")
+        helper.setFrom(config.from)
+        helper.setTo(email.value)
+        helper.setSubject(subject)
+        helper.setText(content, true)
+        mailSender.send(mimeMessage)
     }
 }
