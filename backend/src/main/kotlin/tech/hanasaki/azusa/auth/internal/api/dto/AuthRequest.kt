@@ -32,30 +32,14 @@ data class SignInWithPasswordRequest(
 }
 
 @Serializable
-data class RefreshTokenRequest(
-    val refreshToken: String,
-)
-
-@Serializable
 data class SignOutRequest(
-    val refreshToken: String? = null,
+    val refreshToken: String,
 )
 
 @Serializable
 data class SendOtpRequest(
     val email: String,
     val type: String,
-)
-
-@Serializable
-data class SendEmailVerificationRequest(
-    val email: String,
-    val type: String,
-)
-
-@Serializable
-data class SendPasswordResetEmailRequest(
-    val email: String,
 )
 
 @Serializable

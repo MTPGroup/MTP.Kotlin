@@ -1,16 +1,21 @@
 package tech.hanasaki.azusa.auth.internal.application.service
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import tech.hanasaki.azusa.auth.UserDeletedEvent
 import tech.hanasaki.azusa.auth.internal.application.command.LoginCommand
 import tech.hanasaki.azusa.auth.internal.application.command.RegisterCommand
 import tech.hanasaki.azusa.auth.internal.application.command.ResetPasswordCommand
+import tech.hanasaki.azusa.auth.internal.application.port.PasswordEncoder
+import tech.hanasaki.azusa.auth.internal.application.port.TokenPair
+import tech.hanasaki.azusa.auth.internal.application.port.TokenService
 import tech.hanasaki.azusa.auth.internal.application.result.LoginResult
 import tech.hanasaki.azusa.auth.internal.domain.model.*
 import tech.hanasaki.azusa.auth.internal.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.auth.internal.domain.repository.UserRepository
-import tech.hanasaki.azusa.shared.EventPublisher
 import tech.hanasaki.azusa.shared.AuthenticationException
 import tech.hanasaki.azusa.shared.ConflictException
+import tech.hanasaki.azusa.shared.EventPublisher
 import tech.hanasaki.azusa.shared.NotFoundException
 import java.security.MessageDigest
 
@@ -26,7 +31,8 @@ class AuthService(
     /**
      * 用户注册
      */
-    suspend fun register(cmd: RegisterCommand) {
+    @Transactional
+    fun register(cmd: RegisterCommand) {
         val email = cmd.email
 
         if (userRepository.findByEmail(email) != null) {
@@ -50,7 +56,8 @@ class AuthService(
     /**
      * 用户登录
      */
-    suspend fun login(cmd: LoginCommand): LoginResult {
+    @Transactional
+    fun login(cmd: LoginCommand): LoginResult {
 
         val user = userRepository.findByEmail(cmd.email)
             ?: throw NotFoundException("User not found")
@@ -85,7 +92,8 @@ class AuthService(
     /**
      * 用户登出
      */
-    suspend fun logout(refreshToken: String) {
+    @Transactional
+    fun logout(refreshToken: String) {
         val tokenHash = hashToken(refreshToken)
         val storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
         if (storedToken != null) {
@@ -96,7 +104,8 @@ class AuthService(
     /**
      * 邮箱验证
      */
-    suspend fun verifyEmail(email: Email) {
+    @Transactional
+    fun verifyEmail(email: Email) {
         val user = userRepository.findByEmail(email)
             ?: throw NotFoundException("User not found")
 
@@ -110,7 +119,8 @@ class AuthService(
     /**
      * 重置密码
      */
-    suspend fun resetPassword(cmd: ResetPasswordCommand) {
+    @Transactional
+    fun resetPassword(cmd: ResetPasswordCommand) {
         val user = userRepository.findByEmail(cmd.email)
             ?: throw NotFoundException("User not found")
 
@@ -123,7 +133,8 @@ class AuthService(
     /**
      * 修改密码
      */
-    suspend fun changePassword(userId: UserId, oldPassword: String, newPassword: String) {
+    @Transactional
+    fun changePassword(userId: UserId, oldPassword: String, newPassword: String) {
         val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
 
         if (!passwordEncoder.matches(oldPassword, user.passwordHash.value)) {
@@ -139,15 +150,25 @@ class AuthService(
     /**
      * 获取用户信息
      */
-    suspend fun getProfile(userId: UserId): User {
+    @Transactional(readOnly = true)
+    fun getProfile(userId: UserId): User {
         return userRepository.findById(userId) ?: throw NotFoundException("User not found")
     }
 
+    /**
+     * 删除账号
+     */
+    @Transactional
+    fun deleteAccount(userId: UserId) {
+        userRepository.deleteById(userId)
+        eventPublisher.publish(UserDeletedEvent(userId))
+    }
 
     /**
      * 使用 RefreshToken 刷新 AccessToken
      */
-    suspend fun refreshToken(refreshToken: String): LoginResult {
+    @Transactional
+    fun refreshToken(refreshToken: String): LoginResult {
         tokenService.verifyRefreshToken(refreshToken)
 
         val tokenHash = hashToken(refreshToken)

@@ -4,20 +4,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import tech.hanasaki.azusa.auth.internal.api.dto.ChangePasswordRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.ChangePasswordResponse
-import tech.hanasaki.azusa.auth.internal.api.dto.OtpSendResponse
-import tech.hanasaki.azusa.auth.internal.api.dto.RefreshTokenRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.ResetPasswordRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.ResetPasswordResponse
-import tech.hanasaki.azusa.auth.internal.api.dto.SendOtpRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.SignInWithPasswordRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.SignInWithPasswordResponse
-import tech.hanasaki.azusa.auth.internal.api.dto.SignUpRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.SignUpResponse
-import tech.hanasaki.azusa.auth.internal.api.dto.UserProfile
-import tech.hanasaki.azusa.auth.internal.api.dto.VerifyOTPRequest
-import tech.hanasaki.azusa.auth.internal.api.dto.VerifyOTPResponse
+import tech.hanasaki.azusa.auth.internal.api.dto.*
 import tech.hanasaki.azusa.auth.internal.api.mapper.toUserProfile
 import tech.hanasaki.azusa.auth.internal.application.service.AuthService
 import tech.hanasaki.azusa.auth.internal.application.service.OtpService
@@ -25,7 +12,7 @@ import tech.hanasaki.azusa.auth.internal.domain.model.Email
 import tech.hanasaki.azusa.auth.internal.domain.model.OtpType
 import tech.hanasaki.azusa.auth.internal.domain.model.UserId
 import tech.hanasaki.azusa.shared.ApiException
-import java.util.UUID
+import java.util.*
 
 @RestController
 @RequestMapping("/auth")
@@ -34,14 +21,14 @@ class AuthController(
     private val otpService: OtpService,
 ) {
     @PostMapping("/sign-up/email")
-    suspend fun signUp(@RequestBody request: SignUpRequest): SignUpResponse {
+    fun signUp(@RequestBody request: SignUpRequest): SignUpResponse {
         validateSignUp(request)
         authService.register(request.toCommand())
         return SignUpResponse(success = true)
     }
 
     @PostMapping("/sign-in/email")
-    suspend fun signIn(@RequestBody request: SignInWithPasswordRequest): SignInWithPasswordResponse {
+    fun signIn(@RequestBody request: SignInWithPasswordRequest): SignInWithPasswordResponse {
         validateSignIn(request)
         val result = authService.login(request.toCommand())
         return SignInWithPasswordResponse(
@@ -53,13 +40,13 @@ class AuthController(
     }
 
     @PostMapping("/email-otp/send")
-    suspend fun sendOtp(@RequestBody request: SendOtpRequest): OtpSendResponse {
-        otpService.sendOtp(Email(request.email), OtpType.valueOf(request.type))
+    fun sendOtp(@RequestBody request: SendOtpRequest): OtpSendResponse {
+        otpService.sendOtp(Email(request.email), OtpType.fromValue(request.type))
         return OtpSendResponse(success = true)
     }
 
     @PostMapping("/email-otp/verify-email")
-    suspend fun verifyEmail(@RequestBody request: VerifyOTPRequest): VerifyOTPResponse {
+    fun verifyEmail(@RequestBody request: VerifyOTPRequest): VerifyOTPResponse {
         val email = Email(request.email)
         otpService.verifyOtp(email, OtpType.VERIFY_EMAIL, request.otp)
         authService.verifyEmail(email)
@@ -67,7 +54,7 @@ class AuthController(
     }
 
     @PostMapping("/email-otp/reset-password")
-    suspend fun resetPassword(@RequestBody request: ResetPasswordRequest): ResetPasswordResponse {
+    fun resetPassword(@RequestBody request: ResetPasswordRequest): ResetPasswordResponse {
         val email = Email(request.email)
         otpService.verifyOtp(email, OtpType.RESET_PASSWORD, request.otp)
         if (request.password.length < 6) {
@@ -78,7 +65,7 @@ class AuthController(
     }
 
     @PostMapping("/refresh")
-    suspend fun refresh(@RequestBody request: RefreshTokenRequest): SignInWithPasswordResponse {
+    fun refresh(@RequestBody request: SignOutRequest): SignInWithPasswordResponse {
         val result = authService.refreshToken(request.refreshToken)
         return SignInWithPasswordResponse(
             user = result.toUserProfile(),
@@ -89,7 +76,7 @@ class AuthController(
     }
 
     @PostMapping("/sign-out")
-    suspend fun signOut(@RequestBody(required = false) request: RefreshTokenRequest?): ResponseEntity<Void> {
+    fun signOut(@RequestBody(required = false) request: SignOutRequest?): ResponseEntity<Void> {
         if (request != null) {
             authService.logout(request.refreshToken)
         }
@@ -97,14 +84,14 @@ class AuthController(
     }
 
     @GetMapping("/me")
-    suspend fun me(authentication: Authentication): UserProfile {
+    fun me(authentication: Authentication): UserProfile {
         val userId = requireUserId(authentication)
         val user = authService.getProfile(userId)
         return user.toUserProfile()
     }
 
     @PostMapping("/password/change")
-    suspend fun changePassword(
+    fun changePassword(
         authentication: Authentication,
         @RequestBody request: ChangePasswordRequest,
     ): ChangePasswordResponse {
@@ -116,8 +103,8 @@ class AuthController(
         return ChangePasswordResponse(success = true)
     }
 
-    @PostMapping("/email-otp/resend-verification")
-    suspend fun resendVerification(authentication: Authentication): OtpSendResponse {
+    /*@PostMapping("/email-otp/resend-verification")
+    fun resendVerification(authentication: Authentication): OtpSendResponse {
         val userId = requireUserId(authentication)
         val user = authService.getProfile(userId)
         val email = user.email ?: throw ApiException(
@@ -130,6 +117,13 @@ class AuthController(
         }
         otpService.sendOtp(email, OtpType.VERIFY_EMAIL)
         return OtpSendResponse(success = true)
+    }*/
+
+    @DeleteMapping("/account")
+    fun deleteAccount(authentication: Authentication): ResponseEntity<Void> {
+        val userId = requireUserId(authentication)
+        authService.deleteAccount(userId)
+        return ResponseEntity.noContent().build()
     }
 
     private fun requireUserId(authentication: Authentication): UserId {

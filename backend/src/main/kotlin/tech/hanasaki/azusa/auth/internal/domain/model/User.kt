@@ -1,7 +1,6 @@
 package tech.hanasaki.azusa.auth.internal.domain.model
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.auth.EmailVerifiedEvent
 import tech.hanasaki.azusa.auth.UserRegisteredEvent
 import tech.hanasaki.azusa.shared.AggregateRoot
 import java.util.*
@@ -99,7 +98,7 @@ class User(
         if (_status == UserStatus.PENDING) {
             _status = UserStatus.ACTIVE
         }
-        addDomainEvent(EmailVerifiedEvent(id, _email!!))
+//        addDomainEvent(EmailVerifiedEvent(id, _email!!))
     }
 
     fun changePassword(newPasswordHash: PasswordHash) {
