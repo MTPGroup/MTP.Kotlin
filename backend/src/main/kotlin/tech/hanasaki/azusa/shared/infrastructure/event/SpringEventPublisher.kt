@@ -14,13 +14,11 @@ class SpringEventPublisher(
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) : EventPublisher {
 
-    override suspend fun publish(event: DomainEvent) {
-        // publishEvent 是同步的，但监听器可以是 @Async 的
-        // 这里的 suspend 主要是为了兼容接口定义，Spring 内部是 Java API
+    override fun publish(event: DomainEvent) {
         applicationEventPublisher.publishEvent(event)
     }
 
-    override suspend fun publishAll(events: Collection<DomainEvent>) {
+    override fun publishAll(events: Collection<DomainEvent>) {
         events.forEach { applicationEventPublisher.publishEvent(it) }
     }
 }

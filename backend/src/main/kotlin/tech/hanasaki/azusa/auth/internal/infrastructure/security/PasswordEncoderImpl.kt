@@ -2,7 +2,7 @@ package tech.hanasaki.azusa.auth.internal.infrastructure.security
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import tech.hanasaki.azusa.auth.internal.application.service.PasswordEncoder
+import tech.hanasaki.azusa.auth.internal.application.port.PasswordEncoder
 
 @Service
 class PasswordEncoderImpl : PasswordEncoder {

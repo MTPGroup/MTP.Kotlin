@@ -4,8 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import org.springframework.stereotype.Service
-import tech.hanasaki.azusa.auth.internal.application.service.TokenPair
-import tech.hanasaki.azusa.auth.internal.application.service.TokenService
+import tech.hanasaki.azusa.auth.internal.application.port.TokenPair
+import tech.hanasaki.azusa.auth.internal.application.port.TokenService
 import tech.hanasaki.azusa.auth.internal.domain.model.Email
 import tech.hanasaki.azusa.auth.internal.domain.model.UserId
 import tech.hanasaki.azusa.auth.internal.config.JwtConfig

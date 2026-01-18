@@ -4,8 +4,8 @@ import tech.hanasaki.azusa.auth.internal.domain.model.RefreshToken
 import tech.hanasaki.azusa.auth.internal.domain.model.UserId
 
 interface RefreshTokenRepository {
-    suspend fun save(refreshToken: RefreshToken)
-    suspend fun findByTokenHash(tokenHash: String): RefreshToken?
-    suspend fun revoke(refreshToken: RefreshToken)
-    suspend fun revokeAllForUser(userId: UserId)
+    fun save(refreshToken: RefreshToken)
+    fun findByTokenHash(tokenHash: String): RefreshToken?
+    fun revoke(refreshToken: RefreshToken)
+    fun revokeAllForUser(userId: UserId)
 }

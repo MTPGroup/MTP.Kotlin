@@ -1,7 +1,5 @@
 package tech.hanasaki.azusa.auth.internal.infrastructure.persistence.repository
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate
 import org.springframework.stereotype.Repository
 import tech.hanasaki.azusa.auth.internal.domain.model.RefreshToken
@@ -15,7 +13,7 @@ class JdbcRefreshTokenRepository(
     private val refreshTokenRepository: SpringDataRefreshTokenEntityRepository,
     private val mapper: RefreshTokenEntityMapper,
 ) : RefreshTokenRepository {
-    override suspend fun save(refreshToken: RefreshToken): Unit = withContext(Dispatchers.IO) {
+    override fun save(refreshToken: RefreshToken) {
         val entity = mapper.toEntity(refreshToken)
         if (refreshTokenRepository.existsById(refreshToken.id)) {
             aggregateTemplate.save(entity)
@@ -24,17 +22,16 @@ class JdbcRefreshTokenRepository(
         }
     }
 
-    override suspend fun findByTokenHash(tokenHash: String): RefreshToken? = withContext(Dispatchers.IO) {
+    override fun findByTokenHash(tokenHash: String): RefreshToken? =
         refreshTokenRepository.findByTokenHash(tokenHash)?.let(mapper::toDomain)
-    }
 
-    override suspend fun revoke(refreshToken: RefreshToken): Unit = withContext(Dispatchers.IO) {
+    override fun revoke(refreshToken: RefreshToken) {
         val entity = mapper.toEntity(refreshToken.copy(isRevoked = true))
         aggregateTemplate.save(entity)
     }
 
 
-    override suspend fun revokeAllForUser(userId: UserId): Unit = withContext(Dispatchers.IO) {
+    override fun revokeAllForUser(userId: UserId) {
         refreshTokenRepository.findAllByUserId(userId.value).forEach { entity ->
             aggregateTemplate.save(entity.copy(isRevoked = true))
         }

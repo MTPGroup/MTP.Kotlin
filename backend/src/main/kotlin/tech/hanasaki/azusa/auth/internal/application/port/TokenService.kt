@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.auth.internal.application.service
+package tech.hanasaki.azusa.auth.internal.application.port
 
 import tech.hanasaki.azusa.auth.internal.domain.model.Email
 import tech.hanasaki.azusa.auth.internal.domain.model.UserId

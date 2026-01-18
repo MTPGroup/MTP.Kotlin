@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.auth.internal.application.result
 
-import tech.hanasaki.azusa.auth.internal.application.service.TokenPair
+import tech.hanasaki.azusa.auth.internal.application.port.TokenPair
 import tech.hanasaki.azusa.auth.internal.domain.model.AvatarUrl
 import tech.hanasaki.azusa.auth.internal.domain.model.Email
 import tech.hanasaki.azusa.auth.internal.domain.model.UserId

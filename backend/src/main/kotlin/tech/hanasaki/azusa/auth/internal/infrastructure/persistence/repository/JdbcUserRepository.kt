@@ -1,7 +1,5 @@
 package tech.hanasaki.azusa.auth.internal.infrastructure.persistence.repository
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.springframework.data.jdbc.core.JdbcAggregateTemplate
 import org.springframework.stereotype.Repository
 import tech.hanasaki.azusa.auth.internal.domain.model.Email
@@ -18,21 +16,22 @@ class JdbcUserRepository(
     private val mapper: UserEntityMapper,
 ) : UserRepository {
 
-    override suspend fun findByEmail(email: Email): User? = withContext(Dispatchers.IO) {
+    override fun findByEmail(email: Email): User? =
         userEntityRepository.findByEmail(email.value)?.let(mapper::toDomain)
-    }
 
-    override suspend fun findById(id: UserId): User? = withContext(Dispatchers.IO) {
+    override fun findById(id: UserId): User? =
         userEntityRepository.findById(id.value).orElse(null)?.let(mapper::toDomain)
+
+    override fun save(user: User) {
+        val entity = mapper.toEntity(user, Instant.now())
+        if (userEntityRepository.existsById(user.id.value)) {
+            aggregateTemplate.save(entity)
+        } else {
+            aggregateTemplate.insert(entity)
+        }
     }
 
-    override suspend fun save(user: User): Unit =
-        withContext(Dispatchers.IO) {
-            val entity = mapper.toEntity(user, Instant.now())
-            if (userEntityRepository.existsById(user.id.value)) {
-                aggregateTemplate.insert(entity)
-            } else {
-                aggregateTemplate.save(entity)
-            }
-        }
+    override fun deleteById(id: UserId) {
+        userEntityRepository.deleteById(id.value)
+    }
 }
