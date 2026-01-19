@@ -19,8 +19,8 @@ class ThemeMapper {
         data = theme.data,
         downloadCount = theme.downloadCount,
         version = theme.version,
-        createdAt = theme.updatedAt.toJavaInstant(),
-        updatedAt = theme.createdAt.toJavaInstant(),
+        createdAt = theme.createdAt.toJavaInstant(),
+        updatedAt = theme.updatedAt.toJavaInstant(),
     ).apply {
         this.isNewRecord = isNewRecord
     }
