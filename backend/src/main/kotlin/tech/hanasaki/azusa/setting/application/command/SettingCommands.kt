@@ -14,5 +14,5 @@ data class UpdateSettingCommand(
     val theme: AppTheme,
     val llmConfigs: Set<LLMConfig>,
     val activeThemeId: ThemeId?,
-    val activeLLMConfigId: LLMConfigId,
+    val activeLLMConfigId: LLMConfigId?,
 )

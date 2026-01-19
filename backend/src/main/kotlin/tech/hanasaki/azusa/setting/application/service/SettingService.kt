@@ -5,7 +5,10 @@ import org.springframework.transaction.annotation.Transactional
 import tech.hanasaki.azusa.setting.application.command.GetSettingCommand
 import tech.hanasaki.azusa.setting.application.command.UpdateSettingCommand
 import tech.hanasaki.azusa.setting.domain.model.Setting
+import tech.hanasaki.azusa.setting.domain.model.LLMConfig
+import tech.hanasaki.azusa.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.setting.domain.repository.SettingRepository
+import tech.hanasaki.azusa.shared.ConflictException
 import tech.hanasaki.azusa.shared.NotFoundException
 import tech.hanasaki.azusa.shared.UserId
 
@@ -29,7 +32,64 @@ class SettingService(
         val updatedSetting = currentSetting
             .changeTheme(cmd.theme)
             .applyTheme(cmd.activeThemeId)
-            .selectLlmConfig(cmd.activeLLMConfigId)
+            .replaceLlmConfigs(cmd.llmConfigs, cmd.activeLLMConfigId)
+        settingRepository.save(updatedSetting)
+        return updatedSetting
+    }
+
+    @Transactional
+    fun listLlmConfigs(userId: UserId): Set<LLMConfig> {
+        val currentSetting = settingRepository.findByUserId(userId)
+            ?: throw NotFoundException("Setting not found")
+        return currentSetting.llmConfigs
+    }
+
+    @Transactional
+    fun getLlmConfig(userId: UserId, configId: LLMConfigId): LLMConfig {
+        val currentSetting = settingRepository.findByUserId(userId)
+            ?: throw NotFoundException("Setting not found")
+        return currentSetting.llmConfigs.find { it.id == configId }
+            ?: throw NotFoundException("LLM config not found")
+    }
+
+    @Transactional
+    fun addLlmConfig(userId: UserId, config: LLMConfig): Setting {
+        val currentSetting = settingRepository.findByUserId(userId)
+            ?: throw NotFoundException("Setting not found")
+        val updatedSetting = currentSetting.saveLlmConfig(config)
+        settingRepository.save(updatedSetting)
+        return updatedSetting
+    }
+
+    @Transactional
+    fun updateLlmConfig(userId: UserId, config: LLMConfig): Setting {
+        val currentSetting = settingRepository.findByUserId(userId)
+            ?: throw NotFoundException("Setting not found")
+        if (currentSetting.llmConfigs.none { it.id == config.id }) {
+            throw NotFoundException("LLM config not found")
+        }
+        val updatedSetting = currentSetting.saveLlmConfig(config)
+        settingRepository.save(updatedSetting)
+        return updatedSetting
+    }
+
+    @Transactional
+    fun deleteLlmConfig(userId: UserId, configId: LLMConfigId): Setting {
+        val currentSetting = settingRepository.findByUserId(userId)
+            ?: throw NotFoundException("Setting not found")
+        if (currentSetting.activeLlmConfigId == configId) {
+            throw ConflictException("Cannot remove active LLM config")
+        }
+        val updatedSetting = currentSetting.removeLlmConfig(configId)
+        settingRepository.save(updatedSetting)
+        return updatedSetting
+    }
+
+    @Transactional
+    fun selectLlmConfig(userId: UserId, configId: LLMConfigId): Setting {
+        val currentSetting = settingRepository.findByUserId(userId)
+            ?: throw NotFoundException("Setting not found")
+        val updatedSetting = currentSetting.selectLlmConfig(configId)
         settingRepository.save(updatedSetting)
         return updatedSetting
     }

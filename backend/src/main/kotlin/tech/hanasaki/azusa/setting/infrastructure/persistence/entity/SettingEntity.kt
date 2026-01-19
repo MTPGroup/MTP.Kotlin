@@ -23,7 +23,7 @@ data class SettingEntity(
     @Column("active_theme_id")
     val activeThemeId: UUID?,
     @Column("active_llm_config_id")
-    val activeLlmConfigId: UUID,
+    val activeLlmConfigId: UUID?,
     @Column("created_at")
     val createdAt: Instant,
     @Column("updated_at")

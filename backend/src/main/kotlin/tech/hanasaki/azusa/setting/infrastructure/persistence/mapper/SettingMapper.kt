@@ -17,7 +17,7 @@ class SettingMapper {
             uid = UserId(entity.id),
             theme = AppTheme.valueOf(entity.theme),
             activeThemeId = entity.activeThemeId?.let { ThemeId(it) },
-            activeLlmConfigId = LLMConfigId(entity.activeLlmConfigId),
+            activeLlmConfigId = entity.activeLlmConfigId?.let { LLMConfigId(it) },
             llmConfigs = entity.llmConfigs.map { toLLMConfigDomain(it) }.toSet(),
             createdAt = entity.createdAt.toKotlinInstant(),
             updatedAt = entity.updatedAt.toKotlinInstant()
@@ -30,7 +30,7 @@ class SettingMapper {
             theme = domain.theme.name,
             llmConfigs = domain.llmConfigs.map { toLLMConfigEntity(it, isNewRecord) }.toSet(),
             activeThemeId = domain.activeThemeId?.value,
-            activeLlmConfigId = domain.activeLlmConfigId.value,
+            activeLlmConfigId = domain.activeLlmConfigId?.value,
             createdAt = domain.createdAt.toJavaInstant(),
             updatedAt = domain.updatedAt.toJavaInstant(),
         ).apply {

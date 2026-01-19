@@ -45,7 +45,7 @@ data class Setting(
     val theme: AppTheme,
     val llmConfigs: Set<LLMConfig>,
     val activeThemeId: ThemeId? = null,
-    val activeLlmConfigId: LLMConfigId,
+    val activeLlmConfigId: LLMConfigId?,
     val createdAt: Instant,
     val updatedAt: Instant,
 ) {
@@ -80,17 +80,36 @@ data class Setting(
     }
 
     fun saveLlmConfig(config: LLMConfig): Setting {
-        require(config.temperature in 0.0..2.0) { "Temperature must be between 0.0 and 2.0" }
-
-        if (config.baseUrl.contains("localhost") || config.baseUrl.contains("127.0.0.1")) {
-            require(config.runOnClient) { "Localhost URLs must run on client side" }
-        }
+        validateLlmConfig(config)
 
         val newConfigs = llmConfigs.filterNot { it.id == config.id } + config
 
         return this.copy(
             llmConfigs = newConfigs.toSet(),
             activeLlmConfigId = if (newConfigs.size == 1) config.id else activeLlmConfigId,
+            updatedAt = Clock.System.now()
+        )
+    }
+
+    fun replaceLlmConfigs(configs: Set<LLMConfig>, activeConfigId: LLMConfigId?): Setting {
+        require(configs.isNotEmpty()) { "LLM configs cannot be empty" }
+        if (activeConfigId != null) {
+            require(configs.any { it.id == activeConfigId }) { "Config with id $activeConfigId not found" }
+        }
+        configs.forEach { validateLlmConfig(it) }
+        return this.copy(
+            llmConfigs = configs,
+            activeLlmConfigId = activeConfigId,
+            updatedAt = Clock.System.now()
+        )
+    }
+
+    fun removeLlmConfig(configId: LLMConfigId): Setting {
+        require(llmConfigs.any { it.id == configId }) { "Config with id $configId not found" }
+        require(activeLlmConfigId != configId) { "Cannot remove active LLM config" }
+        val newConfigs = llmConfigs.filterNot { it.id == configId }.toSet()
+        return this.copy(
+            llmConfigs = newConfigs,
             updatedAt = Clock.System.now()
         )
     }
@@ -104,5 +123,15 @@ data class Setting(
         )
     }
 
-    fun getActiveLlmConfig(): LLMConfig? = llmConfigs.find { it.id == activeLlmConfigId }
+    fun getActiveLlmConfig(): LLMConfig? = activeLlmConfigId?.let { id ->
+        llmConfigs.find { it.id == id }
+    }
+
+    private fun validateLlmConfig(config: LLMConfig) {
+        require(config.temperature in 0.0..2.0) { "Temperature must be between 0.0 and 2.0" }
+
+        if (config.baseUrl.contains("localhost") || config.baseUrl.contains("127.0.0.1")) {
+            require(config.runOnClient) { "Localhost URLs must run on client side" }
+        }
+    }
 }
