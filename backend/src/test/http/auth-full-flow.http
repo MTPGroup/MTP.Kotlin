@@ -36,9 +36,9 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.accessToken);
-    client.global.set("refreshToken", response.body.refreshToken);
-    client.log("Access Token captured: " + response.body.accessToken);
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+    client.log("Access Token captured: " + response.body.data.accessToken);
 %}
 
 ### 2.1 获取当前用户信息 (需登录)
@@ -57,8 +57,8 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.accessToken);
-    client.global.set("refreshToken", response.body.refreshToken);
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
     client.log("Refreshed Access Token captured");
 %}
 
