@@ -32,13 +32,13 @@ dependencies {
     implementation(backendLibs.bundles.kotlin)
     implementation(backendLibs.bundles.flyway)
     implementation(backendLibs.bundles.reactor)
+    implementation(backendLibs.postgresql)
     implementation(backendLibs.jackson.module.kotlin)
     implementation(backendLibs.java.jwt)
     implementation(backendLibs.aws.sdk.s3)
 
     developmentOnly(backendLibs.bundles.spring.boot.dev)
 
-    runtimeOnly(backendLibs.postgresql)
     runtimeOnly(backendLibs.spring.modulith.actuator)
     runtimeOnly(backendLibs.spring.modulith.observability)
 
