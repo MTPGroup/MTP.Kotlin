@@ -22,8 +22,8 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 import tech.hanasaki.azusa.auth.config.JwtConfig
+import tech.hanasaki.azusa.shared.ApiResponse
 import tech.hanasaki.azusa.shared.ErrorDetail
-import tech.hanasaki.azusa.shared.ErrorResponse
 import java.util.*
 import kotlin.time.Clock
 
@@ -112,7 +112,9 @@ private class JwtAuthenticationFilter(
     private fun writeUnauthorized(response: HttpServletResponse, message: String) {
         response.status = HttpServletResponse.SC_UNAUTHORIZED
         response.contentType = "application/json"
-        val payload = ErrorResponse(
+        val payload = ApiResponse<Nothing>(
+            success = false,
+            message = message,
             error = ErrorDetail(
                 message = message,
                 code = "UNAUTHORIZED",

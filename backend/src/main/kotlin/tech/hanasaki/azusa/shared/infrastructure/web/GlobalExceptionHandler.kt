@@ -2,16 +2,26 @@ package tech.hanasaki.azusa.shared.infrastructure.web
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import tech.hanasaki.azusa.shared.*
+import tech.hanasaki.azusa.shared.ApiException
+import tech.hanasaki.azusa.shared.ApiResponse
+import tech.hanasaki.azusa.shared.AuthenticationException
+import tech.hanasaki.azusa.shared.AuthorizationException
+import tech.hanasaki.azusa.shared.AzusaException
+import tech.hanasaki.azusa.shared.ConflictException
+import tech.hanasaki.azusa.shared.ErrorDetail
+import tech.hanasaki.azusa.shared.NotFoundException
 import kotlin.time.Clock
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
     @ExceptionHandler(ApiException::class)
-    fun handleApiException(ex: ApiException): ResponseEntity<ErrorResponse> {
-        val payload = ErrorResponse(
+    fun handleApiException(ex: ApiException): ResponseEntity<ApiResponse<Nothing>> {
+        val payload = ApiResponse<Nothing>(
+            success = false,
+            message = ex.message ?: "Request Failed",
             error = ErrorDetail(
                 message = ex.message ?: "Request Failed",
                 code = ex.code,
@@ -23,7 +33,7 @@ class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AzusaException::class)
-    fun handleDomainException(ex: AzusaException): ResponseEntity<ErrorResponse> {
+    fun handleDomainException(ex: AzusaException): ResponseEntity<ApiResponse<Nothing>> {
         val (status, code) = when (ex) {
             is AuthenticationException -> HttpStatus.UNAUTHORIZED to "AUTHENTICATION_ERROR"
             is AuthorizationException -> HttpStatus.FORBIDDEN to "AUTHORIZATION_ERROR"
@@ -31,7 +41,9 @@ class GlobalExceptionHandler {
             is ConflictException -> HttpStatus.CONFLICT to "CONFLICT"
             else -> HttpStatus.BAD_REQUEST to "DOMAIN_ERROR"
         }
-        val payload = ErrorResponse(
+        val payload = ApiResponse<Nothing>(
+            success = false,
+            message = ex.message,
             error = ErrorDetail(
                 message = ex.message,
                 code = code,
@@ -42,9 +54,26 @@ class GlobalExceptionHandler {
         return ResponseEntity(payload, status)
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadableException(ex: HttpMessageNotReadableException): ResponseEntity<ApiResponse<Nothing>> {
+        val payload = ApiResponse<Nothing>(
+            success = false,
+            message = "Invalid request body",
+            error = ErrorDetail(
+                message = "Invalid request body",
+                code = "BAD_REQUEST",
+                details = ex.cause?.message ?: ex.message,
+            ),
+            timestamp = Clock.System.now().toString(),
+        )
+        return ResponseEntity(payload, HttpStatus.BAD_REQUEST)
+    }
+
     @ExceptionHandler(Throwable::class)
-    fun handleThrowable(ex: Throwable): ResponseEntity<ErrorResponse> {
-        val payload = ErrorResponse(
+    fun handleThrowable(ex: Throwable): ResponseEntity<ApiResponse<Nothing>> {
+        val payload = ApiResponse<Nothing>(
+            success = false,
+            message = ex.message ?: "Internal Server Error",
             error = ErrorDetail(
                 message = ex.message ?: "Internal Server Error",
                 details = ex.stackTraceToString(),
