@@ -12,7 +12,6 @@ import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.external.EmailServiceImpl
-import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.UserMapper
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedOtpRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedRefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedUserRepository
@@ -20,8 +19,7 @@ import tech.hanasaki.azusa.modules.auth.infrastructure.security.JwtTokenService
 import tech.hanasaki.azusa.modules.auth.infrastructure.security.PasswordEncoderImpl
 
 fun authModule(config: ApplicationConfig) = module {
-    single { UserMapper() }
-    single<UserRepository> { ExposedUserRepository(get()) }
+    single<UserRepository> { ExposedUserRepository() }
     single<RefreshTokenRepository> { ExposedRefreshTokenRepository() }
     single<OtpRepository> { ExposedOtpRepository() }
     single<JwtConfig> { config.readJwtConfig() }
