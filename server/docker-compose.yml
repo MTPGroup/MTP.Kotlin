@@ -42,3 +42,9 @@ services:
       - "9001:9001"
     volumes:
       - ./data/rustfs:/data:z
+
+  maildev:
+    image: maildev/maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"

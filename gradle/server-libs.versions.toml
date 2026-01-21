@@ -1,0 +1,96 @@
+[versions]
+junit = "4.13.2"
+koin-bom = "4.1.1"
+ktor = "3.3.3"
+exposed = "1.0.0-rc-4"
+flyway = "11.20.1"
+hikari = "7.0.2"
+postgresql = "42.7.8"
+bcrypt = "0.10.2"
+angus-mail = "2.0.5"
+testcontainers = "1.21.4"
+aws-sdk = "2.31.30"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-ktor = { module = "io.insert-koin:koin-ktor" }
+koin-test = { module = "io.insert-koin:koin-test" }
+
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
+ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
+aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
+angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "angus-mail" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+
+[bundles]
+koin = [
+    "koin-core",
+    "koin-ktor"
+]
+
+ktor = [
+    "ktor-server-core",
+    "ktor-server-netty",
+    "ktor-server-auth",
+    "ktor-server-auth-jwt",
+    "ktor-server-cors",
+    "ktor-server-content-negotiation",
+    "ktor-server-config-yaml",
+    "ktor-server-status-pages",
+    "ktor-server-openapi",
+    "ktor-server-swagger",
+    "ktor-serialization-kotlinx-json"
+]
+
+exposed = [
+    "exposed-core",
+    "exposed-jdbc",
+    "exposed-json",
+    "exposed-kotlin-datetime"
+]
+
+database = [
+    "flyway-core",
+    "flyway-postgresql",
+    "hikari",
+    "postgresql"
+]
+
+service = [
+    "bcrypt",
+    "angus-mail",
+    "aws-sdk-s3",
+]
+
+test = [
+    "koin-test",
+    "ktor-server-test-host",
+    "testcontainers",
+    "testcontainers-postgresql",
+]

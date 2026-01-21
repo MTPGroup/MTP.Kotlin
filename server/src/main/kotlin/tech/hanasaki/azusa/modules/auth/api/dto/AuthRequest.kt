@@ -36,26 +36,11 @@ data class RefreshTokenRequest(
     val refreshToken: String,
 )
 
-@Serializable
-data class SignOutRequest(
-    val refreshToken: String? = null,
-)
 
 @Serializable
 data class SendOtpRequest(
     val email: String,
     val type: String,
-)
-
-@Serializable
-data class SendEmailVerificationRequest(
-    val email: String,
-    val type: String,
-)
-
-@Serializable
-data class SendPasswordResetEmailRequest(
-    val email: String,
 )
 
 @Serializable

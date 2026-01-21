@@ -2,24 +2,23 @@ package tech.hanasaki.azusa.modules.auth.api
 
 import io.ktor.http.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.auth.api.dto.*
 import tech.hanasaki.azusa.modules.auth.api.mapper.toUserProfile
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import tech.hanasaki.azusa.modules.auth.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.utils.ApiException
-import java.util.*
+import tech.hanasaki.azusa.shared.api.ApiException
+import tech.hanasaki.azusa.shared.api.requireUserId
 
-fun Route.authRoutes(
-    authService: AuthService,
-    otpService: OtpService,
-) {
+fun Route.authRoutes() {
+    val authService: AuthService by inject()
+    val otpService: OtpService by inject()
+
     route("/auth") {
         post("/sign-up/email") {
             val request = call.receive<SignUpRequest>()
@@ -46,7 +45,7 @@ fun Route.authRoutes(
 
         post("/email-otp/send") {
             val request = call.receive<SendOtpRequest>()
-            otpService.sendOtp(Email(request.email), OtpType.valueOf(request.type))
+            otpService.sendOtp(Email(request.email), OtpType.fromValue(request.type))
             call.respond(OtpSendResponse(true))
         }
 
@@ -104,52 +103,19 @@ fun Route.authRoutes(
 
         authenticate("auth-jwt") {
             get("/me") {
-                val principal = call.principal<JWTPrincipal>() ?: throw ApiException(
-                    HttpStatusCode.Unauthorized,
-                    "UNAUTHORIZED",
-                    "Missing authentication"
-                )
-                val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                    ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
-
-                val user = authService.getProfile(UserId(userId))
+                val userId = call.requireUserId()
+                val user = authService.getProfile(userId)
                 call.respond(user.toUserProfile())
             }
 
             post("/password/change") {
-                val principal = call.principal<JWTPrincipal>() ?: throw ApiException(
-                    HttpStatusCode.Unauthorized,
-                    "UNAUTHORIZED",
-                    "Missing authentication"
-                )
-                val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                    ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
-
+                val userId = call.requireUserId()
                 val request = call.receive<ChangePasswordRequest>()
                 if (request.newPassword.length < 6) {
                     throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Password too short")
                 }
-                authService.changePassword(UserId(userId), request.oldPassword, request.newPassword)
+                authService.changePassword(userId, request.oldPassword, request.newPassword)
                 call.respond(ChangePasswordResponse(success = true))
-            }
-
-            post("/email-otp/resend-verification") {
-                val principal = call.principal<JWTPrincipal>() ?: throw ApiException(
-                    HttpStatusCode.Unauthorized,
-                    "UNAUTHORIZED",
-                    "Missing authentication"
-                )
-                val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                    ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
-
-                val user = authService.getProfile(UserId(userId))
-                val email = user.email ?: throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Email not set")
-                if (user.isEmailVerified) {
-                    throw ApiException(HttpStatusCode.Conflict, "INVALID_STATE", "Email already verified")
-                }
-
-                otpService.sendOtp(email, OtpType.VERIFY_EMAIL)
-                call.respond(OtpSendResponse(true))
             }
         }
     }

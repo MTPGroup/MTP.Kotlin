@@ -3,14 +3,14 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.security
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
-import kotlinx.datetime.toKotlinInstant
-import tech.hanasaki.azusa.config.JwtConfig
-import tech.hanasaki.azusa.modules.auth.application.service.TokenPair
-import tech.hanasaki.azusa.modules.auth.application.service.TokenService
+import tech.hanasaki.azusa.modules.auth.JwtConfig
+import tech.hanasaki.azusa.modules.auth.application.port.TokenPair
+import tech.hanasaki.azusa.modules.auth.application.port.TokenService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
-import tech.hanasaki.azusa.modules.auth.domain.model.UserId
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
+import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
+import kotlin.time.toKotlinInstant
 
 class JwtTokenService(
     private val config: JwtConfig,

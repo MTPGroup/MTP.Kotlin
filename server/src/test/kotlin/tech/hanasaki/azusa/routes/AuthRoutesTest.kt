@@ -11,7 +11,7 @@ import org.koin.ktor.ext.getKoin
 import org.testcontainers.containers.PostgreSQLContainer
 import tech.hanasaki.azusa.module
 import tech.hanasaki.azusa.modules.auth.api.dto.*
-import tech.hanasaki.azusa.modules.auth.application.service.EmailService
+import tech.hanasaki.azusa.modules.auth.application.port.EmailService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository

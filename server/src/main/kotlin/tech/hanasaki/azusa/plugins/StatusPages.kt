@@ -2,30 +2,46 @@ package tech.hanasaki.azusa.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
-import kotlinx.datetime.Clock
-import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.shared.infrastructure.utils.ApiException
-
-@Serializable
-data class ErrorResponse(
-    val success: Boolean = false,
-    val error: ErrorDetail,
-    val timestamp: String,
-)
-
-@Serializable
-data class ErrorDetail(
-    val message: String,
-    val code: String = "INTERNAL_SERVER_ERROR",
-    val details: String? = null,
-)
+import tech.hanasaki.azusa.shared.api.ApiException
+import tech.hanasaki.azusa.shared.api.ApiResponse
+import tech.hanasaki.azusa.shared.api.ErrorDetail
+import kotlin.time.Clock
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
+        exception<BadRequestException> { call, cause ->
+            val payload = ApiResponse<Nothing>(
+                success = false,
+                message = "Invalid request body",
+                error = ErrorDetail(
+                    message = "Invalid request body",
+                    code = "BAD_REQUEST",
+                    details = cause.cause?.message ?: cause.message,
+                ),
+                timestamp = Clock.System.now().toString(),
+            )
+            call.respond(HttpStatusCode.BadRequest, payload)
+        }
+        exception<ContentTransformationException> { call, cause ->
+            val payload = ApiResponse<Nothing>(
+                success = false,
+                message = "Invalid request body",
+                error = ErrorDetail(
+                    message = "Invalid request body",
+                    code = "BAD_REQUEST",
+                    details = cause.cause?.message ?: cause.message,
+                ),
+                timestamp = Clock.System.now().toString(),
+            )
+            call.respond(HttpStatusCode.BadRequest, payload)
+        }
         exception<ApiException> { call, cause ->
-            val payload = ErrorResponse(
+            val payload = ApiResponse<Nothing>(
+                success = false,
+                message = cause.message ?: "Request Failed",
                 error = ErrorDetail(
                     message = cause.message ?: "Request Failed",
                     code = cause.code,
@@ -43,9 +59,11 @@ fun Application.configureStatusPages() {
                 is tech.hanasaki.azusa.shared.domain.exception.ConflictException -> HttpStatusCode.Conflict to "CONFLICT"
                 else -> HttpStatusCode.BadRequest to "DOMAIN_ERROR"
             }
-            val payload = ErrorResponse(
+            val payload = ApiResponse<Nothing>(
+                success = false,
+                message = cause.message,
                 error = ErrorDetail(
-                    message = cause.message ?: "Request Failed",
+                    message = cause.message,
                     code = code,
                     details = cause.stackTraceToString(),
                 ),
@@ -54,7 +72,9 @@ fun Application.configureStatusPages() {
             call.respond(status, payload)
         }
         exception<Throwable> { call, cause ->
-            val payload = ErrorResponse(
+            val payload = ApiResponse<Nothing>(
+                success = false,
+                message = cause.message ?: "Internal Server Error",
                 error = ErrorDetail(
                     message = cause.message ?: "Internal Server Error",
                     details = cause.stackTraceToString(),

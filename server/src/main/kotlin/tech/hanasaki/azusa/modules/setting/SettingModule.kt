@@ -1,0 +1,13 @@
+package tech.hanasaki.azusa.modules.setting
+
+import io.ktor.server.config.*
+import org.koin.core.module.dsl.factoryOf
+import org.koin.dsl.module
+import tech.hanasaki.azusa.modules.setting.application.service.SettingService
+import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
+import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.repository.ExposedSettingRepository
+
+fun settingModule(config: ApplicationConfig) = module {
+    single<SettingRepository> { ExposedSettingRepository() }
+    factoryOf(::SettingService)
+}

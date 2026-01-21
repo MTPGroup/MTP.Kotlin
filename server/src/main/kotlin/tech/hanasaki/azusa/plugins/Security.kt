@@ -2,27 +2,48 @@ package tech.hanasaki.azusa.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.config.*
+import io.ktor.server.response.*
+import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.modules.auth.JwtConfig
+import tech.hanasaki.azusa.shared.api.ApiResponse
+import tech.hanasaki.azusa.shared.api.ErrorDetail
 import java.util.*
+import kotlin.time.Clock
 
-fun Application.configureSecurity(config: ApplicationConfig) {
-    val issuer = config.property("jwt.issuer").getString()
-    val audience = config.property("jwt.audience").getString()
-    val realm = config.property("jwt.realm").getString()
-    val secret = config.property("jwt.secret").getString()
+fun Application.configureSecurity() {
+    val jwtConfig: JwtConfig by inject()
 
     install(Authentication) {
         jwt("auth-jwt") {
-            this.realm = realm
+            this.realm = jwtConfig.realm
             verifier(
-                JWT.require(Algorithm.HMAC256(secret))
-                    .withIssuer(issuer)
-                    .withAudience(audience)
+                JWT.require(Algorithm.HMAC256(jwtConfig.issuer))
+                    .withIssuer(jwtConfig.issuer)
+                    .withAudience(jwtConfig.audience)
                     .build()
             )
+            challenge { _, _ ->
+                val header = call.request.headers[HttpHeaders.Authorization].orEmpty()
+                val message = if (header.startsWith("Bearer ")) {
+                    "Invalid or expired token"
+                } else {
+                    "Missing authentication"
+                }
+                val payload = ApiResponse<Nothing>(
+                    success = false,
+                    message = message,
+                    error = ErrorDetail(
+                        message = message,
+                        code = "UNAUTHORIZED",
+                    ),
+                    timestamp = Clock.System.now().toString(),
+                )
+                call.respond(HttpStatusCode.Unauthorized, payload)
+            }
             validate { credential ->
                 val subject = credential.subject ?: return@validate null
                 runCatching { UUID.fromString(subject) }.getOrNull() ?: return@validate null

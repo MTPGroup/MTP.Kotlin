@@ -3,6 +3,9 @@ package tech.hanasaki.azusa.modules.auth.application.service
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
 import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
+import tech.hanasaki.azusa.modules.auth.application.port.PasswordEncoder
+import tech.hanasaki.azusa.modules.auth.application.port.TokenPair
+import tech.hanasaki.azusa.modules.auth.application.port.TokenService
 import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
 import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
@@ -11,6 +14,7 @@ import tech.hanasaki.azusa.shared.domain.event.EventPublisher
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.security.MessageDigest
 
 class AuthService(
@@ -18,7 +22,6 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
     private val tokenService: TokenService,
-    private val emailService: EmailService,
     private val eventPublisher: EventPublisher,
 ) {
 

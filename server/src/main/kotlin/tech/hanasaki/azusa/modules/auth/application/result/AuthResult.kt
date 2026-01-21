@@ -1,11 +1,11 @@
 package tech.hanasaki.azusa.modules.auth.application.result
 
-import kotlinx.datetime.Instant
-import tech.hanasaki.azusa.modules.auth.application.service.TokenPair
+import tech.hanasaki.azusa.modules.auth.application.port.TokenPair
 import tech.hanasaki.azusa.modules.auth.domain.model.AvatarUrl
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
-import tech.hanasaki.azusa.modules.auth.domain.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
+import tech.hanasaki.azusa.shared.domain.model.UserId
+import kotlin.time.Instant
 
 
 data class LoginResult(

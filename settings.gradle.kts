@@ -20,6 +20,10 @@ dependencyResolutionManagement {
         create("backendLibs") {
             from(files("gradle/backend-libs.versions.toml"))
         }
+
+        create("serverLibs") {
+            from(files("gradle/server-libs.versions.toml"))
+        }
     }
 
     repositories {

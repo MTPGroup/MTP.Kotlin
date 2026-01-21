@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import kotlinx.datetime.Instant
+import tech.hanasaki.azusa.shared.domain.model.UserId
+import kotlin.time.Instant
 
 
 @JvmInline

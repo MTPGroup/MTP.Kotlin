@@ -1,12 +1,13 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
-import kotlinx.datetime.Clock
+import tech.hanasaki.azusa.modules.auth.application.port.EmailService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
 class OtpService(

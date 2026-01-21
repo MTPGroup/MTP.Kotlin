@@ -1,0 +1,108 @@
+@baseUrl = http://localhost:8080
+@email = user@example.com
+@password = password123
+
+### 1.1 用户登录
+POST {{baseUrl}}/auth/sign-in/email
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+    client.log("Access Token captured");
+%}
+
+
+### 2.1 获取当前用户设置
+GET {{baseUrl}}/settings
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.global.set("userId", response.body.data.uid);
+    client.global.set("createdAt", response.body.data.createdAt);
+    client.log("Captured User ID: " + response.body.data.uid);
+%}
+
+### 2.2 更新设置 (修改主题为 DARK)
+PUT {{baseUrl}}/settings
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "theme": "DARK",
+  "activeThemeId": null,
+  "activeLlmConfigId": "3e364a23-7983-4f4e-8836-406cb03e9bda",
+  "llmConfigs": [
+    {
+      "id": "3e364a23-7983-4f4e-8836-406cb03e9bda",
+      "provider": "OPENAI",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": "sk-test-key-updated",
+      "model": "gpt-4-turbo",
+      "temperature": 0.8,
+      "maxTokens": 4096,
+      "runOnClient": false
+    }
+  ]
+}
+
+### 2.3 获取 LLM 配置列表
+GET {{baseUrl}}/settings/llm-configs
+Authorization: Bearer {{accessToken}}
+
+### 2.4 获取指定 LLM 配置
+GET {{baseUrl}}/settings/llm-configs/3e364a23-7983-4f4e-8836-406cb03e9bda
+Authorization: Bearer {{accessToken}}
+
+### 2.5 新增 LLM 配置
+POST {{baseUrl}}/settings/llm-configs
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "id": "3e364a23-7983-4f4e-8836-406cb03e9bda",
+  "provider": "OPENAI",
+  "baseUrl": "https://api.openai.com/v1",
+  "apiKey": "sk-test-key-updated",
+  "model": "gpt-4-turbo",
+  "temperature": 0.8,
+  "maxTokens": 4096,
+  "runOnClient": false
+}
+
+### 2.6 更新 LLM 配置
+PUT {{baseUrl}}/settings/llm-configs/3e364a23-7983-4f4e-8836-406cb03e9bda
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "provider": "OPENAI",
+  "baseUrl": "https://api.openai.com/v1",
+  "apiKey": "sk-test-key-updated",
+  "model": "gpt-4-turbo",
+  "temperature": 0.8,
+  "maxTokens": 4096,
+  "runOnClient": false
+}
+
+### 2.7 选择激活的 LLM 配置
+POST {{baseUrl}}/settings/llm-configs/3e364a23-7983-4f4e-8836-406cb03e9bda/select
+Authorization: Bearer {{accessToken}}
+
+### 2.8 删除 LLM 配置 (非激活配置才可删除)
+DELETE {{baseUrl}}/settings/llm-configs/3e364a23-7983-4f4e-8836-406cb03e9bda
+Authorization: Bearer {{accessToken}}
+
+### 2.9 再次获取设置 (验证更新是否生效)
+GET {{baseUrl}}/settings
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("Theme is updated", function () {
+        client.assert(response.body.data.theme === "DARK", "Theme should be DARK");
+    });
+%}

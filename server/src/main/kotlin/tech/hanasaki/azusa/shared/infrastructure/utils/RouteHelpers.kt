@@ -3,8 +3,10 @@ package tech.hanasaki.azusa.shared.infrastructure.utils
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import kotlinx.datetime.Clock
+import tech.hanasaki.azusa.shared.api.ApiException
+import tech.hanasaki.azusa.shared.api.ApiResponse
 import java.util.*
+import kotlin.time.Clock
 
 fun ApplicationCall.uuidParam(name: String): UUID {
     val value = parameters[name] ?: throw ApiException(
@@ -38,7 +40,7 @@ fun parsePageParam(value: String?): Int {
 
 fun parseLimitParam(value: String?): Int {
     val limit = value?.toIntOrNull() ?: 20
-    if (limit < 1 || limit > 100) {
+    if (limit !in 1..100) {
         throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Invalid limit")
     }
     return limit

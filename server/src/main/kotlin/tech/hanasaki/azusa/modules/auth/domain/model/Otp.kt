@@ -1,13 +1,18 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import java.util.*
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 enum class OtpType(val value: String) {
     VERIFY_EMAIL("verify_email"),
     RESET_PASSWORD("reset_password"),
-    SIGN_IN("sign_in")
+    SIGN_IN("sign_in");
+
+    companion object {
+        fun fromValue(value: String): OtpType = entries.firstOrNull { it.value == value || it.name == value }
+            ?: throw IllegalArgumentException("Unknown OtpType value: $value")
+    }
 }
 
 data class Otp(

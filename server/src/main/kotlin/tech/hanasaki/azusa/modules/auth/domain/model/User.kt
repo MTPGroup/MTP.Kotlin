@@ -1,15 +1,14 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.auth.domain.events.EmailVerifiedEvent
 import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
 import tech.hanasaki.azusa.shared.domain.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
+import kotlin.time.Clock
+import kotlin.time.Instant
 
-@JvmInline
-value class UserId(val value: UUID)
 
 @JvmInline
 value class PasswordHash(val value: String)

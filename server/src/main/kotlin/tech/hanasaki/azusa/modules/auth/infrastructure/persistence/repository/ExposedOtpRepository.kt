@@ -1,13 +1,18 @@
 package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository
 
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.OtpTable
 import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import kotlin.time.Clock
 
 class ExposedOtpRepository : OtpRepository {
     override suspend fun save(otp: Otp): Unit = dbQuery {
@@ -29,7 +34,7 @@ class ExposedOtpRepository : OtpRepository {
             .limit(1)
             .map { row ->
                 Otp(
-                    id = row[OtpTable.id].value,
+                    id = row[OtpTable.id],
                     email = Email(row[OtpTable.email]),
                     code = row[OtpTable.code],
                     type = row[OtpTable.type],

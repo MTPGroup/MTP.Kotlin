@@ -1,16 +1,17 @@
 package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository
 
 
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 import tech.hanasaki.azusa.modules.auth.domain.model.RefreshToken
-import tech.hanasaki.azusa.modules.auth.domain.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.RefreshTokensTable
+import tech.hanasaki.azusa.shared.domain.model.UserId
 import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import kotlin.time.Clock
 
 class ExposedRefreshTokenRepository : RefreshTokenRepository {
 
@@ -45,8 +46,8 @@ class ExposedRefreshTokenRepository : RefreshTokenRepository {
     }
 
     private fun toRefreshToken(row: ResultRow) = RefreshToken(
-        id = row[RefreshTokensTable.id].value,
-        userId = UserId(row[RefreshTokensTable.userId].value),
+        id = row[RefreshTokensTable.id],
+        userId = UserId(row[RefreshTokensTable.userId]),
         tokenHash = row[RefreshTokensTable.tokenHash],
         expiresAt = row[RefreshTokensTable.expiresAt],
         isRevoked = row[RefreshTokensTable.isRevoked]

@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.shared.infrastructure.database
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.jdbc.Database
 import tech.hanasaki.azusa.config.DatabaseConfig
 
 object DatabaseFactory {
