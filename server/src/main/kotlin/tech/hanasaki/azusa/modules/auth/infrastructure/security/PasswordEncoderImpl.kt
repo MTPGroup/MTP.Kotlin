@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.infrastructure.security
 
 import at.favre.lib.crypto.bcrypt.BCrypt
-import tech.hanasaki.azusa.modules.auth.application.port.PasswordEncoder
+import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
 
 class PasswordEncoderImpl : PasswordEncoder {
     private val cost = 12

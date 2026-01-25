@@ -18,10 +18,11 @@ enum class OtpType(val value: String) {
 data class Otp(
     val id: UUID = UUID.randomUUID(),
     val email: Email,
-    val code: String,
+    val codeHash: String,
     val type: OtpType,
-    val expiresAt: Instant,
     val isUsed: Boolean = false,
+    val expiresAt: Instant,
+    val usedAt: Instant? = null,
 ) {
     fun isValid(now: Instant = Clock.System.now()): Boolean = !isUsed && now <= expiresAt
 }

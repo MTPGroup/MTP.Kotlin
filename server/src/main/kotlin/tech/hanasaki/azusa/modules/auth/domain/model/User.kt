@@ -14,6 +14,7 @@ import kotlin.time.Instant
 value class PasswordHash(val value: String)
 
 @JvmInline
+@Serializable
 value class Email(val value: String) {
     init {
         require(value.contains('@')) { "Invalid email format" }
@@ -79,14 +80,6 @@ class User(
     val bannedUntilAt: Instant?
         get() = _bannedUntil
 
-    /*fun updateProfile(username: Username, avatarUrl: AvatarUrl?) {
-        _profile = UserProfile(
-            userId = id,
-            username = username,
-            avatar = avatarUrl,
-        )
-    }*/
-
     fun canSignIn(now: Instant = Clock.System.now()): Boolean =
         _status == UserStatus.ACTIVE &&
                 !isBanned(now) &&
@@ -105,28 +98,9 @@ class User(
         _passwordHash = newPasswordHash
     }
 
-    fun attachEmail(newEmail: Email) {
-        _email = newEmail
-        _emailVerified = false
-        _status = UserStatus.PENDING
-    }
-
-    fun activate() {
-        _status = UserStatus.ACTIVE
-    }
-
     fun suspend() {
         require(_status == UserStatus.ACTIVE) { "Only active accounts can be suspended" }
         _status = UserStatus.SUSPENDED
-    }
-
-    fun restore() {
-        require(_status == UserStatus.SUSPENDED) { "Only suspended accounts can be restored" }
-        _status = UserStatus.ACTIVE
-    }
-
-    fun disable() {
-        _status = UserStatus.DISABLED
     }
 
     fun ban(until: Instant?) {

@@ -1,9 +1,12 @@
-package tech.hanasaki.azusa.modules.auth.application.port
+package tech.hanasaki.azusa.modules.auth.domain.port
 
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.shared.domain.model.UserId
 import kotlin.time.Instant
 
+/**
+ * Token 服务端口 - 领域层定义的认证令牌服务接口
+ */
 data class TokenPair(
     val accessToken: String,
     val refreshToken: String,

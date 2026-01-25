@@ -7,11 +7,11 @@ import org.jetbrains.exposed.v1.datetime.timestamp
 import java.util.*
 
 object ProfileTable : Table("profiles") {
-    val id: Column<UUID> = uuid("uid").references(UserTable.id, onDelete = ReferenceOption.CASCADE)
+    val uid: Column<UUID> = uuid("uid").references(UserTable.id, onDelete = ReferenceOption.CASCADE)
     val username = text("username")
     val avatar = text("avatar").nullable()
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 
-    override val primaryKey = PrimaryKey(id)
+    override val primaryKey = PrimaryKey(uid)
 }

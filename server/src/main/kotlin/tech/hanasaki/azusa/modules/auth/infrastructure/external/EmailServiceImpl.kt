@@ -4,7 +4,7 @@ import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import tech.hanasaki.azusa.modules.auth.SmtpConfig
-import tech.hanasaki.azusa.modules.auth.application.port.EmailService
+import tech.hanasaki.azusa.modules.auth.domain.port.EmailService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import java.util.*
 

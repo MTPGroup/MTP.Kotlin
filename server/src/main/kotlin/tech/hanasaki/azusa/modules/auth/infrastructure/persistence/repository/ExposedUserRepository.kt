@@ -9,6 +9,7 @@ import org.jetbrains.exposed.v1.jdbc.update
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.User
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
+import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.ProfileMapper
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.UserMapper
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.UserTable
@@ -22,7 +23,7 @@ class ExposedUserRepository : UserRepository {
             ProfileTable,
             JoinType.INNER,
             UserTable.id,
-            ProfileTable.id
+            ProfileTable.uid
         )
             .selectAll()
             .where { UserTable.email eq email.value }
@@ -35,7 +36,7 @@ class ExposedUserRepository : UserRepository {
             ProfileTable,
             JoinType.INNER,
             UserTable.id,
-            ProfileTable.id
+            ProfileTable.uid
         )
             .selectAll()
             .where { UserTable.id eq id.value }
@@ -55,18 +56,14 @@ class ExposedUserRepository : UserRepository {
             }
         }
 
-        val profileRowsUpdated = ProfileTable.update({ ProfileTable.id eq user.id.value }) {
-            it[username] = user.profile.username.value
-            it[avatar] = user.profile.avatar?.value
+        val profileRowsUpdated = ProfileTable.update({ ProfileTable.uid eq user.id.value }) {
+            ProfileMapper.toEntity(user.profile, it)
             it[updatedAt] = Clock.System.now()
         }
 
         if (profileRowsUpdated == 0) {
             ProfileTable.insert {
-                it[id] = user.id.value
-                it[username] = user.profile.username.value
-                it[avatar] = user.profile.avatar?.value
-                it[createdAt] = user.profile.createdAt
+                ProfileMapper.toEntity(user.profile, it)
                 it[updatedAt] = user.profile.updatedAt
             }
         }

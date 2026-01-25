@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.character.infrastructure.persistence.table
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.datetime
+import kotlin.time.Clock
 
 object CharacterTable : Table("characters") {
     val id = uuid("id")

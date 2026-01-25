@@ -4,13 +4,14 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 
-object OtpTable : Table("otp_codes") {
+object OtpTable : Table("email_otps") {
     val id = uuid("id")
     val email = text("email")
-    val code = varchar("code", 10)
-    val type = enumerationByName("type", 20, OtpType::class)
+    val type = enumerationByName<OtpType>("type", 30)
+    val codeHash = text("code_hash")
+    val usedAt = timestamp("used_at").nullable()
+    val isUsed = bool("is_used")
     val expiresAt = timestamp("expires_at")
-    val isUsed = bool("is_used").default(false)
     val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)
