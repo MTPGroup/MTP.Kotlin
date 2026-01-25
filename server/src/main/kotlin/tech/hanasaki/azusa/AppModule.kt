@@ -6,6 +6,7 @@ import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.auth.domain.events.EmailVerifiedEvent
 import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
+import tech.hanasaki.azusa.shared.domain.event.integration.UserCreatedIntegrationEvent
 import tech.hanasaki.azusa.modules.character.characterModule
 import tech.hanasaki.azusa.modules.setting.settingModule
 import tech.hanasaki.azusa.modules.theme.themeModule
@@ -34,6 +35,7 @@ fun sharedModule(config: ApplicationConfig) = module {
     // 注册所有领域事件类型
     EventRegistry.register<UserRegisteredEvent>()
     EventRegistry.register<EmailVerifiedEvent>()
+    EventRegistry.register<UserCreatedIntegrationEvent>()
 
     single { InMemoryEventBus() }
     single<EventPublisher> { get<InMemoryEventBus>() }

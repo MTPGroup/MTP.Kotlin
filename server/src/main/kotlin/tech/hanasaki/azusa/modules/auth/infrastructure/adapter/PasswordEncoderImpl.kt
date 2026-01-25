@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.auth.infrastructure.security
+package tech.hanasaki.azusa.modules.auth.infrastructure.adapter
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder

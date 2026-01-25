@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.auth.infrastructure.external
+package tech.hanasaki.azusa.modules.auth.application.service
 
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 
@@ -13,10 +13,12 @@ object EmailTemplateService {
                 "验证您的邮箱",
                 "感谢您注册 Azusa！请使用以下验证码完成邮箱验证："
             )
+
             OtpType.RESET_PASSWORD -> Pair(
                 "重置密码",
                 "您正在重置密码，请使用以下验证码完成操作："
             )
+
             OtpType.SIGN_IN -> Pair(
                 "登录验证",
                 "您正在登录 Azusa，请使用以下验证码完成登录："

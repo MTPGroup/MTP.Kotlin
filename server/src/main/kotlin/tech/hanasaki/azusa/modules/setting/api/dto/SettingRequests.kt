@@ -3,12 +3,12 @@ package tech.hanasaki.azusa.modules.setting.api.dto
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.setting.application.command.UpdateSettingCommand
-import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfig
+import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
-import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
+import tech.hanasaki.azusa.shared.domain.model.LLMConfig
 import tech.hanasaki.azusa.shared.domain.model.ThemeId
-import java.util.UUID
+import java.util.*
 
 @Serializable
 data class CreateLLMConfigRequest(

@@ -2,23 +2,20 @@ package tech.hanasaki.azusa.modules.setting.application.service
 
 import tech.hanasaki.azusa.modules.setting.application.command.GetSettingCommand
 import tech.hanasaki.azusa.modules.setting.application.command.UpdateSettingCommand
-import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfig
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
 import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.LLMConfig
 import tech.hanasaki.azusa.shared.domain.model.UserId
 
 class SettingService(
     private val settingRepository: SettingRepository,
 ) {
     suspend fun getSetting(cmd: GetSettingCommand): Setting {
-        return settingRepository.findByUserId(cmd.uid) ?: run {
-            val setting = Setting.init(cmd.uid)
-            settingRepository.save(setting)
-            setting
-        }
+        return settingRepository.findByUserId(cmd.uid)
+            ?: throw NotFoundException("Setting not found")
     }
 
     suspend fun updateSetting(userId: UserId, cmd: UpdateSettingCommand): Setting {

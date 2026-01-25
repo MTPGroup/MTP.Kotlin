@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.auth.domain.port
+package tech.hanasaki.azusa.shared.domain.port
 
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType

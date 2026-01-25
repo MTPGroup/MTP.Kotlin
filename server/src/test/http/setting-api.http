@@ -12,7 +12,7 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.accessToken);
+    client.global.set("accessToken", response.body.data.accessToken);
     client.log("Access Token captured");
 %}
 
@@ -93,7 +93,7 @@ Content-Type: application/json
 POST {{baseUrl}}/settings/llm-configs/3e364a23-7983-4f4e-8836-406cb03e9bda/select
 Authorization: Bearer {{accessToken}}
 
-### 2.8 删除 LLM 配置 (非激活配置才可删除)
+### 2.8 删除 LLM 配置
 DELETE {{baseUrl}}/settings/llm-configs/3e364a23-7983-4f4e-8836-406cb03e9bda
 Authorization: Bearer {{accessToken}}
 

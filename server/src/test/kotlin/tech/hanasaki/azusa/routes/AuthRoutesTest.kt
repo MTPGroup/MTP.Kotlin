@@ -11,9 +11,9 @@ import org.testcontainers.containers.PostgreSQLContainer
 import tech.hanasaki.azusa.module
 import tech.hanasaki.azusa.modules.auth.api.dto.*
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
-import tech.hanasaki.azusa.modules.auth.domain.port.EmailService
 import tech.hanasaki.azusa.plugins.appJson
 import tech.hanasaki.azusa.shared.api.ApiResponse
+import tech.hanasaki.azusa.shared.domain.port.EmailService
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -3,6 +3,7 @@ package tech.hanasaki.azusa.modules.setting.domain.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.shared.domain.exception.DomainException
+import tech.hanasaki.azusa.shared.domain.model.LLMConfig
 import tech.hanasaki.azusa.shared.domain.model.ThemeId
 import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
@@ -25,26 +26,6 @@ enum class LLMProvider {
     CUSTOM
 }
 
-data class LLMConfig(
-    val id: LLMConfigId = LLMConfigId(UUID.randomUUID()),
-    val provider: LLMProvider,
-    val baseUrl: String,
-    val apiKey: String,
-    val model: String,
-    val temperature: Float,
-    val maxTokens: Int? = null,
-    val runOnClient: Boolean = false,
-) {
-    companion object {
-        val DEFAULT = LLMConfig(
-            provider = LLMProvider.OPENAI,
-            baseUrl = "https://api.openai.com/v1",
-            apiKey = "",
-            model = "gpt-3.5-turbo",
-            temperature = 0.7f,
-        )
-    }
-}
 
 data class Setting(
     val uid: UserId,
@@ -56,15 +37,14 @@ data class Setting(
     val updatedAt: Instant,
 ) {
     companion object {
-        fun init(userId: UserId): Setting {
+        fun create(userId: UserId): Setting {
             val now = Clock.System.now()
-            val defaultConfig = LLMConfig.DEFAULT
             return Setting(
                 uid = userId,
                 theme = AppTheme.SYSTEM,
                 activeThemeId = null,
-                activeLlmConfigId = defaultConfig.id,
-                llmConfigs = setOf(defaultConfig),
+                activeLlmConfigId = null,
+                llmConfigs = setOf(),
                 createdAt = now,
                 updatedAt = now,
             )
@@ -139,7 +119,7 @@ data class Setting(
     }
 
     private fun validateLlmConfig(config: LLMConfig) {
-        if (config.temperature !in 0.0..2.0) {
+        if (config.temperature in 0.0..2.0) {
             throw DomainException("Temperature must be between 0.0 and 2.0")
         }
         if (config.baseUrl.contains("localhost") || config.baseUrl.contains("127.0.0.1")) {

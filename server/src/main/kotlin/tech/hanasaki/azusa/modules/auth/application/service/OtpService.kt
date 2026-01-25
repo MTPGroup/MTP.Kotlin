@@ -1,14 +1,13 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
 import tech.hanasaki.azusa.modules.auth.OtpConfig
-import tech.hanasaki.azusa.modules.auth.domain.port.EmailService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
-import tech.hanasaki.azusa.modules.auth.infrastructure.external.EmailTemplateService
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.DomainException
+import tech.hanasaki.azusa.shared.domain.port.EmailService
 import java.security.MessageDigest
 import kotlin.random.Random
 import kotlin.time.Clock

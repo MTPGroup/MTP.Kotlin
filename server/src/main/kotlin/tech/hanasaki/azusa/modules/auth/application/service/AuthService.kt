@@ -11,6 +11,7 @@ import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.shared.domain.event.EventPublisher
+import tech.hanasaki.azusa.shared.domain.event.integration.UserCreatedIntegrationEvent
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
@@ -46,6 +47,7 @@ class AuthService(
         userRepository.save(user)
 
         eventPublisher.publishAll(user.domainEvents)
+        eventPublisher.publish(UserCreatedIntegrationEvent(user.id))
         user.clearDomainEvents()
     }
 

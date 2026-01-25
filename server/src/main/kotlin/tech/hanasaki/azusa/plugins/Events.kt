@@ -7,6 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.modules.auth.application.handler.AuthEventHandler
+import tech.hanasaki.azusa.modules.setting.application.handler.SettingEventHandler
 import tech.hanasaki.azusa.shared.infrastructure.event.service.OutboxPoller
 
 private val logger = LoggerFactory.getLogger("Events")
@@ -21,6 +22,7 @@ private val logger = LoggerFactory.getLogger("Events")
 fun Application.configureEvents() {
     val outboxPoller by inject<OutboxPoller>()
     val authEventHandler by inject<AuthEventHandler>()
+    val settingEventHandler by inject<SettingEventHandler>()
 
     // 事件处理器的协程作用域
     val eventScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -34,6 +36,7 @@ fun Application.configureEvents() {
 
         // 启动各模块事件处理器
         authEventHandler.startListening(eventScope)
+        settingEventHandler.startListening(eventScope)
 
         logger.info("Event system initialized")
     }

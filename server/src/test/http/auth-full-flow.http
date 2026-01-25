@@ -23,7 +23,7 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "otp": "895136"
+  "otp": "205840"
 }
 
 ### 1.2 用户登录 (自动捕获 Token)
