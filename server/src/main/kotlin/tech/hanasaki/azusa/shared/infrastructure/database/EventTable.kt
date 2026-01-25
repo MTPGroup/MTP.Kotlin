@@ -16,9 +16,3 @@ object OutboxEventTable : Table("event_publication") {
 
     override val primaryKey = PrimaryKey(id)
 }
-
-/**
- * 保留旧的别名以保持兼容性
- */
-@Deprecated("Use OutboxEventTable instead", ReplaceWith("OutboxEventTable"))
-typealias EventPublicationTable = OutboxEventTable

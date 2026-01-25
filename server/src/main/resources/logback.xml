@@ -33,10 +33,10 @@
     <logger name="tech.hanasaki.azusa" level="DEBUG"/>
 
     <!-- 框架日志 -->
-    <logger name="io.netty" level="INFO"/>
+    <!--    <logger name="io.netty" level="INFO"/>-->
     <logger name="org.eclipse.jetty" level="INFO"/>
     <!-- 开启 Exposed SQL 日志 -->
-    <logger name="Exposed" level="DEBUG">
+    <!--<logger name="Exposed" level="INFO">
         <appender-ref ref="STDOUT"/>
-    </logger>
+    </logger>-->
 </configuration>
