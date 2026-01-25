@@ -3,9 +3,9 @@ package tech.hanasaki.azusa.modules.auth.application.service
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
 import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
-import tech.hanasaki.azusa.modules.auth.application.port.PasswordEncoder
-import tech.hanasaki.azusa.modules.auth.application.port.TokenPair
-import tech.hanasaki.azusa.modules.auth.application.port.TokenService
+import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
+import tech.hanasaki.azusa.modules.auth.domain.port.TokenPair
+import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
 import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
 import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
@@ -53,7 +53,6 @@ class AuthService(
      * 用户登录
      */
     suspend fun login(cmd: LoginCommand): LoginResult {
-
         val user = userRepository.findByEmail(cmd.email)
             ?: throw NotFoundException("User not found")
 

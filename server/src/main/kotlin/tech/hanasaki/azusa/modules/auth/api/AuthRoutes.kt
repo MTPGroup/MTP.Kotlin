@@ -14,6 +14,7 @@ import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.shared.api.ApiException
 import tech.hanasaki.azusa.shared.api.requireUserId
+import tech.hanasaki.azusa.shared.api.respondOk
 
 fun Route.authRoutes() {
     val authService: AuthService by inject()
@@ -26,14 +27,14 @@ fun Route.authRoutes() {
 
             authService.register(request.toCommand())
 
-            call.respond(SignUpResponse(success = true))
+            call.respondOk(SignUpResponse(success = true))
         }
 
         post("/sign-in/email") {
             val request = call.receive<SignInWithPasswordRequest>()
             validateSignIn(request)
             val result = authService.login(request.toCommand())
-            call.respond(
+            call.respondOk(
                 SignInWithPasswordResponse(
                     user = result.toUserProfile(),
                     accessToken = result.tokens.accessToken,
@@ -46,7 +47,7 @@ fun Route.authRoutes() {
         post("/email-otp/send") {
             val request = call.receive<SendOtpRequest>()
             otpService.sendOtp(Email(request.email), OtpType.fromValue(request.type))
-            call.respond(OtpSendResponse(true))
+            call.respondOk(OtpSendResponse(true))
         }
 
         post("/email-otp/verify-email") {
@@ -58,11 +59,7 @@ fun Route.authRoutes() {
                 request.otp
             )
             authService.verifyEmail(email)
-            call.respond(
-                VerifyOTPResponse(
-                    true
-                ),
-            )
+            call.respondOk(VerifyOTPResponse(true))
         }
 
         post("/email-otp/reset-password") {
@@ -77,13 +74,13 @@ fun Route.authRoutes() {
                 throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Password too short")
             }
             authService.resetPassword(request.toCommand())
-            call.respond(ResetPasswordResponse(success = true))
+            call.respondOk(ResetPasswordResponse(success = true))
         }
 
         post("/refresh") {
             val request = call.receive<RefreshTokenRequest>()
             val result = authService.refreshToken(request.refreshToken)
-            call.respond(
+            call.respondOk(
                 SignInWithPasswordResponse(
                     user = result.toUserProfile(),
                     accessToken = result.tokens.accessToken,
@@ -105,7 +102,7 @@ fun Route.authRoutes() {
             get("/me") {
                 val userId = call.requireUserId()
                 val user = authService.getProfile(userId)
-                call.respond(user.toUserProfile())
+                call.respondOk(user.toUserProfile())
             }
 
             post("/password/change") {
@@ -115,7 +112,7 @@ fun Route.authRoutes() {
                     throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Password too short")
                 }
                 authService.changePassword(userId, request.oldPassword, request.newPassword)
-                call.respond(ChangePasswordResponse(success = true))
+                call.respondOk(ChangePasswordResponse(success = true))
             }
         }
     }

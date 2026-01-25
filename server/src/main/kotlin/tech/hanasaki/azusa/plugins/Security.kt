@@ -19,9 +19,9 @@ fun Application.configureSecurity() {
 
     install(Authentication) {
         jwt("auth-jwt") {
-            this.realm = jwtConfig.realm
+            realm = jwtConfig.realm
             verifier(
-                JWT.require(Algorithm.HMAC256(jwtConfig.issuer))
+                JWT.require(Algorithm.HMAC256(jwtConfig.secret))
                     .withIssuer(jwtConfig.issuer)
                     .withAudience(jwtConfig.audience)
                     .build()
@@ -40,7 +40,7 @@ fun Application.configureSecurity() {
                         message = message,
                         code = "UNAUTHORIZED",
                     ),
-                    timestamp = Clock.System.now().toString(),
+                    timestamp = Clock.System.now(),
                 )
                 call.respond(HttpStatusCode.Unauthorized, payload)
             }

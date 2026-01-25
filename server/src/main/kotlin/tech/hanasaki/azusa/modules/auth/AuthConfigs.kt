@@ -13,8 +13,9 @@ data class JwtConfig(
 )
 
 
-data class OtpDebugConfig(
-    val returnCode: Boolean,
+data class OtpConfig(
+    val testMode: Boolean = false,
+    val testCode: String = "123456",
 )
 
 data class SmtpConfig(
@@ -39,9 +40,10 @@ fun ApplicationConfig.readJwtConfig(): JwtConfig {
 }
 
 
-fun ApplicationConfig.readOtpDebugConfig(): OtpDebugConfig {
-    return OtpDebugConfig(
-        returnCode = requireString("otp.debugReturn").toBoolean(),
+fun ApplicationConfig.readOtpConfig(): OtpConfig {
+    return OtpConfig(
+        testMode = propertyOrNull("otp.testMode")?.getString()?.toBoolean() ?: false,
+        testCode = propertyOrNull("otp.testCode")?.getString() ?: "123456",
     )
 }
 
