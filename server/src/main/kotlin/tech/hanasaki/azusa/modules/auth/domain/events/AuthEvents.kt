@@ -5,16 +5,19 @@ import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class UserRegisteredEvent(
     val userId: UserId,
     val email: Email,
-    val occurredAt: Instant = Clock.System.now(),
+    override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
 
 
+@Serializable
 data class EmailVerifiedEvent(
     val userId: UserId,
     val email: Email,
-    val occurredAt: Instant = Clock.System.now(),
+    override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
