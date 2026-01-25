@@ -114,6 +114,12 @@ fun Route.authRoutes() {
                 authService.changePassword(userId, request.oldPassword, request.newPassword)
                 call.respondOk(ChangePasswordResponse(success = true))
             }
+
+            delete("/account") {
+                val userId = call.requireUserId()
+                authService.deleteAccount(userId)
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }

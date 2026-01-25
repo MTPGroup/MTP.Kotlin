@@ -23,7 +23,7 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "otp": "846652"
+  "otp": "895136"
 }
 
 ### 1.2 用户登录 (自动捕获 Token)
@@ -84,10 +84,6 @@ Content-Type: application/json
   "otp": "123456"
 }
 
-### 3.3 重新发送验证邮件 (需登录)
-POST {{baseUrl}}/auth/email-otp/resend-verification
-Authorization: Bearer {{accessToken}}
-
 ### 4.1 修改密码 (需登录)
 # ==========================================
 # 4. 密码管理流程
@@ -116,7 +112,7 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "otp": "717234",
+  "otp": "246924",
   "password": "{{password}}"
 }
 

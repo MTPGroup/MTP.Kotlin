@@ -3,11 +3,11 @@ package tech.hanasaki.azusa.modules.auth.application.service
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
 import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
+import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
+import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenPair
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
-import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
-import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.shared.domain.event.EventPublisher
@@ -91,6 +91,15 @@ class AuthService(
         if (storedToken != null) {
             refreshTokenRepository.revoke(storedToken)
         }
+    }
+
+    /**
+     * 删除账号
+     */
+    suspend fun deleteAccount(userId: UserId) {
+        val user = userRepository.findById(userId)
+            ?: throw NotFoundException("User not found")
+        userRepository.deleteById(user.id)
     }
 
     /**
