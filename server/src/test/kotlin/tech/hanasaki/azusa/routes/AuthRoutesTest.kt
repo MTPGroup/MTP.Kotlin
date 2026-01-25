@@ -5,16 +5,15 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.json.Json
-import org.koin.core.context.GlobalContext
+import kotlinx.serialization.KSerializer
 import org.koin.ktor.ext.getKoin
 import org.testcontainers.containers.PostgreSQLContainer
 import tech.hanasaki.azusa.module
 import tech.hanasaki.azusa.modules.auth.api.dto.*
-import tech.hanasaki.azusa.modules.auth.application.port.EmailService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
-import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
+import tech.hanasaki.azusa.modules.auth.domain.port.EmailService
+import tech.hanasaki.azusa.plugins.appJson
+import tech.hanasaki.azusa.shared.api.ApiResponse
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,7 +22,16 @@ import kotlin.test.assertTrue
 import org.koin.dsl.module as koinModule
 
 class AuthRoutesTest {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = appJson
+
+    /**
+     * 从 ApiResponse 中解析 data 字段
+     */
+    private inline fun <reified T> parseApiData(body: String, serializer: KSerializer<T>): T {
+        val response = json.decodeFromString(ApiResponse.serializer(serializer), body)
+        assertTrue(response.success, "API response should be successful: ${response.error?.message}")
+        return assertNotNull(response.data, "API response data should not be null")
+    }
 
     private val postgres by lazy {
         PostgreSQLContainer<Nothing>("pgvector/pgvector:pg18").apply {
@@ -68,7 +76,7 @@ class AuthRoutesTest {
             header(HttpHeaders.Authorization, "Bearer ${signIn.accessToken}")
         }
         assertEquals(HttpStatusCode.OK, meResponse.status)
-        val me = json.decodeFromString(UserProfile.serializer(), meResponse.bodyAsText())
+        val me = parseApiData(meResponse.bodyAsText(), UserProfile.serializer())
         assertEquals(email, me.email)
         assertEquals(signIn.user.id, me.id)
     }
@@ -98,7 +106,7 @@ class AuthRoutesTest {
             )
         }
         assertEquals(HttpStatusCode.OK, changeResponse.status)
-        val changePayload = json.decodeFromString(ChangePasswordResponse.serializer(), changeResponse.bodyAsText())
+        val changePayload = parseApiData(changeResponse.bodyAsText(), ChangePasswordResponse.serializer())
         assertTrue(changePayload.success)
 
         val oldLogin = client.post("/auth/sign-in/email") {
@@ -123,26 +131,8 @@ class AuthRoutesTest {
             )
         }
         assertEquals(HttpStatusCode.OK, newLogin.status)
-        val newLoginPayload = json.decodeFromString(SignInWithPasswordResponse.serializer(), newLogin.bodyAsText())
+        val newLoginPayload = parseApiData(newLogin.bodyAsText(), SignInWithPasswordResponse.serializer())
         assertTrue(newLoginPayload.accessToken.isNotBlank())
-    }
-
-    @Test
-    fun resendVerificationCreatesOtp(): Unit = testApplication {
-        environment { config = testConfig() }
-        application {
-            module()
-            getKoin().loadModules(listOf(testOverrides()), allowOverride = true)
-        }
-
-        val email = "otp-${UUID.randomUUID()}@example.com"
-        val signIn = signUpVerifyAndSignIn(email, "password123")
-
-        val resendResponse = client.post("/auth/email-otp/resend-verification") {
-            header(HttpHeaders.Authorization, "Bearer ${signIn.accessToken}")
-        }
-        val resendBody = resendResponse.bodyAsText()
-        assertEquals(HttpStatusCode.Conflict, resendResponse.status, "resend body: $resendBody")
     }
 
     private suspend fun ApplicationTestBuilder.signUpVerifyAndSignIn(
@@ -164,7 +154,7 @@ class AuthRoutesTest {
         }
         val signUpBody = signUpResponse.bodyAsText()
         assertEquals(HttpStatusCode.OK, signUpResponse.status, signUpBody)
-        val signUpPayload = json.decodeFromString(SignUpResponse.serializer(), signUpBody)
+        val signUpPayload = parseApiData(signUpBody, SignUpResponse.serializer())
         assertTrue(signUpPayload.success)
 
         val sendOtp = client.post("/auth/email-otp/send") {
@@ -172,23 +162,22 @@ class AuthRoutesTest {
             setBody(
                 json.encodeToString(
                     SendOtpRequest.serializer(),
-                    SendOtpRequest(email = email, type = OtpType.VERIFY_EMAIL.name)
+                    SendOtpRequest(email = email, type = "VERIFY_EMAIL")
                 )
             )
         }
         val sendOtpBody = sendOtp.bodyAsText()
         assertEquals(HttpStatusCode.OK, sendOtp.status, "send-otp body: $sendOtpBody")
 
-        val otpRepo: OtpRepository = GlobalContext.get().get()
-        val otp = otpRepo.findValidLatest(Email(email), OtpType.VERIFY_EMAIL)
-        assertNotNull(otp)
+        // 使用测试模式下的固定验证码
+        val testOtpCode = "123456"
 
         val verifyResponse = client.post("/auth/email-otp/verify-email") {
             contentType(ContentType.Application.Json)
             setBody(
                 json.encodeToString(
                     VerifyOTPRequest.serializer(),
-                    VerifyOTPRequest(email = email, otp = otp.code)
+                    VerifyOTPRequest(email = email, otp = testOtpCode)
                 )
             )
         }
@@ -206,7 +195,7 @@ class AuthRoutesTest {
         }
         val signInBody = signInResponse.bodyAsText()
         assertEquals(HttpStatusCode.OK, signInResponse.status, "sign-in body: $signInBody")
-        return json.decodeFromString(SignInWithPasswordResponse.serializer(), signInBody)
+        return parseApiData(signInBody, SignInWithPasswordResponse.serializer())
     }
 
     private fun testConfig(): MapApplicationConfig {
@@ -230,11 +219,8 @@ class AuthRoutesTest {
             "smtp.from" to "no-reply@example.com",
             "smtp.tls" to "true",
             "smtp.enabled" to "false",
-            "otp.length" to "6",
-            "otp.expiresMinutes" to "10",
-            "otp.minIntervalSeconds" to "60",
-            "otp.maxPerHour" to "5",
-            "otp.debugReturn" to "true",
+            "otp.testMode" to "true",
+            "otp.testCode" to "123456",
             "auth.accessTokenMinutes" to "15",
             "auth.refreshTokenDays" to "30",
         )

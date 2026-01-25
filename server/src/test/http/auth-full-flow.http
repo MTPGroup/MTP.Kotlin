@@ -23,12 +23,13 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "otp": "533828"
+  "otp": "846652"
 }
 
 ### 1.2 用户登录 (自动捕获 Token)
 POST {{baseUrl}}/auth/sign-in/email
 Content-Type: application/json
+
 
 {
   "email": "{{email}}",
