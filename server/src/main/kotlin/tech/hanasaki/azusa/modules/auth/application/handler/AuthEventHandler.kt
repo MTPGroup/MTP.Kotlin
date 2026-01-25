@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
 import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import tech.hanasaki.azusa.shared.infrastructure.event.service.InMemoryEventBus
+import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
 
 /**
  * Auth 模块事件处理器

@@ -4,13 +4,16 @@ import kotlinx.coroutines.CoroutineScope
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
-import tech.hanasaki.azusa.shared.domain.event.integration.UserCreatedIntegrationEvent
-import tech.hanasaki.azusa.shared.infrastructure.event.service.InMemoryEventBus
+import tech.hanasaki.azusa.shared.domain.event.integration.InitializeUserResources
+import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
+import java.util.*
 
 /**
  * Setting 模块事件处理器
  *
- * 负责处理用户创建事件，自动初始化用户设置
+ * 负责处理用户资源初始化事件，自动初始化用户设置。
+ * 订阅通用的 InitializeUserResources 事件，实现与 Auth 模块的低耦合通信。
  */
 class SettingEventHandler(
     private val eventBus: InMemoryEventBus,
@@ -23,21 +26,22 @@ class SettingEventHandler(
      * @param scope 协程作用域，用于管理订阅生命周期
      */
     fun startListening(scope: CoroutineScope) {
-        eventBus.subscribe<UserCreatedIntegrationEvent>(scope) { event ->
-            handleUserCreated(event)
+        eventBus.subscribe<InitializeUserResources>(scope) { event ->
+            handleUserInitialization(event)
         }
 
-        logger.info("SettingEventHandler started listening for events")
+        logger.info("SettingEventHandler started listening for InitializeUserResources events")
     }
 
     /**
-     * 处理用户创建事件 - 自动创建默认设置
+     * 处理用户资源初始化事件 - 自动创建默认设置
      */
-    private suspend fun handleUserCreated(event: UserCreatedIntegrationEvent) {
-        logger.info("Handling UserCreatedIntegrationEvent for user: ${event.userId}")
+    private suspend fun handleUserInitialization(event: InitializeUserResources) {
+        logger.info("Handling InitializeUserResources for user: ${event.userId}")
 
         try {
-            val setting = Setting.create(event.userId)
+            val userId = UserId(UUID.fromString(event.userId))
+            val setting = Setting.create(userId)
             settingRepository.save(setting)
             logger.info("Default setting created for user: ${event.userId}")
         } catch (e: Exception) {

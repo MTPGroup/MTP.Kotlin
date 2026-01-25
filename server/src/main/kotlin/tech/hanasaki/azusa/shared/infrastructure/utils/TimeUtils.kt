@@ -4,12 +4,12 @@ import io.ktor.http.*
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import tech.hanasaki.azusa.shared.api.ApiException
+import tech.hanasaki.azusa.shared.api.response.ApiException
 import kotlin.time.Instant
 
 
 fun parseBeforeTimestamp(value: String): LocalDateTime {
-    return runCatching { Instant.parse(value).toLocalDateTime(TimeZone.UTC) }.getOrElse {
+    return runCatching { Instant.parse(value).toLocalDateTime(TimeZone.of("+08:00")) }.getOrElse {
         throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Invalid timestamp: before")
     }
 }

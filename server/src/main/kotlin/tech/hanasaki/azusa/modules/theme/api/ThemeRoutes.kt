@@ -12,10 +12,10 @@ import tech.hanasaki.azusa.modules.theme.api.dto.CreateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.UpdateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.toResponse
 import tech.hanasaki.azusa.modules.theme.application.service.ThemeService
-import tech.hanasaki.azusa.shared.api.ApiException
+import tech.hanasaki.azusa.shared.api.response.ApiException
 import tech.hanasaki.azusa.shared.domain.model.ThemeId
 import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.utils.uuidParam
+import tech.hanasaki.azusa.shared.api.helper.uuidParam
 import java.util.*
 
 fun Route.themeRoutes() {

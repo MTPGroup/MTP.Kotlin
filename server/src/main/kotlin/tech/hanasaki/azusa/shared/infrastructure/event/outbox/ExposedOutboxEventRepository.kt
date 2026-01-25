@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.shared.infrastructure.event.persistence
+package tech.hanasaki.azusa.shared.infrastructure.event.outbox
 
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and

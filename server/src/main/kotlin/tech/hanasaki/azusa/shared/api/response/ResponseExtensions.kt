@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.shared.api
+package tech.hanasaki.azusa.shared.api.response
 
 import io.ktor.server.response.*
 import io.ktor.server.routing.*

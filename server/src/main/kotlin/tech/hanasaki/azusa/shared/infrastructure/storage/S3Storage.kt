@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.shared.infrastructure.external
+package tech.hanasaki.azusa.shared.infrastructure.storage
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider

@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.shared.infrastructure.event.config
+package tech.hanasaki.azusa.shared.infrastructure.event.outbox
 
 import io.ktor.server.config.*
 import tech.hanasaki.azusa.config.optionalBoolean

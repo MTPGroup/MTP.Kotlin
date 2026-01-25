@@ -1,12 +1,26 @@
-package tech.hanasaki.azusa.shared.infrastructure.utils
+package tech.hanasaki.azusa.shared.api.helper
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
-import tech.hanasaki.azusa.shared.api.ApiException
-import tech.hanasaki.azusa.shared.api.ApiResponse
+import tech.hanasaki.azusa.shared.api.response.ApiException
+import tech.hanasaki.azusa.shared.api.response.ApiResponse
+import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
 import kotlin.time.Clock
+
+
+fun ApplicationCall.requireUserId(): UserId {
+    val principal = principal<JWTPrincipal>() ?: throw ApiException(
+        HttpStatusCode.Unauthorized,
+        "UNAUTHORIZED",
+        "Missing authentication"
+    )
+    return principal.subject?.let { runCatching { UserId(UUID.fromString(it)) }.getOrNull() }
+        ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
+}
 
 fun ApplicationCall.uuidParam(name: String): UUID {
     val value = parameters[name] ?: throw ApiException(

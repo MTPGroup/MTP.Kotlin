@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.shared.api
+package tech.hanasaki.azusa.shared.api.response
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable

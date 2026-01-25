@@ -5,9 +5,9 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
-import tech.hanasaki.azusa.shared.api.ApiException
-import tech.hanasaki.azusa.shared.api.ApiResponse
-import tech.hanasaki.azusa.shared.api.ErrorDetail
+import tech.hanasaki.azusa.shared.api.response.ApiException
+import tech.hanasaki.azusa.shared.api.response.ApiResponse
+import tech.hanasaki.azusa.shared.api.response.ErrorDetail
 import kotlin.time.Clock
 
 fun Application.configureStatusPages() {

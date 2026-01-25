@@ -12,10 +12,10 @@ import tech.hanasaki.azusa.modules.character.api.dto.CreateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.UpdateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.toResponse
 import tech.hanasaki.azusa.modules.character.application.service.CharacterService
-import tech.hanasaki.azusa.shared.api.ApiException
+import tech.hanasaki.azusa.shared.api.response.ApiException
 import tech.hanasaki.azusa.shared.domain.model.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.utils.uuidParam
+import tech.hanasaki.azusa.shared.api.helper.uuidParam
 import java.util.*
 
 fun Route.characterRoutes() {

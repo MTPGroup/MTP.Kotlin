@@ -1,10 +1,11 @@
-package tech.hanasaki.azusa.shared.infrastructure.event.service
+package tech.hanasaki.azusa.shared.infrastructure.event.outbox
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.event.OutboxEventRepository
-import tech.hanasaki.azusa.shared.infrastructure.event.config.OutboxPollerConfig
+import tech.hanasaki.azusa.shared.infrastructure.event.bus.EventJson
+import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
 import kotlin.time.Clock
 
 /**

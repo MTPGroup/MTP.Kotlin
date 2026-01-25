@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.shared.infrastructure.event.service
+package tech.hanasaki.azusa.shared.infrastructure.event.bus
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
