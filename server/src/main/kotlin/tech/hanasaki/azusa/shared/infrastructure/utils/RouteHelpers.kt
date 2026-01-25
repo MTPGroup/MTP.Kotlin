@@ -25,7 +25,7 @@ suspend fun ApplicationCall.respondNotImplemented(message: String): Unit {
         ApiResponse(
             message = message,
             data = null,
-            timestamp = Clock.System.now().toString(),
+            timestamp = Clock.System.now(),
         ),
     )
 }

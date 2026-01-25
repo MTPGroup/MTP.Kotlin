@@ -1,6 +1,8 @@
 package tech.hanasaki.azusa.shared.api
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
 data class ApiResponse<T>(
@@ -8,7 +10,7 @@ data class ApiResponse<T>(
     val message: String,
     val data: T? = null,
     val error: ErrorDetail? = null,
-    val timestamp: String,
+    @Contextual val timestamp: Instant,
 )
 
 @Serializable

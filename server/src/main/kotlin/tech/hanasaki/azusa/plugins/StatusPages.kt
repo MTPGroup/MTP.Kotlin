@@ -21,7 +21,7 @@ fun Application.configureStatusPages() {
                     code = "BAD_REQUEST",
                     details = cause.cause?.message ?: cause.message,
                 ),
-                timestamp = Clock.System.now().toString(),
+                timestamp = Clock.System.now(),
             )
             call.respond(HttpStatusCode.BadRequest, payload)
         }
@@ -34,7 +34,7 @@ fun Application.configureStatusPages() {
                     code = "BAD_REQUEST",
                     details = cause.cause?.message ?: cause.message,
                 ),
-                timestamp = Clock.System.now().toString(),
+                timestamp = Clock.System.now(),
             )
             call.respond(HttpStatusCode.BadRequest, payload)
         }
@@ -47,7 +47,7 @@ fun Application.configureStatusPages() {
                     code = cause.code,
                     details = cause.detail,
                 ),
-                timestamp = Clock.System.now().toString(),
+                timestamp = Clock.System.now(),
             )
             call.respond(cause.status, payload)
         }
@@ -67,7 +67,7 @@ fun Application.configureStatusPages() {
                     code = code,
                     details = cause.stackTraceToString(),
                 ),
-                timestamp = Clock.System.now().toString(),
+                timestamp = Clock.System.now(),
             )
             call.respond(status, payload)
         }
@@ -79,7 +79,7 @@ fun Application.configureStatusPages() {
                     message = cause.message ?: "Internal Server Error",
                     details = cause.stackTraceToString(),
                 ),
-                timestamp = Clock.System.now().toString(),
+                timestamp = Clock.System.now(),
             )
             call.respond(HttpStatusCode.InternalServerError, payload)
         }
