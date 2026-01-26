@@ -31,6 +31,7 @@ ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", versio
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
 ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
+ktor-server-freemarker = { module = "io.ktor:ktor-server-freemarker", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
@@ -68,6 +69,7 @@ ktor = [
     "ktor-server-status-pages",
     "ktor-server-openapi",
     "ktor-server-swagger",
+    "ktor-server-freemarker",
     "ktor-serialization-kotlinx-json"
 ]
 

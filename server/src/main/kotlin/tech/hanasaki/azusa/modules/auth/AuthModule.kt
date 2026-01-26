@@ -12,13 +12,11 @@ import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
-import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.EmailServiceImpl
 import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.JwtTokenService
 import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.PasswordEncoderImpl
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedOtpRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedRefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedUserRepository
-import tech.hanasaki.azusa.shared.domain.port.EmailService
 
 fun authModule(config: ApplicationConfig) = module {
     // 仓储
@@ -28,12 +26,10 @@ fun authModule(config: ApplicationConfig) = module {
 
     // 配置
     single<JwtConfig> { config.readJwtConfig() }
-    single<SmtpConfig> { config.readSmtpConfig() }
     single<OtpConfig> { config.readOtpConfig() }
 
     // 端口实现
     single<PasswordEncoder> { PasswordEncoderImpl() }
-    single<EmailService> { EmailServiceImpl(get()) }
     single<TokenService> { JwtTokenService(get()) }
 
     // 应用服务

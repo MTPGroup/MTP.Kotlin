@@ -5,6 +5,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.auth.domain.events.EmailVerifiedEvent
+import tech.hanasaki.azusa.modules.auth.domain.events.OtpGeneratedEvent
 import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
 import tech.hanasaki.azusa.modules.character.characterModule
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreatedEvent
@@ -13,6 +14,7 @@ import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdatedEvent
 import tech.hanasaki.azusa.modules.contact.contactModules
 import tech.hanasaki.azusa.modules.knowledge.domain.events.*
 import tech.hanasaki.azusa.modules.knowledge.knowledgeModule
+import tech.hanasaki.azusa.modules.notification.notificationModule
 import tech.hanasaki.azusa.modules.plugin.domain.events.*
 import tech.hanasaki.azusa.modules.plugin.pluginModule
 import tech.hanasaki.azusa.modules.setting.settingModule
@@ -30,6 +32,7 @@ import tech.hanasaki.azusa.shared.infrastructure.event.outbox.readOutboxPollerCo
 
 fun appModules(config: ApplicationConfig): List<Module> {
     return listOf(
+        notificationModule(config),  // 独立模块，通过事件订阅处理通知
         authModule(config),
         settingModule(config),
         themeModule(config),
@@ -46,6 +49,7 @@ fun sharedModule(config: ApplicationConfig) = module {
     // 注册所有领域事件类型
     EventRegistry.register<UserRegisteredEvent>()
     EventRegistry.register<EmailVerifiedEvent>()
+    EventRegistry.register<OtpGeneratedEvent>()
     EventRegistry.register<InitializeUserResources>()
     EventRegistry.register<CharacterCreatedEvent>()
     EventRegistry.register<CharacterUpdatedEvent>()

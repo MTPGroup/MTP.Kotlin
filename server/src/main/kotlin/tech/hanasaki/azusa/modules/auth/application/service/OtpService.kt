@@ -1,13 +1,14 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
 import tech.hanasaki.azusa.modules.auth.OtpConfig
+import tech.hanasaki.azusa.modules.auth.domain.events.OtpGeneratedEvent
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
+import tech.hanasaki.azusa.shared.domain.event.EventPublisher
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.DomainException
-import tech.hanasaki.azusa.shared.domain.port.EmailService
 import java.security.MessageDigest
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -16,7 +17,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class OtpService(
     private val otpRepository: OtpRepository,
-    private val emailService: EmailService,
+    private val eventPublisher: EventPublisher,
     private val otpConfig: OtpConfig = OtpConfig(),
 ) {
     companion object {
@@ -42,14 +43,15 @@ class OtpService(
         )
         otpRepository.save(otp)
 
-        val subject = when (type) {
-            OtpType.VERIFY_EMAIL -> "Verify your email - Azusa"
-            OtpType.RESET_PASSWORD -> "Reset your password - Azusa"
-            OtpType.SIGN_IN -> "Sign in code - Azusa"
-        }
-
-        val html = EmailTemplateService.renderOtpEmail(type, code, OTP_EXPIRE_MINUTES)
-        emailService.sendHtml(email, subject, html)
+        // 发布 OTP 生成事件，由通知模块异步处理
+        eventPublisher.publish(
+            OtpGeneratedEvent(
+                email = email,
+                code = code,
+                otpType = type,
+                expiresInMinutes = OTP_EXPIRE_MINUTES,
+            )
+        )
     }
 
     suspend fun verifyOtp(email: Email, type: OtpType, code: String) {

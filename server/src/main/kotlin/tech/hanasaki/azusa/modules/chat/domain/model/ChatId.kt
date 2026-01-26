@@ -1,0 +1,9 @@
+package tech.hanasaki.azusa.modules.chat.domain.model
+
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
+import java.util.*
+
+@JvmInline
+@Serializable
+value class ChatId(@Contextual val value: UUID)

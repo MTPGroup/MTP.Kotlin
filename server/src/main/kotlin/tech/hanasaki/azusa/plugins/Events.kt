@@ -7,6 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.modules.auth.application.handler.AuthEventHandler
+import tech.hanasaki.azusa.modules.notification.application.handler.NotificationEventHandler
 import tech.hanasaki.azusa.modules.setting.application.handler.SettingEventHandler
 import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxPoller
 
@@ -23,6 +24,7 @@ fun Application.configureEvents() {
     val outboxPoller by inject<OutboxPoller>()
     val authEventHandler by inject<AuthEventHandler>()
     val settingEventHandler by inject<SettingEventHandler>()
+    val notificationEventHandler by inject<NotificationEventHandler>()
 
     // 事件处理器的协程作用域
     val eventScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -35,6 +37,7 @@ fun Application.configureEvents() {
         outboxPoller.start()
 
         // 启动各模块事件处理器
+        notificationEventHandler.startListening(eventScope)  // 必须在 authEventHandler 之前，因为 auth 发布的事件会被 notification 处理
         authEventHandler.startListening(eventScope)
         settingEventHandler.startListening(eventScope)
 
