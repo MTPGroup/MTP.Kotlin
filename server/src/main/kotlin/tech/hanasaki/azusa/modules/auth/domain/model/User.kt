@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.auth.domain.events.EmailVerifiedEvent
 import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
 import tech.hanasaki.azusa.shared.domain.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
 import kotlin.time.Clock

@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
+import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.UserId
 import kotlin.time.Instant
 
@@ -10,15 +11,6 @@ value class Username(
 ) {
     init {
         require(value.length in 2..20) { "用户名长度非法(2 ~ 20)" }
-    }
-}
-
-@JvmInline
-value class AvatarUrl(
-    val value: String,
-) {
-    init {
-        require(value.startsWith("http://") || value.startsWith("https://")) { "非法URL" }
     }
 }
 

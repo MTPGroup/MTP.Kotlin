@@ -3,24 +3,41 @@ package tech.hanasaki.azusa.modules.character.application.service
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
 import tech.hanasaki.azusa.modules.character.domain.model.Character
+import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
+import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
+import tech.hanasaki.azusa.shared.domain.event.EventPublisher
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.DomainException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.PageResult
 import tech.hanasaki.azusa.shared.domain.model.UserId
-import java.util.*
-import kotlin.time.Clock
 
 class CharacterService(
     private val characterRepository: CharacterRepository,
+    private val knowledgeSubscriptionRepository: KnowledgeSubscriptionRepository,
+    private val eventPublisher: EventPublisher,
 ) {
     suspend fun listMyCharacters(authorId: UserId): List<Character> {
         return characterRepository.findByAuthorId(authorId)
     }
 
+    suspend fun listMyCharactersPaged(authorId: UserId, page: Int, limit: Int): PageResult<Character> {
+        return characterRepository.findByAuthorIdPaged(authorId, page, limit)
+    }
+
     suspend fun listPublicCharacters(): List<Character> {
         return characterRepository.findPublicCharacters()
+    }
+
+    suspend fun listPublicCharactersPaged(page: Int, limit: Int): PageResult<Character> {
+        return characterRepository.findPublicCharactersPaged(page, limit)
+    }
+
+    suspend fun searchPublicCharacters(query: String, page: Int, limit: Int): PageResult<Character> {
+        return characterRepository.searchPublicCharacters(query, page, limit)
     }
 
     suspend fun getCharacter(authorId: UserId, characterId: CharacterId): Character {
@@ -34,48 +51,100 @@ class CharacterService(
 
     suspend fun createCharacter(authorId: UserId, cmd: CreateCharacterCommand): Character {
         validate(cmd.name)
-        val now = Clock.System.now()
-        val character = Character(
-            id = CharacterId(UUID.randomUUID()),
+        val character = Character.create(
             authorId = authorId,
             name = cmd.name,
             avatar = cmd.avatar,
             bio = cmd.bio,
             originPrompt = cmd.originPrompt,
             isPublic = cmd.isPublic,
-            createdAt = now,
-            updatedAt = now,
         )
         characterRepository.save(character)
+        eventPublisher.publishAll(character.domainEvents)
+        character.clearDomainEvents()
         return character
     }
 
     suspend fun updateCharacter(authorId: UserId, characterId: CharacterId, cmd: UpdateCharacterCommand): Character {
         validate(cmd.name)
-        val existing = characterRepository.findById(characterId)
+        val character = characterRepository.findById(characterId)
             ?: throw NotFoundException("Character not found")
-        if (existing.authorId != authorId) {
+        if (character.authorId != authorId) {
             throw AuthorizationException("Access denied")
         }
-        val updated = existing.copy(
+        character.update(
             name = cmd.name,
             avatar = cmd.avatar,
             bio = cmd.bio,
             originPrompt = cmd.originPrompt,
             isPublic = cmd.isPublic,
-            updatedAt = Clock.System.now(),
         )
-        characterRepository.save(updated)
-        return updated
+        characterRepository.save(character)
+        eventPublisher.publishAll(character.domainEvents)
+        character.clearDomainEvents()
+        return character
     }
 
     suspend fun deleteCharacter(authorId: UserId, characterId: CharacterId) {
-        val existing = characterRepository.findById(characterId)
+        val character = characterRepository.findById(characterId)
             ?: throw NotFoundException("Character not found")
-        if (existing.authorId != authorId) {
+        if (character.authorId != authorId) {
             throw AuthorizationException("Access denied")
         }
+        character.markDeleted()
+        // 删除角色时同时删除所有知识库订阅
+        knowledgeSubscriptionRepository.unsubscribeAll(characterId)
         characterRepository.deleteById(characterId)
+        eventPublisher.publishAll(character.domainEvents)
+        character.clearDomainEvents()
+    }
+
+    /**
+     * 获取角色订阅的知识库列表
+     */
+    suspend fun getKnowledgeSubscriptions(
+        authorId: UserId,
+        characterId: CharacterId,
+    ): List<KnowledgeSubscription> {
+        val character = characterRepository.findById(characterId)
+            ?: throw NotFoundException("Character not found")
+        if (character.authorId != authorId) {
+            throw AuthorizationException("Access denied")
+        }
+        return knowledgeSubscriptionRepository.findByCharacterId(characterId)
+    }
+
+    /**
+     * 订阅知识库到角色
+     */
+    suspend fun subscribeKnowledgeBase(
+        authorId: UserId,
+        characterId: CharacterId,
+        knowledgeBaseId: KnowledgeBaseId,
+        priority: Int = 0,
+    ) {
+        val character = characterRepository.findById(characterId)
+            ?: throw NotFoundException("Character not found")
+        if (character.authorId != authorId) {
+            throw AuthorizationException("Access denied")
+        }
+        knowledgeSubscriptionRepository.subscribe(characterId, knowledgeBaseId, priority)
+    }
+
+    /**
+     * 解除角色与知识库的订阅
+     */
+    suspend fun unsubscribeKnowledgeBase(
+        authorId: UserId,
+        characterId: CharacterId,
+        knowledgeBaseId: KnowledgeBaseId,
+    ) {
+        val character = characterRepository.findById(characterId)
+            ?: throw NotFoundException("Character not found")
+        if (character.authorId != authorId) {
+            throw AuthorizationException("Access denied")
+        }
+        knowledgeSubscriptionRepository.unsubscribe(characterId, knowledgeBaseId)
     }
 
     private fun validate(name: String) {

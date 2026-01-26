@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:8080
+@email = user@example.com
+@password = password123
+
+### 1. 用户登录（获取 Token）
+POST {{baseUrl}}/auth/sign-in/email
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.log("Access Token captured");
+%}
+
+### ========== Character 模块 ==========
+
+### 2.1 创建角色
+POST {{baseUrl}}/characters
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "测试助手",
+  "avatar": "https://example.com/avatar.png",
+  "bio": "这是一个测试角色",
+  "originPrompt": "你是一个友好的助手，帮助用户解决问题。",
+  "isPublic": false
+}
+
+> {%
+    client.global.set("characterId", response.body.data.id);
+    client.log("Character created: " + response.body.data.id);
+%}
+
+### 2.2 获取我的角色列表（分页）
+GET {{baseUrl}}/characters?page=1&limit=10
+Authorization: Bearer {{accessToken}}
+
+### 2.3 获取公开角色列表
+GET {{baseUrl}}/characters/public?page=1&limit=10
+Authorization: Bearer {{accessToken}}
+
+### 2.4 搜索公开角色
+GET {{baseUrl}}/characters/search?q=助手&page=1&limit=10
+Authorization: Bearer {{accessToken}}
+
+### 2.5 获取角色详情
+GET {{baseUrl}}/characters/{{characterId}}
+Authorization: Bearer {{accessToken}}
+
+### 2.6 更新角色
+PUT {{baseUrl}}/characters/{{characterId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "更新后的助手",
+  "avatar": "https://example.com/new-avatar.png",
+  "bio": "更新后的描述",
+  "originPrompt": "你是一个更专业的助手。",
+  "isPublic": true
+}
+
+### 2.7 获取角色订阅的知识库列表
+GET {{baseUrl}}/characters/{{characterId}}/knowledge-bases
+Authorization: Bearer {{accessToken}}
+
+### 2.8 订阅知识库到角色
+POST {{baseUrl}}/characters/{{characterId}}/knowledge-bases
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "knowledgeBaseId": "00000000-0000-0000-0000-000000000001",
+  "priority": 1
+}
+
+### 2.9 取消订阅知识库
+DELETE {{baseUrl}}/characters/{{characterId}}/knowledge-bases/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{accessToken}}
+
+### 2.10 删除角色
+DELETE {{baseUrl}}/characters/{{characterId}}
+Authorization: Bearer {{accessToken}}
+
+### 2.11 验证删除（应该返回 404）
+GET {{baseUrl}}/characters/{{characterId}}
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("Character should be deleted", function () {
+        client.assert(response.status === 404, "Should return 404");
+    });
+%}

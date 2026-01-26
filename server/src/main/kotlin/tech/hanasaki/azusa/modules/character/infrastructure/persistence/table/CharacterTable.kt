@@ -1,9 +1,7 @@
 package tech.hanasaki.azusa.modules.character.infrastructure.persistence.table
 
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.datetime.datetime
+import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.Clock
 
 object CharacterTable : Table("characters") {
@@ -14,8 +12,8 @@ object CharacterTable : Table("characters") {
     val bio = text("bio").nullable()
     val originPrompt = text("origin_prompt").nullable()
     val isPublic = bool("is_public")
-    val createdAt = datetime("created_at").default(Clock.System.now().toLocalDateTime(TimeZone.UTC))
-    val updatedAt = datetime("updated_at").default(Clock.System.now().toLocalDateTime(TimeZone.UTC))
+    val createdAt = timestamp("created_at").default(Clock.System.now())
+    val updatedAt = timestamp("updated_at").default(Clock.System.now())
 
     override val primaryKey = PrimaryKey(id)
 }

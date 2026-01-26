@@ -7,10 +7,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import tech.hanasaki.azusa.modules.auth.api.authRoutes
 import tech.hanasaki.azusa.modules.character.api.characterRoutes
+import tech.hanasaki.azusa.modules.contact.api.contactRoutes
+import tech.hanasaki.azusa.modules.knowledge.api.knowledgeRoutes
+import tech.hanasaki.azusa.modules.plugin.api.pluginRoutes
 import tech.hanasaki.azusa.modules.setting.api.settingRoutes
 import tech.hanasaki.azusa.modules.theme.api.themeRoutes
 
-fun Application.configureRouting(): Unit {
+fun Application.configureRouting() {
 
     routing {
         get("/health") {
@@ -26,5 +29,8 @@ fun Application.configureRouting(): Unit {
         settingRoutes()
         themeRoutes()
         characterRoutes()
+        pluginRoutes()
+        knowledgeRoutes()
+        contactRoutes()
     }
 }

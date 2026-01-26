@@ -5,6 +5,7 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.UserTable
+import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.UserId
 
 object UserMapper {

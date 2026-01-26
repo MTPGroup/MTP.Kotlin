@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:8080
+@email = user@example.com
+@password = password123
+
+### 1. 用户登录（获取 Token）
+POST {{baseUrl}}/auth/sign-in/email
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.log("Access Token captured");
+%}
+
+### ========== Contact 模块 ==========
+
+### 2.1 添加联系人
+POST {{baseUrl}}/contacts
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "characterId": "16add602-1ad9-4066-b6a7-4cd2ce6c191f",
+  "nickname": "我的助手"
+}
+
+> {%
+    client.global.set("contactCharacterId", response.body.data.characterId);
+    client.log("Contact added: " + response.body.data.characterId);
+%}
+
+### 2.2 获取我的联系人列表（分页）
+GET {{baseUrl}}/contacts?page=1&limit=10
+Authorization: Bearer {{accessToken}}
+
+### 2.3 获取单个联系人
+GET {{baseUrl}}/contacts/{{contactCharacterId}}
+Authorization: Bearer {{accessToken}}
+
+### 2.4 更新联系人昵称
+PUT {{baseUrl}}/contacts/{{contactCharacterId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nickname": "新昵称"
+}
+
+### 2.5 清空联系人昵称
+PUT {{baseUrl}}/contacts/{{contactCharacterId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "nickname": null
+}
+
+### 2.6 删除联系人
+DELETE {{baseUrl}}/contacts/{{contactCharacterId}}
+Authorization: Bearer {{accessToken}}
+
+### 2.7 验证删除（应该返回 404）
+GET {{baseUrl}}/contacts/{{contactCharacterId}}
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("Contact should be deleted", function () {
+        client.assert(response.status === 404, "Should return 404");
+    });
+%}
