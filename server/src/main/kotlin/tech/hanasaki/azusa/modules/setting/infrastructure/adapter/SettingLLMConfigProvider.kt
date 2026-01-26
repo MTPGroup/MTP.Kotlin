@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.setting.infrastructure.adapter
 
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.kernel.port.LLMConfigProvider
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.domain.port.LLMConfigProvider
 
 class SettingLLMConfigProvider(
     private val settingRepository: SettingRepository,

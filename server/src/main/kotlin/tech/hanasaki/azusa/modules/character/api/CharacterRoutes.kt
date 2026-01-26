@@ -6,18 +6,18 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.platform.api.respondOk
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.platform.api.parseLimitParam
+import tech.hanasaki.azusa.common.platform.api.parsePageParam
+import tech.hanasaki.azusa.common.platform.api.requireUserId
+import tech.hanasaki.azusa.common.platform.api.uuidParam
 import tech.hanasaki.azusa.modules.character.api.dto.CreateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.SubscribeKnowledgeBaseRequest
 import tech.hanasaki.azusa.modules.character.api.dto.UpdateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.toResponse
 import tech.hanasaki.azusa.modules.character.application.service.CharacterService
-import tech.hanasaki.azusa.shared.api.helper.parseLimitParam
-import tech.hanasaki.azusa.shared.api.helper.parsePageParam
-import tech.hanasaki.azusa.shared.api.helper.requireUserId
-import tech.hanasaki.azusa.shared.api.helper.uuidParam
-import tech.hanasaki.azusa.shared.api.response.respondOk
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
 
 fun Route.characterRoutes() {
     val characterService: CharacterService by inject()

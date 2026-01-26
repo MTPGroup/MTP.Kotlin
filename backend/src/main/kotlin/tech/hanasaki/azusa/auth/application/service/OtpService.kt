@@ -8,7 +8,7 @@ import tech.hanasaki.azusa.auth.domain.model.Email
 import tech.hanasaki.azusa.auth.domain.model.Otp
 import tech.hanasaki.azusa.auth.domain.model.OtpType
 import tech.hanasaki.azusa.auth.domain.repository.OtpRepository
-import tech.hanasaki.azusa.shared.AuthenticationException
+import tech.hanasaki.azusa.common.AuthenticationException
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes

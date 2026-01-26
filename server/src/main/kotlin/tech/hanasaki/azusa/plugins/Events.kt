@@ -6,10 +6,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
+import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
 import tech.hanasaki.azusa.modules.auth.application.handler.AuthEventHandler
 import tech.hanasaki.azusa.modules.notification.application.handler.NotificationEventHandler
 import tech.hanasaki.azusa.modules.setting.application.handler.SettingEventHandler
-import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxPoller
 
 private val logger = LoggerFactory.getLogger("Events")
 

@@ -5,9 +5,11 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
-import tech.hanasaki.azusa.shared.api.response.ApiException
-import tech.hanasaki.azusa.shared.api.response.ApiResponse
-import tech.hanasaki.azusa.shared.api.response.ErrorDetail
+import tech.hanasaki.azusa.common.platform.api.ApiException
+import tech.hanasaki.azusa.common.platform.api.ApiResponse
+import tech.hanasaki.azusa.common.platform.api.ErrorDetail
+import tech.hanasaki.azusa.common.kernel.exception.*
+import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
 import kotlin.time.Clock
 
 fun Application.configureStatusPages() {
@@ -51,12 +53,12 @@ fun Application.configureStatusPages() {
             )
             call.respond(cause.status, payload)
         }
-        exception<tech.hanasaki.azusa.shared.domain.exception.AzusaException> { call, cause ->
+        exception<AzusaException> { call, cause ->
             val (status, code) = when (cause) {
-                is tech.hanasaki.azusa.shared.domain.exception.AuthenticationException -> HttpStatusCode.Unauthorized to "AUTHENTICATION_ERROR"
-                is tech.hanasaki.azusa.shared.domain.exception.AuthorizationException -> HttpStatusCode.Forbidden to "AUTHORIZATION_ERROR"
-                is tech.hanasaki.azusa.shared.domain.exception.NotFoundException -> HttpStatusCode.NotFound to "NOT_FOUND"
-                is tech.hanasaki.azusa.shared.domain.exception.ConflictException -> HttpStatusCode.Conflict to "CONFLICT"
+                is AuthenticationException -> HttpStatusCode.Unauthorized to "AUTHENTICATION_ERROR"
+                is AuthorizationException -> HttpStatusCode.Forbidden to "AUTHORIZATION_ERROR"
+                is NotFoundException -> HttpStatusCode.NotFound to "NOT_FOUND"
+                is ConflictException -> HttpStatusCode.Conflict to "CONFLICT"
                 else -> HttpStatusCode.BadRequest to "DOMAIN_ERROR"
             }
             val payload = ApiResponse<Nothing>(

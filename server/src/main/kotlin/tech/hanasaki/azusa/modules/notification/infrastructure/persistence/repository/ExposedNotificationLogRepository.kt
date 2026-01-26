@@ -13,9 +13,9 @@ import tech.hanasaki.azusa.modules.notification.domain.model.NotificationStatus
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.mapper.NotificationLogMapper
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationLogTable
-import tech.hanasaki.azusa.shared.domain.model.PageResult
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 /**
  * 通知日志仓储实现

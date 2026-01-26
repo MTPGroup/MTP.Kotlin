@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.port
 
 import kotlinx.serialization.json.JsonObject
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeDocumentId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
 
 /**
  * 向量存储端口

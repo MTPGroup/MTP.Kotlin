@@ -11,9 +11,9 @@ import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.table.KnowledgeFileTable
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeFileId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedKnowledgeFileRepository : KnowledgeFileRepository {
 

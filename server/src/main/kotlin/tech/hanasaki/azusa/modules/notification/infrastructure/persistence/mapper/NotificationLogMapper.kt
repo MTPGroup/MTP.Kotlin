@@ -4,7 +4,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.notification.domain.model.*
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationLogTable
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 /**
  * 通知日志映射器

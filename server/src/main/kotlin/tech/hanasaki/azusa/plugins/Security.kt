@@ -8,9 +8,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.modules.auth.JwtConfig
-import tech.hanasaki.azusa.shared.api.response.ApiResponse
-import tech.hanasaki.azusa.shared.api.response.ErrorDetail
+import tech.hanasaki.azusa.common.platform.api.ApiResponse
+import tech.hanasaki.azusa.common.platform.api.ErrorDetail
+import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
 import java.util.*
 import kotlin.time.Clock
 

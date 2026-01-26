@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
 import java.util.*
 
 @Serializable

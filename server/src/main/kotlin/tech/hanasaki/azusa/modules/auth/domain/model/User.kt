@@ -1,11 +1,11 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.modules.auth.domain.events.EmailVerifiedEvent
-import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
-import tech.hanasaki.azusa.shared.domain.base.AggregateRoot
-import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
+import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerifiedEvent
+import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

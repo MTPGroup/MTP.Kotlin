@@ -8,9 +8,9 @@ import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.SettingsTable
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
-import tech.hanasaki.azusa.shared.domain.model.ThemeId
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.ThemeId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 object SettingMapper {
     fun toDomain(settingRow: ResultRow, llmRows: List<ResultRow>): Setting {

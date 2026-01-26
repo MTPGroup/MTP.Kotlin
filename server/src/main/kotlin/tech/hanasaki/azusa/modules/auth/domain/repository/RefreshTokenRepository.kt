@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.domain.repository
 
 import tech.hanasaki.azusa.modules.auth.domain.model.RefreshToken
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 interface RefreshTokenRepository {
     suspend fun save(refreshToken: RefreshToken)

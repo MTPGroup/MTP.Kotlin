@@ -8,7 +8,7 @@ import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmC
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.provider
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.runOnClient
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.temperature
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
 
 object LLMConfigMapper {
     fun toEntity(domain: LLMConfig, target: UpdateBuilder<*>) {

@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.auth
 
 import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.shared.DomainEvent
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.DomainEvent
+import tech.hanasaki.azusa.common.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 

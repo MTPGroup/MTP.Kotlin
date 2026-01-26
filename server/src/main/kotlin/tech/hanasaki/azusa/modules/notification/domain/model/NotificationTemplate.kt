@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.notification.domain.model
 
 import kotlinx.serialization.Contextual
-import java.util.UUID
+import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
 

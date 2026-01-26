@@ -6,11 +6,11 @@ import tech.hanasaki.azusa.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.character.application.command.UpdateCharacterCommand
 import tech.hanasaki.azusa.character.domain.model.Character
 import tech.hanasaki.azusa.character.domain.repository.CharacterRepository
-import tech.hanasaki.azusa.shared.AuthorizationException
-import tech.hanasaki.azusa.shared.CharacterId
-import tech.hanasaki.azusa.shared.DomainException
-import tech.hanasaki.azusa.shared.NotFoundException
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.AuthorizationException
+import tech.hanasaki.azusa.common.CharacterId
+import tech.hanasaki.azusa.common.DomainException
+import tech.hanasaki.azusa.common.NotFoundException
+import tech.hanasaki.azusa.common.UserId
 import java.util.UUID
 import kotlin.time.Clock
 

@@ -1,0 +1,15 @@
+package tech.hanasaki.azusa.common.kernel.event
+
+import java.util.*
+import kotlin.time.Clock
+import kotlin.time.Instant
+
+/**
+ * 领域事件标记接口
+ */
+interface DomainEvent {
+    val eventId: UUID
+        get() = UUID.randomUUID()
+    val occurredAt: Instant
+        get() = Clock.System.now()
+}

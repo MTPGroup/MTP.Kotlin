@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.modules.agent.domain.port
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
 
 /**
  * LLM 提供者端口接口

@@ -1,12 +1,12 @@
 package tech.hanasaki.azusa.modules.character.domain.model
 
+import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
+import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreatedEvent
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeletedEvent
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdatedEvent
-import tech.hanasaki.azusa.shared.domain.base.AggregateRoot
-import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
-import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

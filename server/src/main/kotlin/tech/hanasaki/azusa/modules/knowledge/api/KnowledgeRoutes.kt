@@ -10,13 +10,13 @@ import tech.hanasaki.azusa.modules.knowledge.api.dto.*
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
-import tech.hanasaki.azusa.shared.api.helper.parseLimitParam
-import tech.hanasaki.azusa.shared.api.helper.parsePageParam
-import tech.hanasaki.azusa.shared.api.helper.requireUserId
-import tech.hanasaki.azusa.shared.api.helper.uuidParam
-import tech.hanasaki.azusa.shared.api.response.respondOk
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.platform.api.parseLimitParam
+import tech.hanasaki.azusa.common.platform.api.parsePageParam
+import tech.hanasaki.azusa.common.platform.api.requireUserId
+import tech.hanasaki.azusa.common.platform.api.uuidParam
+import tech.hanasaki.azusa.common.platform.api.respondOk
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
 
 fun Route.knowledgeRoutes() {
     val knowledgeBaseService: KnowledgeBaseService by inject()

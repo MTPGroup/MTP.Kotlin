@@ -11,9 +11,9 @@ import org.jetbrains.exposed.v1.jdbc.upsert
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSubscription
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginSubscriptionRepository
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginSubscriptionTable
-import tech.hanasaki.azusa.shared.domain.model.PluginId
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.PluginId
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedPluginSubscriptionRepository : PluginSubscriptionRepository {
     override suspend fun findByUserId(userId: UserId): List<PluginSubscription> = dbQuery {

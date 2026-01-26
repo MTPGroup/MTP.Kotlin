@@ -1,14 +1,14 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
-import tech.hanasaki.azusa.modules.auth.OtpConfig
-import tech.hanasaki.azusa.modules.auth.domain.events.OtpGeneratedEvent
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
+import tech.hanasaki.azusa.common.kernel.exception.DomainException
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
+import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
-import tech.hanasaki.azusa.shared.domain.exception.DomainException
 import java.security.MessageDigest
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.minutes
 class OtpService(
     private val otpRepository: OtpRepository,
     private val eventPublisher: EventPublisher,
-    private val otpConfig: OtpConfig = OtpConfig(),
+    private val otpConfig: OtpConfig,
 ) {
     companion object {
         private const val OTP_EXPIRE_MINUTES = 10

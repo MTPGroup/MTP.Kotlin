@@ -14,7 +14,7 @@ import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplat
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationTemplateRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.mapper.NotificationTemplateMapper
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationTemplateTable
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 /**
  * 通知模板仓储实现

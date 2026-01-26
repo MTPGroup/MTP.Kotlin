@@ -1,5 +1,11 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.exception.AuthorizationException
+import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
@@ -8,12 +14,6 @@ import tech.hanasaki.azusa.modules.knowledge.domain.port.EmbeddingService
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeFileId
-import tech.hanasaki.azusa.shared.domain.model.UserId
 
 class KnowledgeFileService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,

@@ -9,8 +9,8 @@ import tech.hanasaki.azusa.modules.auth.domain.model.RefreshToken
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.RefreshTokenMapper
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.RefreshTokensTable
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedRefreshTokenRepository : RefreshTokenRepository {
 

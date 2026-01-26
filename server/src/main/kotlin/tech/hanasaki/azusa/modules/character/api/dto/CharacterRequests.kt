@@ -4,7 +4,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
-import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
 import java.util.*
 
 @Serializable

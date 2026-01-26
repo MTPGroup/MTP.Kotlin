@@ -6,14 +6,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.kernel.model.PluginId
+import tech.hanasaki.azusa.common.platform.api.*
 import tech.hanasaki.azusa.modules.plugin.api.dto.*
 import tech.hanasaki.azusa.modules.plugin.application.service.PluginService
-import tech.hanasaki.azusa.shared.api.helper.parseLimitParam
-import tech.hanasaki.azusa.shared.api.helper.parsePageParam
-import tech.hanasaki.azusa.shared.api.helper.requireUserId
-import tech.hanasaki.azusa.shared.api.helper.uuidParam
-import tech.hanasaki.azusa.shared.api.response.respondOk
-import tech.hanasaki.azusa.shared.domain.model.PluginId
 
 fun Route.pluginRoutes() {
     val pluginService: PluginService by inject()

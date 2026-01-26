@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.modules.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
-import tech.hanasaki.azusa.shared.domain.model.ThemeId
-import java.util.UUID
+import tech.hanasaki.azusa.common.kernel.model.ThemeId
+import java.util.*
 
 @Serializable
 data class ThemeDefinitionRequest(

@@ -4,8 +4,8 @@ import org.springframework.stereotype.Repository
 import tech.hanasaki.azusa.character.domain.model.Character
 import tech.hanasaki.azusa.character.domain.repository.CharacterRepository
 import tech.hanasaki.azusa.character.infrastructure.persistence.mapper.CharacterMapper
-import tech.hanasaki.azusa.shared.CharacterId
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.CharacterId
+import tech.hanasaki.azusa.common.UserId
 
 @Repository
 class JdbcCharacterRepository(

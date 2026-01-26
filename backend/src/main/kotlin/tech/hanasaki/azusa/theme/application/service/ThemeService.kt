@@ -2,10 +2,10 @@ package tech.hanasaki.azusa.theme.application.service
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tech.hanasaki.azusa.shared.AuthorizationException
-import tech.hanasaki.azusa.shared.NotFoundException
-import tech.hanasaki.azusa.shared.ThemeId
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.AuthorizationException
+import tech.hanasaki.azusa.common.NotFoundException
+import tech.hanasaki.azusa.common.ThemeId
+import tech.hanasaki.azusa.common.UserId
 import tech.hanasaki.azusa.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.theme.domain.model.Theme

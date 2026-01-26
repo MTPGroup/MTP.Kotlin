@@ -6,16 +6,16 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.platform.api.respondOk
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.platform.api.parseLimitParam
+import tech.hanasaki.azusa.common.platform.api.parsePageParam
+import tech.hanasaki.azusa.common.platform.api.requireUserId
+import tech.hanasaki.azusa.common.platform.api.uuidParam
 import tech.hanasaki.azusa.modules.contact.api.dto.AddContactRequest
 import tech.hanasaki.azusa.modules.contact.api.dto.UpdateContactRequest
 import tech.hanasaki.azusa.modules.contact.api.dto.toResponse
 import tech.hanasaki.azusa.modules.contact.application.service.ContactService
-import tech.hanasaki.azusa.shared.api.helper.parseLimitParam
-import tech.hanasaki.azusa.shared.api.helper.parsePageParam
-import tech.hanasaki.azusa.shared.api.helper.requireUserId
-import tech.hanasaki.azusa.shared.api.helper.uuidParam
-import tech.hanasaki.azusa.shared.api.response.respondOk
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
 
 fun Route.contactRoutes() {
     val contactService: ContactService by inject()

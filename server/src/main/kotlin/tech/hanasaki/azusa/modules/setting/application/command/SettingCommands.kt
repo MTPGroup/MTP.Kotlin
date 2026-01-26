@@ -2,9 +2,9 @@ package tech.hanasaki.azusa.modules.setting.application.command
 
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
-import tech.hanasaki.azusa.shared.domain.model.ThemeId
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.ThemeId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 data class GetSettingCommand(
     val uid: UserId,

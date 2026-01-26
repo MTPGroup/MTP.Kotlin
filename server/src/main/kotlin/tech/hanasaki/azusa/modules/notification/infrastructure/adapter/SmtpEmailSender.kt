@@ -1,14 +1,10 @@
 package tech.hanasaki.azusa.modules.notification.infrastructure.adapter
 
-import jakarta.mail.Authenticator
-import jakarta.mail.Message
-import jakarta.mail.PasswordAuthentication
-import jakarta.mail.Session
-import jakarta.mail.Transport
+import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import tech.hanasaki.azusa.modules.notification.domain.port.EmailSender
-import java.util.Properties
+import java.util.*
 
 /**
  * SMTP 配置

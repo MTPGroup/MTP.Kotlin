@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.auth.infrastructure.persistence.mapper
 import org.springframework.stereotype.Component
 import tech.hanasaki.azusa.auth.domain.model.RefreshToken
 import tech.hanasaki.azusa.auth.infrastructure.persistence.entity.RefreshTokenEntity
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.UserId
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 

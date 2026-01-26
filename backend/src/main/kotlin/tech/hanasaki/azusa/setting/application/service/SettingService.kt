@@ -8,9 +8,9 @@ import tech.hanasaki.azusa.setting.domain.model.Setting
 import tech.hanasaki.azusa.setting.domain.model.LLMConfig
 import tech.hanasaki.azusa.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.setting.domain.repository.SettingRepository
-import tech.hanasaki.azusa.shared.ConflictException
-import tech.hanasaki.azusa.shared.NotFoundException
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.ConflictException
+import tech.hanasaki.azusa.common.NotFoundException
+import tech.hanasaki.azusa.common.UserId
 
 @Service
 class SettingService(

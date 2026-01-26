@@ -13,6 +13,7 @@ object KnowledgeDocumentTable : Table("knowledge_documents") {
     val fileId = uuid("file_id").nullable()
     val content = text("content")
     val metadata = jsonb<JsonObject>("metadata", Json { prettyPrint = true })
+
     // embedding 字段使用原生 SQL 处理（pgvector 类型）
     val createdAt = timestamp("created_at").default(Clock.System.now())
     val updatedAt = timestamp("updated_at").default(Clock.System.now())

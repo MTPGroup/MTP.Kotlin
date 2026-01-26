@@ -7,6 +7,8 @@ import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.auth.application.handler.AuthEventHandler
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
+import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
+import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
@@ -14,6 +16,8 @@ import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.JwtTokenService
 import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.PasswordEncoderImpl
+import tech.hanasaki.azusa.modules.auth.infrastructure.config.readJwtConfig
+import tech.hanasaki.azusa.modules.auth.infrastructure.config.readOtpConfig
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedOtpRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedRefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedUserRepository

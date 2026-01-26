@@ -1,18 +1,18 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.exception.AuthorizationException
+import tech.hanasaki.azusa.common.kernel.exception.DomainException
+import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.knowledge.application.command.CreateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.application.command.UpdateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.shared.domain.exception.DomainException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.PageResult
-import tech.hanasaki.azusa.shared.domain.model.UserId
 
 class KnowledgeBaseService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,

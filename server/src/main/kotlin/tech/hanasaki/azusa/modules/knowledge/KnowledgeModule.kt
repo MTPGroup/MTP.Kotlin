@@ -17,7 +17,7 @@ import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.reposito
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository.ExposedKnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository.ExposedKnowledgeFileRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.vector.PgVectorStore
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 
 fun knowledgeModule(config: ApplicationConfig) = module {
     // Repositories

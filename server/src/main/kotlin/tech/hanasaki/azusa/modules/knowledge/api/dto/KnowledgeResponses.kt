@@ -8,7 +8,7 @@ import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
 import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
-import tech.hanasaki.azusa.shared.domain.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.PageResult
 import java.util.*
 
 @Serializable

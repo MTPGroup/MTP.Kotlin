@@ -4,7 +4,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
-import java.util.UUID
+import java.util.*
 
 @Serializable
 data class ThemeDefinitionResponse(

@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.modules.contact.api.dto
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.contact.domain.model.Contact
-import tech.hanasaki.azusa.shared.domain.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.PageResult
 import java.util.*
 
 @Serializable

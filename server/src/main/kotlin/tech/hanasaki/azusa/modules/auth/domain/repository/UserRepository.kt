@@ -2,7 +2,7 @@ package tech.hanasaki.azusa.modules.auth.domain.repository
 
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.User
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 
 interface UserRepository {

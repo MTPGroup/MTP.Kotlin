@@ -8,9 +8,9 @@ import org.jetbrains.exposed.v1.jdbc.upsert
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.KnowledgeSubscriptionTable
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedKnowledgeSubscriptionRepository : KnowledgeSubscriptionRepository {
     override suspend fun findByCharacterId(characterId: CharacterId): List<KnowledgeSubscription> = dbQuery {

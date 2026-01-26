@@ -1,7 +1,6 @@
 package tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository
 
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -9,10 +8,11 @@ import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.table.KnowledgeDocumentTable
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeDocumentId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeFileId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
+import java.sql.Connection
 import java.sql.Timestamp
 import java.time.Instant
 
@@ -40,7 +40,7 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepository {
                 updated_at = EXCLUDED.updated_at
         """.trimIndent()
 
-        val conn = TransactionManager.current().connection.connection as java.sql.Connection
+        val conn = TransactionManager.current().connection.connection as Connection
         conn.prepareStatement(sql).use { stmt ->
             stmt.setObject(1, document.id.value)
             stmt.setObject(2, document.knowledgeBaseId.value)
@@ -62,7 +62,7 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepository {
             VALUES (?, ?, ?, ?, ?::jsonb, ?::extensions.vector(1024), ?, ?)
         """.trimIndent()
 
-        val conn = TransactionManager.current().connection.connection as java.sql.Connection
+        val conn = TransactionManager.current().connection.connection as Connection
         conn.prepareStatement(sql).use { stmt ->
             documents.forEach { document ->
                 val embeddingValue = document.embedding?.let { arr ->

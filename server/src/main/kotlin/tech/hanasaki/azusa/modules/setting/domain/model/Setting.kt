@@ -2,10 +2,10 @@ package tech.hanasaki.azusa.modules.setting.domain.model
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.shared.domain.exception.DomainException
-import tech.hanasaki.azusa.shared.domain.model.LLMConfig
-import tech.hanasaki.azusa.shared.domain.model.ThemeId
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.exception.DomainException
+import tech.hanasaki.azusa.common.kernel.model.LLMConfig
+import tech.hanasaki.azusa.common.kernel.model.ThemeId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

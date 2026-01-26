@@ -4,6 +4,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.platform.api.respondOk
+import tech.hanasaki.azusa.common.platform.api.requireUserId
+import tech.hanasaki.azusa.common.platform.api.uuidParam
 import tech.hanasaki.azusa.modules.setting.api.dto.CreateLLMConfigRequest
 import tech.hanasaki.azusa.modules.setting.api.dto.UpdateLLMConfigRequest
 import tech.hanasaki.azusa.modules.setting.api.dto.UpdateSettingRequest
@@ -11,9 +14,6 @@ import tech.hanasaki.azusa.modules.setting.api.dto.toResponse
 import tech.hanasaki.azusa.modules.setting.application.command.GetSettingCommand
 import tech.hanasaki.azusa.modules.setting.application.service.SettingService
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
-import tech.hanasaki.azusa.shared.api.helper.requireUserId
-import tech.hanasaki.azusa.shared.api.helper.uuidParam
-import tech.hanasaki.azusa.shared.api.response.respondOk
 
 fun Route.settingRoutes() {
     val settingService: SettingService by inject()

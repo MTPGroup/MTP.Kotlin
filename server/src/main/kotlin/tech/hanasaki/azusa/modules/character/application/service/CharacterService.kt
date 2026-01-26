@@ -1,19 +1,19 @@
 package tech.hanasaki.azusa.modules.character.application.service
 
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.exception.AuthorizationException
+import tech.hanasaki.azusa.common.kernel.exception.DomainException
+import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.shared.domain.exception.DomainException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.PageResult
-import tech.hanasaki.azusa.shared.domain.model.UserId
 
 class CharacterService(
     private val characterRepository: CharacterRepository,

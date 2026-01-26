@@ -12,9 +12,9 @@ import tech.hanasaki.azusa.modules.auth.application.service.AuthService
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import tech.hanasaki.azusa.shared.api.helper.requireUserId
-import tech.hanasaki.azusa.shared.api.response.ApiException
-import tech.hanasaki.azusa.shared.api.response.respondOk
+import tech.hanasaki.azusa.common.platform.api.requireUserId
+import tech.hanasaki.azusa.common.platform.api.ApiException
+import tech.hanasaki.azusa.common.platform.api.respondOk
 
 fun Route.authRoutes() {
     val authService: AuthService by inject()

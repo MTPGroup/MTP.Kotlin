@@ -8,7 +8,7 @@ import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.Refresh
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.RefreshTokensTable.isRevoked
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.RefreshTokensTable.tokenHash
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.RefreshTokensTable.userId
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 object RefreshTokenMapper {
     fun toDomain(row: ResultRow): RefreshToken = RefreshToken(

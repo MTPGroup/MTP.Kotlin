@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
+import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseCreatedEvent
 import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeletedEvent
-import tech.hanasaki.azusa.shared.domain.base.AggregateRoot
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

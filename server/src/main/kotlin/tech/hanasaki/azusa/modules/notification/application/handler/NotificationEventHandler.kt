@@ -1,13 +1,11 @@
 package tech.hanasaki.azusa.modules.notification.application.handler
 
-import freemarker.template.Configuration
-import io.ktor.server.freemarker.*
 import kotlinx.coroutines.CoroutineScope
 import org.slf4j.LoggerFactory
-import tech.hanasaki.azusa.modules.auth.domain.events.OtpGeneratedEvent
+import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.notification.application.service.NotificationService
-import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
 
 /**
  * 通知事件处理器 - 订阅需要发送通知的事件
@@ -15,7 +13,6 @@ import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
 class NotificationEventHandler(
     private val eventBus: InMemoryEventBus,
     private val notificationService: NotificationService,
-    private val freeMarkerConfig: Configuration,
 ) {
     private val logger = LoggerFactory.getLogger(NotificationEventHandler::class.java)
 
@@ -62,7 +59,7 @@ class NotificationEventHandler(
     /**
      * 渲染 OTP 邮件 HTML
      */
-    /*private fun renderOtpEmailHtml(type: OtpType, code: String, expiresInMinutes: Int): String {
+    private fun renderOtpEmailHtml(type: OtpType, code: String, expiresInMinutes: Int): String {
         val title = when (type) {
             OtpType.VERIFY_EMAIL -> "Email Verification"
             OtpType.RESET_PASSWORD -> "Password Reset"
@@ -80,16 +77,16 @@ class NotificationEventHandler(
             "title" to title,
             "description" to description
         )
-        val template = freeMarkerConfig.getTemplate("email/otp-verification.html")
+        /*val template = freeMarkerConfig.getTemplate("email/otp-verification.html")
 
             return FreeMarkerContent(
                 "",
                 mapOf(
 
                 ),
-            ).toString()
+            ).toString()*/
 
-        *//*  return """
+        return """
               <!DOCTYPE html>
               <html>
               <head>
@@ -106,6 +103,6 @@ class NotificationEventHandler(
                   <p style="color: #666; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
               </body>
               </html>
-          """.trimIndent()*//*
-    }*/
+          """.trimIndent()
+    }
 }

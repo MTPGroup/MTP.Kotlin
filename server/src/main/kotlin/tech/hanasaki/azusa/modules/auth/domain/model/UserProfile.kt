@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.shared.domain.model.AvatarUrl
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import kotlin.time.Instant
 
 

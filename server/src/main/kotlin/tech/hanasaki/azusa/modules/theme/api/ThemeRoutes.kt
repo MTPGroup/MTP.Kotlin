@@ -8,14 +8,14 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.kernel.model.ThemeId
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.api.ApiException
+import tech.hanasaki.azusa.common.platform.api.uuidParam
 import tech.hanasaki.azusa.modules.theme.api.dto.CreateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.UpdateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.toResponse
 import tech.hanasaki.azusa.modules.theme.application.service.ThemeService
-import tech.hanasaki.azusa.shared.api.response.ApiException
-import tech.hanasaki.azusa.shared.domain.model.ThemeId
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.api.helper.uuidParam
 import java.util.*
 
 fun Route.themeRoutes() {

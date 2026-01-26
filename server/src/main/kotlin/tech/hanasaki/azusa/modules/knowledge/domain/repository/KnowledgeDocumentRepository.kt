@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.repository
 
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeDocumentId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
 
 interface KnowledgeDocumentRepository {
     suspend fun findById(id: KnowledgeDocumentId): KnowledgeDocument?

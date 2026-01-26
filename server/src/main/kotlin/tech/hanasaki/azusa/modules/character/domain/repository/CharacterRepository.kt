@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.character.domain.repository
 
 import tech.hanasaki.azusa.modules.character.domain.model.Character
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
-import tech.hanasaki.azusa.shared.domain.model.PageResult
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.kernel.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 interface CharacterRepository {
     suspend fun findById(id: CharacterId): Character?

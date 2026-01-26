@@ -6,7 +6,7 @@ import tech.hanasaki.azusa.auth.domain.model.Email
 import tech.hanasaki.azusa.auth.domain.model.User
 import tech.hanasaki.azusa.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.auth.infrastructure.persistence.mapper.UserEntityMapper
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.UserId
 import java.time.Instant
 
 @Repository

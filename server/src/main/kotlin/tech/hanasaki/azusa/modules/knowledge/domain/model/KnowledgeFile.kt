@@ -3,9 +3,9 @@ package tech.hanasaki.azusa.modules.knowledge.domain.model
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessedEvent
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessingFailedEvent
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploadedEvent
-import tech.hanasaki.azusa.shared.domain.event.DomainEvent
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.kernel.event.DomainEvent
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.knowledge.infrastructure.parser
 
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import tech.hanasaki.azusa.modules.knowledge.domain.port.DocumentChunk

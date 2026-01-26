@@ -1,11 +1,11 @@
 package tech.hanasaki.azusa.modules.plugin.domain.model
 
+import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
+import tech.hanasaki.azusa.common.kernel.model.PluginId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginApprovedEvent
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginCreatedEvent
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginRejectedEvent
-import tech.hanasaki.azusa.shared.domain.base.AggregateRoot
-import tech.hanasaki.azusa.shared.domain.model.PluginId
-import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

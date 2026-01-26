@@ -13,8 +13,8 @@ import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.Profil
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.UserMapper
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.UserTable
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 import kotlin.time.Clock
 
 class ExposedUserRepository : UserRepository {

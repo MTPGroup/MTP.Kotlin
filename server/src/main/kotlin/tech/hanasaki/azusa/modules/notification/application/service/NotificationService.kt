@@ -9,7 +9,7 @@ import tech.hanasaki.azusa.modules.notification.domain.port.PushSender
 import tech.hanasaki.azusa.modules.notification.domain.port.SmsSender
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationTemplateRepository
-import tech.hanasaki.azusa.shared.domain.model.UserId
+import tech.hanasaki.azusa.common.kernel.model.UserId
 
 /**
  * 通知服务 - 统一管理所有通知渠道

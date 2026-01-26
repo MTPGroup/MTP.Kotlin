@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.auth.application.port
 
 import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.shared.UserId
+import tech.hanasaki.azusa.common.UserId
 import kotlin.time.Instant
 
 data class TokenPair(

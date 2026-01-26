@@ -1,14 +1,14 @@
 package tech.hanasaki.azusa.modules.contact.application.service
 
+import tech.hanasaki.azusa.common.kernel.exception.ConflictException
+import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
+import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.kernel.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.contact.application.command.AddContactCommand
 import tech.hanasaki.azusa.modules.contact.application.command.UpdateContactCommand
 import tech.hanasaki.azusa.modules.contact.domain.model.Contact
 import tech.hanasaki.azusa.modules.contact.domain.repository.ContactRepository
-import tech.hanasaki.azusa.shared.domain.exception.ConflictException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
-import tech.hanasaki.azusa.shared.domain.model.CharacterId
-import tech.hanasaki.azusa.shared.domain.model.PageResult
-import tech.hanasaki.azusa.shared.domain.model.UserId
 
 class ContactService(
     private val contactRepository: ContactRepository,

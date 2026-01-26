@@ -1,5 +1,11 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.event.integration.InitializeUserResources
+import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
+import tech.hanasaki.azusa.common.kernel.exception.ConflictException
+import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
 import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
@@ -10,12 +16,6 @@ import tech.hanasaki.azusa.modules.auth.domain.port.TokenPair
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
 import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.event.integration.InitializeUserResources
-import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
-import tech.hanasaki.azusa.shared.domain.exception.ConflictException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
-import tech.hanasaki.azusa.shared.domain.model.UserId
 import java.security.MessageDigest
 
 class AuthService(

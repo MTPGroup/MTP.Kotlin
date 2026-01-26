@@ -3,10 +3,20 @@ package tech.hanasaki.azusa
 import io.ktor.server.config.*
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
+import tech.hanasaki.azusa.common.kernel.event.integration.InitializeUserResources
+import tech.hanasaki.azusa.common.platform.di.databaseModule
+import tech.hanasaki.azusa.common.platform.event.bus.EventRegistry
+import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
+import tech.hanasaki.azusa.common.platform.event.outbox.readOutboxPollerConfig
+import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutboxEventRepository
+import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import tech.hanasaki.azusa.modules.auth.authModule
-import tech.hanasaki.azusa.modules.auth.domain.events.EmailVerifiedEvent
-import tech.hanasaki.azusa.modules.auth.domain.events.OtpGeneratedEvent
-import tech.hanasaki.azusa.modules.auth.domain.events.UserRegisteredEvent
+import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerifiedEvent
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
+import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
 import tech.hanasaki.azusa.modules.character.characterModule
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreatedEvent
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeletedEvent
@@ -19,20 +29,10 @@ import tech.hanasaki.azusa.modules.plugin.domain.events.*
 import tech.hanasaki.azusa.modules.plugin.pluginModule
 import tech.hanasaki.azusa.modules.setting.settingModule
 import tech.hanasaki.azusa.modules.theme.themeModule
-import tech.hanasaki.azusa.shared.databaseModule
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
-import tech.hanasaki.azusa.shared.domain.event.EventSubscriber
-import tech.hanasaki.azusa.shared.domain.event.OutboxEventRepository
-import tech.hanasaki.azusa.shared.domain.event.integration.InitializeUserResources
-import tech.hanasaki.azusa.shared.infrastructure.event.bus.EventRegistry
-import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
-import tech.hanasaki.azusa.shared.infrastructure.event.outbox.ExposedOutboxEventRepository
-import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxPoller
-import tech.hanasaki.azusa.shared.infrastructure.event.outbox.readOutboxPollerConfig
 
 fun appModules(config: ApplicationConfig): List<Module> {
     return listOf(
-        notificationModule(config),  // 独立模块，通过事件订阅处理通知
+        notificationModule(config),
         authModule(config),
         settingModule(config),
         themeModule(config),

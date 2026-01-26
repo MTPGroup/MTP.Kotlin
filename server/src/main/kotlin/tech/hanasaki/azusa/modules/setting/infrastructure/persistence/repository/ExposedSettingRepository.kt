@@ -10,8 +10,8 @@ import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper.LLM
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper.SettingMapper
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.SettingsTable
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedSettingRepository : SettingRepository {
     override suspend fun findByUserId(userId: UserId): Setting? = dbQuery {

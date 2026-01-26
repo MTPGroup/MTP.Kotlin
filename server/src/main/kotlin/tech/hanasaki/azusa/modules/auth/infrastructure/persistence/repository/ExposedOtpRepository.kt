@@ -2,7 +2,6 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository
 
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.count
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -14,7 +13,7 @@ import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper.OtpMapper
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.OtpTable
-import tech.hanasaki.azusa.shared.infrastructure.database.dbQuery
+import tech.hanasaki.azusa.common.platform.database.dbQuery
 import kotlin.time.Clock
 import kotlin.time.Instant
 

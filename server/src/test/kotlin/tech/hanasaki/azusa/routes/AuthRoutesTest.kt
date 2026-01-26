@@ -8,12 +8,12 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.KSerializer
 import org.koin.ktor.ext.getKoin
 import org.testcontainers.containers.PostgreSQLContainer
-import tech.hanasaki.azusa.module
 import tech.hanasaki.azusa.modules.auth.api.dto.*
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.module
 import tech.hanasaki.azusa.plugins.appJson
-import tech.hanasaki.azusa.shared.api.response.ApiResponse
-import tech.hanasaki.azusa.shared.domain.port.EmailService
+import tech.hanasaki.azusa.common.platform.api.ApiResponse
+import tech.hanasaki.azusa.common.domain.port.EmailService
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals

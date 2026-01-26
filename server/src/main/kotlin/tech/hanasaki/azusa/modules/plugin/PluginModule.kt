@@ -9,7 +9,7 @@ import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginSubscriptionRe
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.repository.ExposedPluginLikeRepository
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.repository.ExposedPluginRepository
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.repository.ExposedPluginSubscriptionRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 
 fun pluginModule(config: ApplicationConfig) = module {
     single<PluginRepository> { ExposedPluginRepository() }

@@ -7,7 +7,7 @@ import tech.hanasaki.azusa.modules.character.domain.repository.CharacterReposito
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository.ExposedCharacterRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository.ExposedKnowledgeSubscriptionRepository
-import tech.hanasaki.azusa.shared.domain.event.EventPublisher
+import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 
 fun characterModule(config: ApplicationConfig) = module {
     single<CharacterRepository> { ExposedCharacterRepository() }

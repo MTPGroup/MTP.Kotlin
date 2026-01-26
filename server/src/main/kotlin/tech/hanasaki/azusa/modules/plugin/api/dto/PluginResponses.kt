@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSubscription
-import tech.hanasaki.azusa.shared.domain.model.PageResult
+import tech.hanasaki.azusa.common.kernel.model.PageResult
 import java.util.*
 
 @Serializable

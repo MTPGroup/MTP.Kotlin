@@ -4,9 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
-import tech.hanasaki.azusa.shared.domain.event.integration.InitializeUserResources
-import tech.hanasaki.azusa.shared.domain.model.UserId
-import tech.hanasaki.azusa.shared.infrastructure.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.common.kernel.event.integration.InitializeUserResources
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
 import java.util.*
 
 /**
