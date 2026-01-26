@@ -1,7 +1,6 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
-import tech.hanasaki.azusa.common.kernel.event.integration.InitializeUserResources
 import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
 import tech.hanasaki.azusa.common.kernel.exception.ConflictException
 import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
@@ -23,9 +22,8 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val passwordEncoder: PasswordEncoder,
     private val tokenService: TokenService,
-    private val eventPublisher: EventPublisher,
+    private val eventBus: EventPublisher,
 ) {
-
     /**
      * 用户注册
      */
@@ -45,15 +43,8 @@ class AuthService(
         )
 
         userRepository.save(user)
-
-        // 发布 Auth 域事件
-        eventPublisher.publishAll(user.domainEvents)
+        eventBus.publishAll(user.domainEvents)
         user.clearDomainEvents()
-
-        // 发布通用初始化事件供其他模块订阅
-        eventPublisher.publish(
-            InitializeUserResources(userId = user.id.value.toString())
-        )
     }
 
     /**
@@ -119,8 +110,6 @@ class AuthService(
         user.verifyEmail()
 
         userRepository.save(user)
-        eventPublisher.publishAll(user.domainEvents)
-        user.clearDomainEvents()
     }
 
     /**

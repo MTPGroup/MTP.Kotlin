@@ -1,5 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
+import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -15,7 +17,7 @@ enum class OtpType(val value: String) {
     }
 }
 
-data class Otp(
+class Otp(
     val id: UUID = UUID.randomUUID(),
     val email: Email,
     val codeHash: String,
@@ -23,6 +25,31 @@ data class Otp(
     val isUsed: Boolean = false,
     val expiresAt: Instant,
     val usedAt: Instant? = null,
-) {
+) : AggregateRoot() {
+    companion object {
+        fun create(
+            email: Email,
+            codeHash: String,
+            type: OtpType,
+            expiresAt: Instant,
+        ): Otp {
+            val otp = Otp(
+                email = email,
+                codeHash = codeHash,
+                type = type,
+                expiresAt = expiresAt
+            )
+            otp.addDomainEvent(
+                OtpGeneratedEvent(
+                    email = email,
+                    code = codeHash,
+                    otpType = type,
+                    expiresAt = expiresAt
+                )
+            )
+            return otp
+        }
+    }
+
     fun isValid(now: Instant = Clock.System.now()): Boolean = !isUsed && now <= expiresAt
 }

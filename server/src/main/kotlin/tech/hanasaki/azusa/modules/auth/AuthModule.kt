@@ -2,11 +2,15 @@ package tech.hanasaki.azusa.modules.auth
 
 import io.ktor.server.config.*
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-import tech.hanasaki.azusa.modules.auth.application.handler.AuthEventHandler
+import tech.hanasaki.azusa.common.kernel.event.SubscriptionMode
+import tech.hanasaki.azusa.common.platform.event.di.subscriber
+import tech.hanasaki.azusa.modules.auth.application.listener.OtpGeneratedListener
+import tech.hanasaki.azusa.modules.auth.application.listener.UserRegisteredListener
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
+import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
 import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
@@ -37,9 +41,17 @@ fun authModule(config: ApplicationConfig) = module {
     single<TokenService> { JwtTokenService(get()) }
 
     // 应用服务
-    factoryOf(::AuthService)
     factoryOf(::OtpService)
+    factoryOf(::AuthService)
 
-    // 事件处理器
-    singleOf(::AuthEventHandler)
+    // 事件监听器
+    subscriber<UserRegisteredListener, UserRegisteredEvent>(
+        constructor = { UserRegisteredListener(get()) },
+        mode = SubscriptionMode.SYNCHRONOUS
+    )
+
+    subscriber<OtpGeneratedListener, OtpGeneratedEvent>(
+        constructor = { OtpGeneratedListener() },
+        mode = SubscriptionMode.SYNCHRONOUS
+    )
 }

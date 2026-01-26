@@ -3,7 +3,6 @@ package tech.hanasaki.azusa.modules.auth.application.service
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
 import tech.hanasaki.azusa.common.kernel.exception.DomainException
-import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
 import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
@@ -17,15 +16,15 @@ import kotlin.time.Duration.Companion.minutes
 
 class OtpService(
     private val otpRepository: OtpRepository,
-    private val eventPublisher: EventPublisher,
     private val otpConfig: OtpConfig,
+    private val eventBus: EventPublisher,
 ) {
     companion object {
         private const val OTP_EXPIRE_MINUTES = 10
         private const val MAX_OTP_PER_HOUR = 5
     }
 
-    suspend fun sendOtp(email: Email, type: OtpType) {
+    suspend fun generateOtp(email: Email, type: OtpType) {
         // 限流检查：每小时最多发送 5 次
         val oneHourAgo = Clock.System.now().minus(1.hours)
         val sentCount = otpRepository.countSentAfter(email, type, oneHourAgo)
@@ -35,23 +34,15 @@ class OtpService(
 
         // 测试模式使用固定验证码
         val code = if (otpConfig.testMode) otpConfig.testCode else generateCode()
-        val otp = Otp(
+        val otp = Otp.create(
             email = email,
             codeHash = hashCode(code),
             type = type,
             expiresAt = Clock.System.now().plus(OTP_EXPIRE_MINUTES.minutes)
         )
         otpRepository.save(otp)
-
-        // 发布 OTP 生成事件，由通知模块异步处理
-        eventPublisher.publish(
-            OtpGeneratedEvent(
-                email = email,
-                code = code,
-                otpType = type,
-                expiresInMinutes = OTP_EXPIRE_MINUTES,
-            )
-        )
+        eventBus.publishAll(otp.domainEvents)
+        otp.clearDomainEvents()
     }
 
     suspend fun verifyOtp(email: Email, type: OtpType, code: String) {

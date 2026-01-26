@@ -3,6 +3,7 @@ package tech.hanasaki.azusa.common.platform.event.outbox
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.common.kernel.event.DomainEvent
+import tech.hanasaki.azusa.common.kernel.event.integration.IntegrationEvent
 import tech.hanasaki.azusa.common.platform.event.bus.EventJson
 import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
@@ -92,7 +93,7 @@ class OutboxPoller(
             try {
                 val domainEvent = EventJson.deserialize(outboxEvent.eventType, outboxEvent.payload)
                 if (domainEvent != null) {
-                    emitWithoutPersist(domainEvent)
+                    publishToBus(domainEvent)
                     publishedIds.add(outboxEvent.id)
                     logger.debug("Re-published event: ${outboxEvent.eventType}")
                 } else {
@@ -110,8 +111,12 @@ class OutboxPoller(
         }
     }
 
-    private suspend fun emitWithoutPersist(event: DomainEvent) {
-        eventBus.emitWithoutPersist(event)
+    private suspend fun publishToBus(event: DomainEvent) {
+        if (event is IntegrationEvent) {
+            eventBus.publish(event)
+        } else {
+            logger.warn("Outbox event is not an IntegrationEvent, skipping bus publish: ${event::class.simpleName}")
+        }
     }
 
     private suspend fun cleanup() {
