@@ -42,7 +42,10 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
     override suspend fun findUnpublished(limit: Int): List<OutboxEvent> = dbQuery {
         OutboxEventTable
             .selectAll()
-            .where { OutboxEventTable.status eq OutboxEventStatus.PENDING }
+            .where {
+                (OutboxEventTable.status eq OutboxEventStatus.PENDING) or
+                        (OutboxEventTable.status eq OutboxEventStatus.FAILED)
+            }
             .orderBy(OutboxEventTable.createdAt, SortOrder.ASC)
             .limit(limit)
             .map { row ->
@@ -65,6 +68,7 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
     override suspend fun markAsFailed(eventId: UUID) {
         OutboxEventTable.update({ OutboxEventTable.id eq eventId }) {
             it[status] = OutboxEventStatus.FAILED
+            it[retryCount] = retryCount + 1
         }
     }
 
@@ -73,6 +77,14 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
         OutboxEventTable.update({ OutboxEventTable.id inList eventIds }) {
             it[status] = OutboxEventStatus.SENT
             it[sentAt] = publishedAt
+        }
+    }
+
+    override suspend fun markAllAsFailed(eventIds: Collection<UUID>) = dbQuery {
+        if (eventIds.isEmpty()) return@dbQuery
+        OutboxEventTable.update({ OutboxEventTable.id inList eventIds }) {
+            it[status] = OutboxEventStatus.FAILED
+            it[retryCount] = retryCount + 1
         }
     }
 

@@ -15,6 +15,7 @@ object OutboxEventTable : Table("outbox_events") {
     val eventType = varchar("type", 512)
     val status = enumerationByName<OutboxEventStatus>("status", 20)
     val payload = jsonb<JsonElement>("payload", Json.Default)
+    val retryCount = integer("retry_count")
     val createdAt = timestamp("created_at")
     val sentAt = timestamp("sent_at").nullable()
 

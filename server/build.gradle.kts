@@ -15,6 +15,7 @@ dependencies {
     implementation(platform(serverLibs.koin.bom))
     implementation(serverLibs.bundles.koin)
     implementation(serverLibs.bundles.ktor)
+    implementation(serverLibs.bundles.kotlinx)
     implementation(serverLibs.bundles.exposed)
     implementation(serverLibs.bundles.database)
     implementation(serverLibs.bundles.service)

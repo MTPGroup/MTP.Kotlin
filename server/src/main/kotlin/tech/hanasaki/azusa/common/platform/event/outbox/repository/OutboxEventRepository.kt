@@ -40,6 +40,11 @@ interface OutboxEventRepository {
     suspend fun markAllAsPublished(eventIds: Collection<UUID>, publishedAt: Instant)
 
     /**
+     * 批量标记为发布失败
+     */
+    suspend fun markAllAsFailed(eventIds: Collection<UUID>)
+
+    /**
      * 删除已发布且早于指定时间的事件（用于清理）
      */
     suspend fun deletePublishedBefore(before: Instant): Int

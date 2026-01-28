@@ -1,6 +1,12 @@
 package tech.hanasaki.azusa
 
 import io.ktor.server.config.*
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import io.lettuce.core.RedisClient
+import io.lettuce.core.RedisURI
+import io.lettuce.core.api.StatefulRedisConnection
+import io.lettuce.core.api.coroutines
+import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
@@ -37,11 +43,28 @@ fun appModules(config: ApplicationConfig): List<Module> {
     )
 }
 
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun sharedModule(config: ApplicationConfig) = module {
     // 事件总线
     single { InMemoryEventBus() }
     single<EventPublisher> { get<InMemoryEventBus>() }
     single<EventSubscriber> { get<InMemoryEventBus>() }
+
+    single<RedisConfig> { config.readRedisConfig() }
+    single<RedisClient> {
+        val config = get<RedisConfig>()
+        val uri = RedisURI.Builder.redis(config.host, config.port)
+            .withPassword(config.password)
+            .withDatabase(0)
+            .build()
+        RedisClient.create(uri)
+    }
+    single<StatefulRedisConnection<String, String>> {
+        get<RedisClient>().connect()
+    }
+    single<RedisCoroutinesCommands<String, String>> {
+        get<StatefulRedisConnection<String, String>>().coroutines()
+    }
 
     // Outbox 仓储
     single<OutboxEventRepository> { ExposedOutboxEventRepository() }
@@ -52,7 +75,9 @@ fun sharedModule(config: ApplicationConfig) = module {
     single {
         OutboxPoller(
             outboxRepository = get(),
-            config = get()
+            config = get(),
+            redis = get(),
         )
     }
+
 }
