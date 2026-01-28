@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.auth.domain.repository
 
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import kotlin.time.Instant

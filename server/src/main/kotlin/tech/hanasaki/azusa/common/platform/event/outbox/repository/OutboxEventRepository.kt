@@ -30,6 +30,11 @@ interface OutboxEventRepository {
     suspend fun markAsPublished(eventId: UUID, publishedAt: Instant)
 
     /**
+     * 标记事件发布失败
+     */
+    suspend fun markAsFailed(eventId: UUID)
+
+    /**
      * 批量标记为已发布
      */
     suspend fun markAllAsPublished(eventIds: Collection<UUID>, publishedAt: Instant)

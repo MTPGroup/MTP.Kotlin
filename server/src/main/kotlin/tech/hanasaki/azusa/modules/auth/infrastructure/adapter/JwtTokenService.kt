@@ -4,8 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenPair
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenService

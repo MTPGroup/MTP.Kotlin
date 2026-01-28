@@ -51,7 +51,7 @@ fun authModule(config: ApplicationConfig) = module {
     )
 
     subscriber<OtpGeneratedListener, OtpGeneratedEvent>(
-        constructor = { OtpGeneratedListener() },
+        constructor = { OtpGeneratedListener(get()) },
         mode = SubscriptionMode.SYNCHRONOUS
     )
 }

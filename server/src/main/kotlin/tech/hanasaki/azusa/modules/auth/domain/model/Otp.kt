@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
 import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
 import java.util.*
 import kotlin.time.Clock

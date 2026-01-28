@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.modules.auth.application.service
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
 import tech.hanasaki.azusa.common.kernel.exception.DomainException
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType

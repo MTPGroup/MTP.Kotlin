@@ -2,7 +2,7 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.OtpTable.codeHash
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.OtpTable.email

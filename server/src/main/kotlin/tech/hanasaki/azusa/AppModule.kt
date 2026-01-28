@@ -5,8 +5,14 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
+import tech.hanasaki.azusa.common.kernel.port.OutboxProvider
 import tech.hanasaki.azusa.common.platform.di.databaseModule
 import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.common.platform.event.outbox.OutboxAdapter
+import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
+import tech.hanasaki.azusa.common.platform.event.outbox.readOutboxPollerConfig
+import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutboxEventRepository
+import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.character.characterModule
 import tech.hanasaki.azusa.modules.contact.contactModules
@@ -38,15 +44,15 @@ fun sharedModule(config: ApplicationConfig) = module {
     single<EventSubscriber> { get<InMemoryEventBus>() }
 
     // Outbox 仓储
-    // single<OutboxEventRepository> { ExposedOutboxEventRepository() }
+    single<OutboxEventRepository> { ExposedOutboxEventRepository() }
+    single<OutboxProvider> { OutboxAdapter(get()) }
 
     // Outbox 轮询器配置与实例
-    /* single { config.readOutboxPollerConfig() }
-     single {
-         OutboxPoller(
-             outboxRepository = get(),
-             eventBus = get(),
-             config = get()
-         )
-     }*/
+    single { config.readOutboxPollerConfig() }
+    single {
+        OutboxPoller(
+            outboxRepository = get(),
+            config = get()
+        )
+    }
 }

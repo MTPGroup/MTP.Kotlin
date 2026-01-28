@@ -17,7 +17,6 @@ data class CharacterCreatedEvent(
     val isPublic: Boolean,
     @Contextual
     override val eventId: UUID = UUID.randomUUID(),
-    @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
 
@@ -29,7 +28,6 @@ data class CharacterUpdatedEvent(
     val isPublic: Boolean,
     @Contextual
     override val eventId: UUID = UUID.randomUUID(),
-    @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
 
@@ -39,6 +37,5 @@ data class CharacterDeletedEvent(
     val authorId: UserId,
     @Contextual
     override val eventId: UUID = UUID.randomUUID(),
-    @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent

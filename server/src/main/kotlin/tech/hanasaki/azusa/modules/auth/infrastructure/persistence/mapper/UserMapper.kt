@@ -2,11 +2,15 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
-import tech.hanasaki.azusa.modules.auth.domain.model.*
+import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.Email
+import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
+import tech.hanasaki.azusa.modules.auth.domain.model.User
+import tech.hanasaki.azusa.modules.auth.domain.model.UserProfile
+import tech.hanasaki.azusa.modules.auth.domain.model.Username
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table.UserTable
-import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
-import tech.hanasaki.azusa.common.kernel.model.UserId
 
 object UserMapper {
     fun toDomain(row: ResultRow): User {

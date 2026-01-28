@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.auth.api.dto
 
 import kotlinx.serialization.Serializable
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
 import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
 import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
 
 @Serializable

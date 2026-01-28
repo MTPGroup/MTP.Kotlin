@@ -7,6 +7,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import tech.hanasaki.azusa.common.platform.database.dbQuery
 import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEvent
+import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEventStatus
 import tech.hanasaki.azusa.common.platform.event.outbox.persistence.OutboxEventTable
 import java.util.*
 import kotlin.time.Instant
@@ -20,9 +21,9 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
         OutboxEventTable.insert {
             it[id] = event.id
             it[eventType] = event.eventType
-            it[serializedEvent] = event.payload
-            it[publicationDate] = event.occurredAt
-            it[completionDate] = event.publishedAt
+            it[status] = OutboxEventStatus.PENDING
+            it[payload] = event.payload
+            it[createdAt] = event.createdAt
         }
     }
 
@@ -31,9 +32,9 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
             OutboxEventTable.insert {
                 it[id] = event.id
                 it[eventType] = event.eventType
-                it[serializedEvent] = event.payload
-                it[publicationDate] = event.occurredAt
-                it[completionDate] = event.publishedAt
+                it[status] = OutboxEventStatus.PENDING
+                it[payload] = event.payload
+                it[createdAt] = event.createdAt
             }
         }
     }
@@ -41,36 +42,43 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
     override suspend fun findUnpublished(limit: Int): List<OutboxEvent> = dbQuery {
         OutboxEventTable
             .selectAll()
-            .where { OutboxEventTable.completionDate.isNull() }
-            .orderBy(OutboxEventTable.publicationDate, SortOrder.ASC)
+            .where { OutboxEventTable.status eq OutboxEventStatus.PENDING }
+            .orderBy(OutboxEventTable.createdAt, SortOrder.ASC)
             .limit(limit)
             .map { row ->
                 OutboxEvent(
                     id = row[OutboxEventTable.id],
                     eventType = row[OutboxEventTable.eventType],
-                    payload = row[OutboxEventTable.serializedEvent],
-                    occurredAt = row[OutboxEventTable.publicationDate],
-                    publishedAt = row[OutboxEventTable.completionDate],
+                    payload = row[OutboxEventTable.payload],
+                    createdAt = row[OutboxEventTable.createdAt],
                 )
             }
     }
 
     override suspend fun markAsPublished(eventId: UUID, publishedAt: Instant): Unit = dbQuery {
         OutboxEventTable.update({ OutboxEventTable.id eq eventId }) {
-            it[completionDate] = publishedAt
+            it[status] = OutboxEventStatus.SENT
+            it[sentAt] = publishedAt
+        }
+    }
+
+    override suspend fun markAsFailed(eventId: UUID) {
+        OutboxEventTable.update({ OutboxEventTable.id eq eventId }) {
+            it[status] = OutboxEventStatus.FAILED
         }
     }
 
     override suspend fun markAllAsPublished(eventIds: Collection<UUID>, publishedAt: Instant): Unit = dbQuery {
         if (eventIds.isEmpty()) return@dbQuery
         OutboxEventTable.update({ OutboxEventTable.id inList eventIds }) {
-            it[completionDate] = publishedAt
+            it[status] = OutboxEventStatus.SENT
+            it[sentAt] = publishedAt
         }
     }
 
     override suspend fun deletePublishedBefore(before: Instant): Int = dbQuery {
         OutboxEventTable.deleteWhere {
-            (completionDate.isNotNull()) and (completionDate less before)
+            (status eq OutboxEventStatus.SENT) and (sentAt less before)
         }
     }
 }

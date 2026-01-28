@@ -3,6 +3,7 @@ package tech.hanasaki.azusa.modules.auth.domain.model
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
 import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerifiedEvent
 import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
@@ -13,14 +14,6 @@ import kotlin.time.Instant
 
 @JvmInline
 value class PasswordHash(val value: String)
-
-@JvmInline
-@Serializable
-value class Email(val value: String) {
-    init {
-        require(value.contains('@')) { "Invalid email format" }
-    }
-}
 
 @Serializable
 enum class UserStatus(val value: String) {

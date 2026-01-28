@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.auth.application.command
 
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
 
 data class RegisterCommand(

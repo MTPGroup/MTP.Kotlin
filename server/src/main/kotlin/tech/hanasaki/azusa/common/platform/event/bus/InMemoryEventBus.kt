@@ -78,10 +78,6 @@ class InMemoryEventBus : EventPublisher, EventSubscriber {
             .add(WrappedListener(listener, mode))
     }
 
-    override suspend fun <T : DomainEvent> unsubscribe(eventType: Class<T>, listener: EventListener<T>) {
-        listeners[eventType]?.removeIf { it.listener == listener }
-    }
-
     /**
      * 基于 Flow 的异步订阅
      */

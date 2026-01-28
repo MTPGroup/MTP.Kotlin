@@ -2,10 +2,7 @@ package tech.hanasaki.azusa.common.platform.event.outbox
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
-import tech.hanasaki.azusa.common.kernel.event.DomainEvent
-import tech.hanasaki.azusa.common.kernel.event.integration.IntegrationEvent
-import tech.hanasaki.azusa.common.platform.event.bus.EventJson
-import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.common.kernel.event.IntegrationEvent
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import java.util.*
 import kotlin.time.Clock
@@ -15,7 +12,6 @@ import kotlin.time.Clock
  */
 class OutboxPoller(
     private val outboxRepository: OutboxEventRepository,
-    private val eventBus: InMemoryEventBus,
     private val config: OutboxPollerConfig,
 ) {
     private val logger = LoggerFactory.getLogger(OutboxPoller::class.java)
@@ -91,15 +87,9 @@ class OutboxPoller(
 
         for (outboxEvent in unpublishedEvents) {
             try {
-                val domainEvent = EventJson.deserialize(outboxEvent.eventType, outboxEvent.payload)
-                if (domainEvent != null) {
-                    publishToBus(domainEvent)
-                    publishedIds.add(outboxEvent.id)
-                    logger.debug("Re-published event: ${outboxEvent.eventType}")
-                } else {
-                    logger.warn("Unknown event type: ${outboxEvent.eventType}, marking as published to skip")
-                    publishedIds.add(outboxEvent.id)
-                }
+//                publishToBus(integrationEvent)
+                publishedIds.add(outboxEvent.id)
+                logger.debug("Re-published event: ${outboxEvent.eventType}")
             } catch (e: Exception) {
                 logger.error("Failed to re-publish event ${outboxEvent.id}: ${e.message}")
             }
@@ -111,12 +101,8 @@ class OutboxPoller(
         }
     }
 
-    private suspend fun publishToBus(event: DomainEvent) {
-        if (event is IntegrationEvent) {
-            eventBus.publish(event)
-        } else {
-            logger.warn("Outbox event is not an IntegrationEvent, skipping bus publish: ${event::class.simpleName}")
-        }
+    private suspend fun publishToBus(event: IntegrationEvent) {
+        // TODO: 使用Redis Stream发布集成事件
     }
 
     private suspend fun cleanup() {

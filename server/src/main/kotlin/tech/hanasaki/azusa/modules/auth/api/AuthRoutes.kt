@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.common.platform.api.ApiException
 import tech.hanasaki.azusa.common.platform.api.requireUserId
 import tech.hanasaki.azusa.common.platform.api.respondOk
@@ -13,7 +14,6 @@ import tech.hanasaki.azusa.modules.auth.api.dto.*
 import tech.hanasaki.azusa.modules.auth.api.mapper.toUserProfile
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 
 fun Route.authRoutes() {

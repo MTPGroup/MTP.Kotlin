@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.auth.application.result
 
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
+import tech.hanasaki.azusa.common.kernel.model.Email
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenPair
-import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
-import tech.hanasaki.azusa.common.kernel.model.UserId
 import kotlin.time.Instant
 
 
