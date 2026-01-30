@@ -30,6 +30,7 @@ class Otp(
     companion object {
         fun create(
             email: Email,
+            code: String,
             codeHash: String,
             type: OtpType,
             expiresAt: Instant,
@@ -43,7 +44,7 @@ class Otp(
             otp.addDomainEvent(
                 OtpGeneratedEvent(
                     email = email,
-                    code = codeHash,
+                    code = code,
                     otpType = type,
                     expiresAt = expiresAt
                 )

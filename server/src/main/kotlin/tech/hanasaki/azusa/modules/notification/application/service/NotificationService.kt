@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.notification.application.service
 
+import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplateId
@@ -9,7 +10,6 @@ import tech.hanasaki.azusa.modules.notification.domain.port.PushSender
 import tech.hanasaki.azusa.modules.notification.domain.port.SmsSender
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationTemplateRepository
-import tech.hanasaki.azusa.common.kernel.model.UserId
 
 /**
  * 通知服务 - 统一管理所有通知渠道
@@ -161,50 +161,21 @@ class NotificationService(
     suspend fun sendOtpEmail(
         to: String,
         code: String,
-        userId: UserId? = null,
+        subject: String,
+        title: String,
+        description: String,
     ) {
-        // 尝试使用模板
-        val template = templateRepository.findActiveByTypeAndChannel(
-            NotificationTemplateType.OTP_VERIFICATION,
-            NotificationChannel.EMAIL,
+        // 使用默认模板
+        emailSender.sendTemplate(
+            to = to,
+            subject = subject,
+            templateName = "otp-verification.ftl",
+            model = mapOf(
+                "title" to title,
+                "description" to description,
+                "code" to code,
+                "expireMinutes" to 5,
+            ),
         )
-
-        if (template != null) {
-            val rendered = template.render(mapOf("code" to code))
-            sendEmail(
-                to = to,
-                subject = rendered.subject ?: "Verification Code",
-                content = rendered.content,
-                userId = userId,
-                templateId = template.id,
-            )
-        } else {
-            // 使用默认模板
-            sendEmail(
-                to = to,
-                subject = "Your Verification Code",
-                content = buildDefaultOtpEmailHtml(code),
-                userId = userId,
-            )
-        }
     }
-
-    private fun buildDefaultOtpEmailHtml(code: String): String = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Verification Code</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2>Your Verification Code</h2>
-            <p>Please use the following code to verify your identity:</p>
-            <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-                $code
-            </div>
-            <p>This code will expire in 5 minutes.</p>
-            <p style="color: #666; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
-        </body>
-        </html>
-    """.trimIndent()
 }

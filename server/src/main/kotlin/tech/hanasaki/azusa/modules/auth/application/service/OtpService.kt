@@ -36,6 +36,7 @@ class OtpService(
         val code = if (otpConfig.testMode) otpConfig.testCode else generateCode()
         val otp = Otp.create(
             email = email,
+            code = code,
             codeHash = hashCode(code),
             type = type,
             expiresAt = Clock.System.now().plus(OTP_EXPIRE_MINUTES.minutes)

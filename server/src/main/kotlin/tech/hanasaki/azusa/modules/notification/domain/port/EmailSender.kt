@@ -21,4 +21,19 @@ interface EmailSender {
      * @param text 纯文本内容
      */
     suspend fun sendText(to: String, subject: String, text: String)
+
+    /**
+     * 使用模板发送邮件
+     *
+     * @param to 收件人邮箱
+     * @param subject 邮件主题
+     * @param templateName 模板名称（不含扩展名）
+     * @param model 模板变量
+     */
+    suspend fun sendTemplate(
+        to: String,
+        subject: String,
+        templateName: String,
+        model: Map<String, Any>,
+    )
 }

@@ -1,5 +1,7 @@
 package tech.hanasaki.azusa.modules.notification
 
+import freemarker.cache.ClassTemplateLoader
+import freemarker.template.Configuration
 import io.ktor.server.config.*
 import org.koin.dsl.module
 import tech.hanasaki.azusa.common.kernel.event.OtpGeneratedIntegrationEvent
@@ -13,6 +15,7 @@ import tech.hanasaki.azusa.modules.notification.infrastructure.adapter.SmtpConfi
 import tech.hanasaki.azusa.modules.notification.infrastructure.adapter.SmtpEmailSender
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository.ExposedNotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository.ExposedNotificationTemplateRepository
+import tech.hanasaki.azusa.modules.notification.infrastructure.service.EmailTemplateService
 
 /**
  * 通知模块配置
@@ -49,8 +52,28 @@ fun notificationModule(config: ApplicationConfig) = module {
     single<NotificationLogRepository> { ExposedNotificationLogRepository() }
     single<NotificationTemplateRepository> { ExposedNotificationTemplateRepository() }
 
+    // FreeMarker Configuration
+    single<Configuration> {
+        Configuration(Configuration.VERSION_2_3_32).apply {
+            defaultEncoding = "UTF-8"
+            setTemplateLoader(ClassTemplateLoader(
+                javaClass.classLoader,
+                "templates/email"
+            ))
+            fallbackOnNullLoopVariable = false
+        }
+    }
+
+    // Services
+    single { EmailTemplateService(get()) }
+
     // Ports / Adapters
-    single<EmailSender> { SmtpEmailSender(notificationConfig.smtp) }
+    single<EmailSender> {
+        SmtpEmailSender(
+            config = notificationConfig.smtp,
+            templateService = get(),
+        )
+    }
 
     // Application Service
     single {

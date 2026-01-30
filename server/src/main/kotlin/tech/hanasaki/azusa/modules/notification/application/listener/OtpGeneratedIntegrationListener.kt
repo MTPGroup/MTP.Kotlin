@@ -13,44 +13,37 @@ class OtpGeneratedIntegrationListener(
     override suspend fun handle(event: OtpGeneratedIntegrationEvent) {
         try {
             val subject = when (event.type) {
-                "VERIFY_EMAIL" -> "Verify your email - Azusa"
-                "RESET_PASSWORD" -> "Reset your password - Azusa"
-                "SIGN_IN" -> "Sign in code - Azusa"
-                else -> "OTP Code - Azusa"
+                "VERIFY_EMAIL" -> "验证您的邮箱 - Azusa"
+                "RESET_PASSWORD" -> "重置您的密码 - Azusa"
+                "SIGN_IN" -> "登录验证码 - Azusa"
+                else -> "验证码 - Azusa"
             }
 
-            val html = renderOtpEmailHtml(event.code)
+            val title = when (event.type) {
+                "VERIFY_EMAIL" -> "验证您的邮箱"
+                "RESET_PASSWORD" -> "重置密码"
+                "SIGN_IN" -> "登录验证"
+                else -> "验证码"
+            }
 
-            notificationService.sendEmail(
+            val description = when (event.type) {
+                "VERIFY_EMAIL" -> "感谢您注册 Azusa！请使用以下验证码完成邮箱验证："
+                "RESET_PASSWORD" -> "您正在重置密码，请使用以下验证码完成操作："
+                "SIGN_IN" -> "您正在登录 Azusa，请使用以下验证码完成登录："
+                else -> "请使用以下验证码："
+            }
+
+            notificationService.sendOtpEmail(
                 to = event.email,
+                code = event.code,
                 subject = subject,
-                content = html,
+                title = title,
+                description = description,
             )
 
             logger.info("OTP email sent to: ${event.email}")
         } catch (e: Exception) {
             logger.error("Failed to send OTP email to ${event.email}: ${e.message}", e)
         }
-    }
-
-    private fun renderOtpEmailHtml(code: String): String {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>Email Verification</title>
-            </head>
-            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2>Email Verification</h2>
-                <p>Please use the following code to verify your email address:</p>
-                <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-                    $code
-                </div>
-                <p>This code will expire shortly.</p>
-                <p style="color: #666; font-size: 12px;">If you didn't request this code, please ignore this email.</p>
-            </body>
-            </html>
-        """.trimIndent()
     }
 }

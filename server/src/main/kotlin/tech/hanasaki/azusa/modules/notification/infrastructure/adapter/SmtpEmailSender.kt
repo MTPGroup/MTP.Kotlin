@@ -4,6 +4,7 @@ import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import tech.hanasaki.azusa.modules.notification.domain.port.EmailSender
+import tech.hanasaki.azusa.modules.notification.infrastructure.service.EmailTemplateService
 import java.util.*
 
 /**
@@ -22,7 +23,10 @@ data class SmtpConfig(
 /**
  * SMTP 邮件发送器实现
  */
-class SmtpEmailSender(private val config: SmtpConfig) : EmailSender {
+class SmtpEmailSender(
+    private val config: SmtpConfig,
+    private val templateService: EmailTemplateService? = null,
+) : EmailSender {
 
     override suspend fun sendHtml(to: String, subject: String, html: String) {
         if (!config.enabled) return
@@ -50,6 +54,21 @@ class SmtpEmailSender(private val config: SmtpConfig) : EmailSender {
         }
 
         Transport.send(message)
+    }
+
+    override suspend fun sendTemplate(
+        to: String,
+        subject: String,
+        templateName: String,
+        model: Map<String, Any>,
+    ) {
+        if (!config.enabled) return
+        if (templateService == null) {
+            throw UnsupportedOperationException("EmailTemplateService not configured")
+        }
+
+        val html = templateService.renderTemplate(templateName, model)
+        sendHtml(to, subject, html)
     }
 
     private fun createSession(): Session {
