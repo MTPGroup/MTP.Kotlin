@@ -43,3 +43,16 @@ redis:
   host: ${REDIS_HOST}
   port: ${REDIS_PORT}
   password: ${REDIS_PASSWORD}
+event:
+  outbox:
+    pollingIntervalSeconds: 30
+    batchSize: 100
+    cleanupEnabled: true
+    cleanupIntervalMinutes: 1
+    retentionDays: 7
+  stream:
+    streamKey: ${STREAM_KEY}
+    consumerGroup: ${CONSUMER_GROUP}
+    consumerName: ${EVENT_STREAM_CONSUMER_NAME:azusa-instance-1}
+    batchSize: 10
+    pollIntervalSeconds: 1

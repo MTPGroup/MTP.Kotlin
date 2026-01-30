@@ -5,6 +5,7 @@ import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.common.platform.event.LettuceDistLock
+import tech.hanasaki.azusa.common.platform.event.listener.StreamConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEvent
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import tech.hanasaki.azusa.common.platform.util.AppJson
@@ -17,14 +18,14 @@ import kotlin.time.Clock
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 class OutboxPoller(
     private val outboxRepository: OutboxEventRepository,
-    private val config: OutboxPollerConfig,
+    private val outboxConfig: OutboxPollerConfig,
+    private val streamConfig: StreamConfig,
     private val redis: RedisCoroutinesCommands<String, String>,
 ) {
     private val logger = LoggerFactory.getLogger(OutboxPoller::class.java)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var pollingJob: Job? = null
     private var cleanupJob: Job? = null
-    private val streamKey = "azusa:stream:outbox-events"
 
     @Volatile
     private var running = false
@@ -38,7 +39,7 @@ class OutboxPoller(
             return
         }
         running = true
-        logger.info("Starting OutboxPoller with polling interval: ${config.pollingInterval}")
+        logger.info("Starting OutboxPoller with polling interval: ${outboxConfig.pollingInterval}")
 
         pollingJob = scope.launch {
             while (isActive && running) {
@@ -47,14 +48,14 @@ class OutboxPoller(
                 } catch (e: Exception) {
                     logger.error("Error during outbox polling", e)
                 }
-                delay(config.pollingInterval)
+                delay(outboxConfig.pollingInterval)
             }
         }
 
-        if (config.cleanupEnabled) {
+        if (outboxConfig.cleanupEnabled) {
             cleanupJob = scope.launch {
                 while (isActive && running) {
-                    delay(config.cleanupInterval)
+                    delay(outboxConfig.cleanupInterval)
                     try {
                         cleanup()
                     } catch (e: Exception) {
@@ -92,7 +93,7 @@ class OutboxPoller(
 
         if (lock.tryLock()) {
             try {
-                val unpublishedEvents = outboxRepository.findUnpublished(config.batchSize)
+                val unpublishedEvents = outboxRepository.findUnpublished(outboxConfig.batchSize)
                 if (unpublishedEvents.isEmpty()) {
                     lock.unlock()
                     return
@@ -149,12 +150,12 @@ class OutboxPoller(
             "eventId" to event.id.toString()
         )
 
-        val streamId = redis.xadd(streamKey, body)
+        val streamId = redis.xadd(streamConfig.streamKey, body)
         logger.info("Publishing event: $streamId")
     }
 
     private suspend fun cleanup() {
-        val cutoffTime = Clock.System.now() - config.retentionPeriod
+        val cutoffTime = Clock.System.now() - outboxConfig.retentionPeriod
         val deletedCount = outboxRepository.deletePublishedBefore(cutoffTime)
         if (deletedCount > 0) {
             logger.info("Cleaned up $deletedCount old published events")

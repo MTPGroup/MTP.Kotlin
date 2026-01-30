@@ -11,11 +11,16 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
+import tech.hanasaki.azusa.common.kernel.event.StreamListener
 import tech.hanasaki.azusa.common.kernel.port.OutboxProvider
 import tech.hanasaki.azusa.common.platform.di.databaseModule
 import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.common.platform.event.listener.RedisStreamListener
+import tech.hanasaki.azusa.common.platform.event.listener.StreamConfig
+import tech.hanasaki.azusa.common.platform.event.listener.readStreamListenerConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.OutboxAdapter
 import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
+import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPollerConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.readOutboxPollerConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutboxEventRepository
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
@@ -30,6 +35,8 @@ import tech.hanasaki.azusa.modules.theme.themeModule
 
 fun appModules(config: ApplicationConfig): List<Module> {
     return listOf(
+        databaseModule(config),
+        sharedModule(config),
         notificationModule(config),
         authModule(config),
         settingModule(config),
@@ -37,9 +44,7 @@ fun appModules(config: ApplicationConfig): List<Module> {
         characterModule(config),
         contactModules(),
         pluginModule(config),
-        knowledgeModule(config),
-        databaseModule(config),
-        sharedModule(config)
+        knowledgeModule(config)
     )
 }
 
@@ -70,14 +75,24 @@ fun sharedModule(config: ApplicationConfig) = module {
     single<OutboxEventRepository> { ExposedOutboxEventRepository() }
     single<OutboxProvider> { OutboxAdapter(get()) }
 
+    // Redis Stream Listener 配置与实例
+    single<StreamConfig> { config.readStreamListenerConfig() }
+    single<RedisStreamListener> {
+        RedisStreamListener(
+            redis = get(),
+            config = get(),
+        )
+    }
+    single<StreamListener> { get<RedisStreamListener>() }
+
     // Outbox 轮询器配置与实例
-    single { config.readOutboxPollerConfig() }
+    single<OutboxPollerConfig> { config.readOutboxPollerConfig() }
     single {
         OutboxPoller(
             outboxRepository = get(),
-            config = get(),
+            outboxConfig = get(),
+            streamConfig = get(),
             redis = get(),
         )
     }
-
 }
