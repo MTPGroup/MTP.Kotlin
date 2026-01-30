@@ -14,14 +14,13 @@ import tech.hanasaki.azusa.modules.plugin.domain.events.PluginSubscribedEvent
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginUnsubscribedEvent
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
-import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSubscription
+
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginLikeRepository
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginRepository
-import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginSubscriptionRepository
+
 
 class PluginService(
     private val pluginRepository: PluginRepository,
-    private val subscriptionRepository: PluginSubscriptionRepository,
     private val likeRepository: PluginLikeRepository,
     private val eventPublisher: EventPublisher,
 ) {
@@ -144,51 +143,6 @@ class PluginService(
         eventPublisher.publishAll(plugin.domainEvents)
         plugin.clearDomainEvents()
         return plugin
-    }
-
-    //  ===订阅管理===
-
-    /**
-     * 获取用户订阅的插件
-     */
-    suspend fun getMySubscriptions(userId: UserId): List<PluginSubscription> {
-        return subscriptionRepository.findByUserId(userId)
-    }
-
-    /**
-     * 订阅插件
-     */
-    suspend fun subscribePlugin(userId: UserId, pluginId: PluginId) {
-        val plugin = pluginRepository.findById(pluginId)
-            ?: throw NotFoundException("Plugin not found")
-        if (plugin.status != PluginStatus.APPROVED) {
-            throw DomainException("Cannot subscribe to unapproved plugin")
-        }
-        val existing = subscriptionRepository.findByUserIdAndPluginId(userId, pluginId)
-        if (existing != null) {
-            throw ConflictException("Already subscribed")
-        }
-        subscriptionRepository.subscribe(userId, pluginId, isActive = false)
-        eventPublisher.publish(PluginSubscribedEvent(pluginId, userId))
-    }
-
-    /**
-     * 取消订阅
-     */
-    suspend fun unsubscribePlugin(userId: UserId, pluginId: PluginId) {
-        subscriptionRepository.findByUserIdAndPluginId(userId, pluginId)
-            ?: throw NotFoundException("Subscription not found")
-        subscriptionRepository.unsubscribe(userId, pluginId)
-        eventPublisher.publish(PluginUnsubscribedEvent(pluginId, userId))
-    }
-
-    /**
-     * 更新订阅状态（启用/禁用）
-     */
-    suspend fun updateSubscriptionStatus(userId: UserId, pluginId: PluginId, isActive: Boolean) {
-        subscriptionRepository.findByUserIdAndPluginId(userId, pluginId)
-            ?: throw NotFoundException("Subscription not found")
-        subscriptionRepository.updateActiveStatus(userId, pluginId, isActive)
     }
 
     // ===点赞管理===

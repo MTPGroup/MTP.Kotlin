@@ -52,8 +52,3 @@ data class PluginSchemaDto(
         parameters = parameters,
     )
 }
-
-@Serializable
-data class UpdateSubscriptionRequest(
-    val isActive: Boolean,
-)

@@ -4,7 +4,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
-import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSubscription
+
 import tech.hanasaki.azusa.common.kernel.model.PageResult
 import java.util.*
 
@@ -55,12 +55,6 @@ data class PagedPluginResponse(
     val hasPrevious: Boolean,
 )
 
-@Serializable
-data class PluginSubscriptionResponse(
-    @Contextual val pluginId: UUID,
-    val isActive: Boolean,
-    val subscribedAt: String,
-)
 
 fun Plugin.toResponse(): PluginResponse = PluginResponse(
     id = id.value,
@@ -107,8 +101,4 @@ fun PageResult<Plugin>.toResponse(): PagedPluginResponse = PagedPluginResponse(
     hasPrevious = hasPrevious,
 )
 
-fun PluginSubscription.toResponse(): PluginSubscriptionResponse = PluginSubscriptionResponse(
-    pluginId = pluginId.value,
-    isActive = isActive,
-    subscribedAt = subscribedAt.toString(),
-)
+

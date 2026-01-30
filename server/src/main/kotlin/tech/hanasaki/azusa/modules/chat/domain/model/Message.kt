@@ -5,23 +5,14 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * 消息角色枚举
- */
-enum class MessageRole {
-    USER,       // 用户消息
-    ASSISTANT,  // AI 助手消息
-    SYSTEM,     // 系统消息
-}
-
-/**
  * Message 实体 - 表示聊天中的一条消息
  */
 data class Message(
     val id: MessageId,
     val chatId: ChatId,
-    val role: MessageRole,
-    val content: String,              // 纯文本内容
-    val metadata: JsonObject?,        // 额外信息（如工具调用）
+    val senderType: SenderType,
+    val content: List<MessageContent>,
+    val metadata: JsonObject?,
     val createdAt: Instant,
 ) {
     companion object {
@@ -30,17 +21,34 @@ data class Message(
          */
         fun create(
             chatId: ChatId,
-            role: MessageRole,
-            content: String,
+            senderType: SenderType,
+            content: List<MessageContent>,
             metadata: JsonObject? = null,
         ): Message {
             return Message(
                 id = MessageId(java.util.UUID.randomUUID()),
                 chatId = chatId,
-                role = role,
+                senderType = senderType,
                 content = content,
                 metadata = metadata,
                 createdAt = Clock.System.now(),
+            )
+        }
+
+        /**
+         * 创建纯文本消息
+         */
+        fun createText(
+            chatId: ChatId,
+            senderType: SenderType,
+            text: String,
+            metadata: JsonObject? = null,
+        ): Message {
+            return create(
+                chatId = chatId,
+                senderType = senderType,
+                content = listOf(MessageContent.Text(text)),
+                metadata = metadata,
             )
         }
 
@@ -50,17 +58,30 @@ data class Message(
         fun reconstitute(
             id: MessageId,
             chatId: ChatId,
-            role: MessageRole,
-            content: String,
+            senderType: SenderType,
+            content: List<MessageContent>,
             metadata: JsonObject?,
             createdAt: Instant,
         ): Message = Message(
             id = id,
             chatId = chatId,
-            role = role,
+            senderType = senderType,
             content = content,
             metadata = metadata,
             createdAt = createdAt,
         )
     }
+
+    /**
+     * 获取纯文本内容（拼接所有 Text 类型的 content）
+     */
+    fun getPlainText(): String {
+        return content.filterIsInstance<MessageContent.Text>()
+            .joinToString("\n") { it.content }
+    }
+
+    /**
+     * 是否为纯文本消息
+     */
+    fun isTextOnly(): Boolean = content.all { it is MessageContent.Text }
 }

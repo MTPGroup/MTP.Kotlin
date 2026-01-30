@@ -82,32 +82,6 @@ fun Route.pluginRoutes() {
                 call.respondOk(plugin.toResponse(), "Plugin rejected")
             }
 
-            // ===订阅管理===
-            // 订阅插件
-            post("/{pluginId}/subscribe") {
-                val userId = call.requireUserId()
-                val pluginId = PluginId(call.uuidParam("pluginId"))
-                pluginService.subscribePlugin(userId, pluginId)
-                call.respondOk("Subscribed successfully")
-            }
-
-            // 取消订阅
-            delete("/{pluginId}/subscribe") {
-                val userId = call.requireUserId()
-                val pluginId = PluginId(call.uuidParam("pluginId"))
-                pluginService.unsubscribePlugin(userId, pluginId)
-                call.respond(HttpStatusCode.NoContent)
-            }
-
-            // 更新订阅状态
-            patch("/{pluginId}/subscribe") {
-                val userId = call.requireUserId()
-                val pluginId = PluginId(call.uuidParam("pluginId"))
-                val request = call.receive<UpdateSubscriptionRequest>()
-                pluginService.updateSubscriptionStatus(userId, pluginId, request.isActive)
-                call.respondOk("Subscription updated")
-            }
-
             // ===点赞管理===
             // 点赞
             post("/{pluginId}/like") {
@@ -137,13 +111,6 @@ fun Route.pluginRoutes() {
                 val limit = parseLimitParam(call.request.queryParameters["limit"])
                 val result = pluginService.listMyPlugins(userId, page, limit)
                 call.respondOk(result.toResponse())
-            }
-
-            // 我订阅的插件
-            get("/subscriptions") {
-                val userId = call.requireUserId()
-                val subscriptions = pluginService.getMySubscriptions(userId)
-                call.respondOk(subscriptions.map { it.toResponse() })
             }
         }
     }

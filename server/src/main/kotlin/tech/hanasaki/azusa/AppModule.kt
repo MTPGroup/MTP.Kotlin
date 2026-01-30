@@ -26,7 +26,6 @@ import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutbox
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.character.characterModule
-import tech.hanasaki.azusa.modules.contact.contactModules
 import tech.hanasaki.azusa.modules.knowledge.knowledgeModule
 import tech.hanasaki.azusa.modules.notification.notificationModule
 import tech.hanasaki.azusa.modules.plugin.pluginModule
@@ -42,7 +41,6 @@ fun appModules(config: ApplicationConfig): List<Module> {
         settingModule(config),
         themeModule(config),
         characterModule(config),
-        contactModules(),
         pluginModule(config),
         knowledgeModule(config)
     )

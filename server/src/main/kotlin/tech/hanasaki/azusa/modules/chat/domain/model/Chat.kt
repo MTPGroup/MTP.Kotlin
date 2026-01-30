@@ -8,23 +8,23 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
- * Chat 聚合根 - 表示用户与 AI 角色的聊天
+ * Chat 聚合根 - 表示聊天会话（支持单聊和群聊）
  */
 data class Chat(
     val id: ChatId,
     val ownerId: UserId,
-    val characterId: CharacterId,
     var name: String?,
     var lastMessage: String?,
     val createdAt: Instant,
     var updatedAt: Instant,
+    var members: List<ChatMember>,
 ) : AggregateRoot() {
 
     companion object {
         /**
-         * 创建新聊天
+         * 创建私聊（一对一对话）
          */
-        fun create(
+        fun createPrivateChat(
             ownerId: UserId,
             characterId: CharacterId,
             name: String? = null,
@@ -33,11 +33,35 @@ data class Chat(
             val chat = Chat(
                 id = ChatId(java.util.UUID.randomUUID()),
                 ownerId = ownerId,
-                characterId = characterId,
                 name = name,
                 lastMessage = null,
                 createdAt = now,
                 updatedAt = now,
+                members = emptyList(),
+            )
+            chat.addMember(
+                ChatMember(
+                    id = ChatMemberId(java.util.UUID.randomUUID()),
+                    chatId = chat.id,
+                    memberType = MemberType.USER,
+                    profileId = ownerId,
+                    characterId = null,
+                    role = MemberRole.OWNER,
+                    joinedAt = now,
+                    updatedAt = now,
+                )
+            )
+            chat.addMember(
+                ChatMember(
+                    id = ChatMemberId(java.util.UUID.randomUUID()),
+                    chatId = chat.id,
+                    memberType = MemberType.CHARACTER,
+                    profileId = null,
+                    characterId = characterId,
+                    role = MemberRole.MEMBER,
+                    joinedAt = now,
+                    updatedAt = now,
+                )
             )
             chat.addDomainEvent(
                 ChatCreatedEvent(
@@ -55,19 +79,19 @@ data class Chat(
         fun reconstitute(
             id: ChatId,
             ownerId: UserId,
-            characterId: CharacterId,
             name: String?,
             lastMessage: String?,
             createdAt: Instant,
             updatedAt: Instant,
+            members: List<ChatMember>,
         ): Chat = Chat(
             id = id,
             ownerId = ownerId,
-            characterId = characterId,
             name = name,
             lastMessage = lastMessage,
             createdAt = createdAt,
             updatedAt = updatedAt,
+            members = members,
         )
     }
 
@@ -86,4 +110,60 @@ data class Chat(
         this.name = newName
         this.updatedAt = Clock.System.now()
     }
+
+    /**
+     * 获取成员（按类型）
+     */
+    fun getUsers(): List<ChatMember> = members.filter { it.isUser() }
+
+    fun getCharacters(): List<ChatMember> = members.filter { it.isCharacter() }
+
+    /**
+     * 获取私聊中的角色（仅适用于私聊场景）
+     */
+    fun getCharacter(): CharacterId? {
+        val characters = getCharacters()
+        require(characters.size <= 1) { "Private chat should have at most one character member" }
+        return characters.firstOrNull()?.characterId
+    }
+
+    /**
+     * 获取私聊中的用户（仅适用于私聊场景）
+     */
+    fun getUser(): UserId? {
+        val users = getUsers()
+        require(users.size == 1) { "Chat must have exactly one user" }
+        return users.firstOrNull()?.profileId
+    }
+
+    /**
+     * 添加成员
+     */
+    fun addMember(member: ChatMember) {
+        require(member.chatId == this.id) { "Member chatId must match Chat id" }
+        val updatedMembers = members.toMutableList()
+        updatedMembers.add(member)
+        this.members = updatedMembers
+        this.updatedAt = Clock.System.now()
+    }
+
+    /**
+     * 移除成员
+     */
+    fun removeMember(memberId: ChatMemberId) {
+        val memberToRemove = members.find { it.id == memberId }
+        require(memberToRemove != null) { "Member not found" }
+        require(!memberToRemove.isOwner()) { "Cannot remove owner from chat" }
+        val updatedMembers = members.toMutableList()
+        updatedMembers.removeIf { it.id == memberId }
+        this.members = updatedMembers
+        this.updatedAt = Clock.System.now()
+    }
+
+    /**
+     * 判断是否为私聊
+     */
+    fun isPrivateChat(): Boolean = members.size == 2 &&
+        getUsers().size == 1 &&
+        getCharacters().size == 1
 }
