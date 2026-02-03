@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.auth.api
 
-import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -14,8 +13,6 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.koin.ktor.plugin.Koin
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.common.platform.api.ApiResponse
-import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordResponse
 import tech.hanasaki.azusa.modules.auth.authModule
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -193,17 +190,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST refresh should success`() = testAuthApplication {
-        val refreshToken = client.post("/auth/sign-in/email") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                    {
-                        "email": "test-user@example.com",
-                        "password": "password123"
-                    }
-                """.trimIndent()
-            )
-        }.body<ApiResponse<SignInWithPasswordResponse>>().data?.refreshToken
+        val refreshToken = getSignInInfo()?.refreshToken
         val response = client.post("/auth/refresh") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -220,17 +207,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST sign-out`() = testAuthApplication {
-        val refreshToken = client.post("/auth/sign-in/email") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                    {
-                        "email": "test-user@example.com",
-                        "password": "password123"
-                    }
-                """.trimIndent()
-            )
-        }.body<ApiResponse<SignInWithPasswordResponse>>().data?.refreshToken
+        val refreshToken = getSignInInfo()?.refreshToken
         val response = client.post("/auth/sign-out") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -253,20 +230,10 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET auth me should return success`() = testAuthApplication {
-        val token = client.post("/auth/sign-in/email") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                    {
-                        "email": "test-user@example.com",
-                        "password": "password123"
-                    }
-                """.trimIndent()
-            )
-        }.body<ApiResponse<SignInWithPasswordResponse>>().data?.accessToken
+        val accessToken = getSignInInfo()?.accessToken
         val response = client.get("/auth/me") {
             headers {
-                append(HttpHeaders.Authorization, "Bearer $token")
+                append(HttpHeaders.Authorization, "Bearer $accessToken")
             }
         }
 
@@ -275,20 +242,10 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST change password should success`() = testAuthApplication {
-        val token = client.post("/auth/sign-in/email") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                    {
-                        "email": "test-user@example.com",
-                        "password": "password123"
-                    }
-                """.trimIndent()
-            )
-        }.body<ApiResponse<SignInWithPasswordResponse>>().data?.accessToken
+        val accessToken = getSignInInfo()?.accessToken
         val response = client.post("/auth/password/change") {
             headers {
-                append(HttpHeaders.Authorization, "Bearer $token")
+                append(HttpHeaders.Authorization, "Bearer $accessToken")
             }
             contentType(ContentType.Application.Json)
             setBody(
@@ -306,21 +263,10 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `DELETE account should success`() = testAuthApplication {
-        val token = client.post("/auth/sign-in/email") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                    {
-                        "email": "test-user@example.com",
-                        "password": "password123"
-                    }
-                """.trimIndent()
-            )
-        }.body<ApiResponse<SignInWithPasswordResponse>>().data?.accessToken
-
+        val accessToken = getSignInInfo()?.accessToken
         val response = client.delete("/auth/account") {
             headers {
-                append(HttpHeaders.Authorization, "Bearer $token")
+                append(HttpHeaders.Authorization, "Bearer $accessToken")
             }
         }
 

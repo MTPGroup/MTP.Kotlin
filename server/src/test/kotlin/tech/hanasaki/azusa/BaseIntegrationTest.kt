@@ -3,8 +3,12 @@ package tech.hanasaki.azusa
 import com.redis.testcontainers.RedisContainer
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.testing.*
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
@@ -28,6 +32,7 @@ import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
 import tech.hanasaki.azusa.common.kernel.event.StreamListener
 import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.common.kernel.port.OutboxProvider
+import tech.hanasaki.azusa.common.platform.api.ApiResponse
 import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
 import tech.hanasaki.azusa.common.platform.event.listener.RedisStreamListener
 import tech.hanasaki.azusa.common.platform.event.listener.StreamConfig
@@ -36,6 +41,8 @@ import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
 import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPollerConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutboxEventRepository
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
+import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordRequest
+import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordResponse
 import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
 import tech.hanasaki.azusa.modules.auth.domain.model.User
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
@@ -217,4 +224,15 @@ abstract class BaseIntegrationTest {
         }
         userRepository.save(user)
     }
+
+    protected suspend fun ClientProvider.getSignInInfo(): SignInWithPasswordResponse? =
+        client.post("/auth/sign-in/email") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                SignInWithPasswordRequest(
+                    email = "test-user@example.com",
+                    password = "password123"
+                )
+            )
+        }.body<ApiResponse<SignInWithPasswordResponse>>().data
 }
