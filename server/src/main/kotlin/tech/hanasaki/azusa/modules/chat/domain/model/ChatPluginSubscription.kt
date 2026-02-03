@@ -59,6 +59,23 @@ data class ChatPluginSubscription(
     }
 
     /**
+     * 获取或创建插件订阅
+     */
+    fun getOrCreate(
+        chatId: ChatId,
+        pluginId: PluginId,
+    ): ChatPluginSubscription {
+        return ChatPluginSubscription(
+            id = ChatPluginSubscriptionId(java.util.UUID.randomUUID()),
+            chatId = chatId,
+            pluginId = pluginId,
+            enabled = true,
+            config = JsonObject(emptyMap()),
+            createdAt = Clock.System.now(),
+        )
+    }
+
+    /**
      * 启用插件
      */
     fun enable() {

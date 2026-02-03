@@ -66,6 +66,23 @@ data class ChatConfig(
     }
 
     /**
+     * 获取或创建聊天配置
+     */
+    fun getOrCreate(chatId: ChatId): ChatConfig {
+        val now = Clock.System.now()
+        return ChatConfig(
+            id = ChatConfigId(java.util.UUID.randomUUID()),
+            chatId = chatId,
+            temperature = null,
+            maxTokens = null,
+            topP = null,
+            systemPrompt = null,
+            createdAt = now,
+            updatedAt = now,
+        )
+    }
+
+    /**
      * 更新 LLM 参数
      */
     fun updateLLMParams(

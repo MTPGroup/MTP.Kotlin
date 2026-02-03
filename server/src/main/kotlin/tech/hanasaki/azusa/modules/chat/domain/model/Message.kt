@@ -85,3 +85,22 @@ data class Message(
      */
     fun isTextOnly(): Boolean = content.all { it is MessageContent.Text }
 }
+
+/**
+ * 用于从持久化层重建的工厂方法
+ */
+fun Message.Companion.reconstitute(
+    id: MessageId,
+    chatId: ChatId,
+    senderType: SenderType,
+    content: List<MessageContent>,
+    metadata: JsonObject?,
+    createdAt: Instant,
+): Message = Message(
+    id = id,
+    chatId = chatId,
+    senderType = senderType,
+    content = content,
+    metadata = metadata,
+    createdAt = createdAt,
+)
