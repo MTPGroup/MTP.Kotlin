@@ -6,13 +6,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.platform.api.respondOk
 import tech.hanasaki.azusa.common.kernel.model.CharacterId
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.platform.api.parseLimitParam
-import tech.hanasaki.azusa.common.platform.api.parsePageParam
-import tech.hanasaki.azusa.common.platform.api.requireUserId
-import tech.hanasaki.azusa.common.platform.api.uuidParam
+import tech.hanasaki.azusa.common.platform.api.*
 import tech.hanasaki.azusa.modules.character.api.dto.CreateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.SubscribeKnowledgeBaseRequest
 import tech.hanasaki.azusa.modules.character.api.dto.UpdateCharacterRequest
@@ -63,6 +59,7 @@ fun Route.characterRoutes() {
                 val userId = call.requireUserId()
                 val request = call.receive<CreateCharacterRequest>()
                 val character = characterService.createCharacter(userId, request.toCommand())
+                call.response.status(HttpStatusCode.Created)
                 call.respondOk(character.toResponse(), "Character created")
             }
 
