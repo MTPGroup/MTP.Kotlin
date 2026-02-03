@@ -4,9 +4,10 @@ import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * 知识文档实体（向量化后的分块）
@@ -34,7 +35,7 @@ data class KnowledgeDocument(
         ): KnowledgeDocument {
             val now = Clock.System.now()
             return KnowledgeDocument(
-                id = KnowledgeDocumentId(UUID.randomUUID()),
+                id = KnowledgeDocumentId(Uuid.random()),
                 knowledgeBaseId = knowledgeBaseId,
                 fileId = fileId,
                 content = content,

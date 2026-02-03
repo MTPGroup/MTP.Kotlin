@@ -2,15 +2,17 @@ package tech.hanasaki.azusa.modules.notification.domain.model
 
 import kotlinx.serialization.Contextual
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * 通知日志 ID
  */
+
 @JvmInline
-value class NotificationLogId(@Contextual val value: UUID)
+value class NotificationLogId(@Contextual val value: Uuid)
 
 /**
  * 通知状态
@@ -50,7 +52,7 @@ data class NotificationLog(
             content: String,
             templateId: NotificationTemplateId? = null,
         ): NotificationLog = NotificationLog(
-            id = NotificationLogId(UUID.randomUUID()),
+            id = NotificationLogId(Uuid.random()),
             userId = userId,
             channel = channel,
             recipient = recipient,

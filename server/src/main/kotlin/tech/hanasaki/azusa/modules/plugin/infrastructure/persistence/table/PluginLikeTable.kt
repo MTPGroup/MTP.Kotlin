@@ -5,6 +5,8 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.datetime
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object PluginLikeTable : Table("plugin_likes") {
     val userId = uuid("user_id")

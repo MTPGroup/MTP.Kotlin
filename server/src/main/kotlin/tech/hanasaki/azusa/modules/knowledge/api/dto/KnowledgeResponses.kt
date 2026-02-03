@@ -9,14 +9,16 @@ import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
 import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
 import tech.hanasaki.azusa.common.kernel.model.PageResult
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class KnowledgeBaseResponse(
-    @Contextual val id: UUID,
+    @Contextual val id: Uuid,
     val name: String,
     val description: String?,
-    @Contextual val authorId: UUID,
+    @Contextual val authorId: Uuid,
     val isPublic: Boolean,
     val createdAt: String,
     val updatedAt: String,
@@ -35,8 +37,8 @@ data class PagedKnowledgeBaseResponse(
 
 @Serializable
 data class KnowledgeFileResponse(
-    @Contextual val id: UUID,
-    @Contextual val knowledgeBaseId: UUID,
+    @Contextual val id: Uuid,
+    @Contextual val knowledgeBaseId: Uuid,
     val fileName: String,
     val fileSize: Long?,
     val fileType: String?,
@@ -48,15 +50,15 @@ data class KnowledgeFileResponse(
 
 @Serializable
 data class KnowledgeBaseStatsResponse(
-    @Contextual val knowledgeBaseId: UUID,
+    @Contextual val knowledgeBaseId: Uuid,
     val fileCount: Int,
     val documentCount: Long,
 )
 
 @Serializable
 data class SearchResultResponse(
-    @Contextual val documentId: UUID,
-    @Contextual val knowledgeBaseId: UUID,
+    @Contextual val documentId: Uuid,
+    @Contextual val knowledgeBaseId: Uuid,
     val content: String,
     val metadata: JsonObject,
     val similarity: Float,

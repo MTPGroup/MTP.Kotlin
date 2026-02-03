@@ -2,8 +2,9 @@ package tech.hanasaki.azusa.modules.auth.api.dto
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import java.util.*
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 data class SignUpResponse(
@@ -49,9 +50,10 @@ data class ChangePasswordResponse(
     val success: Boolean,
 )
 
+
 @Serializable
 data class UserProfile(
-    @Contextual val id: UUID,
+    @Contextual val id: Uuid,
     val email: String,
     val name: String,
     val avatar: String?,

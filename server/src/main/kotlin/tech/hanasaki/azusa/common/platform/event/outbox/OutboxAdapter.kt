@@ -8,8 +8,10 @@ import tech.hanasaki.azusa.common.kernel.port.OutboxProvider
 import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEvent
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import tech.hanasaki.azusa.common.platform.util.AppJson
-import java.util.*
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 class OutboxAdapter(
     private val outboxEventRepository: OutboxEventRepository,
@@ -21,7 +23,7 @@ class OutboxAdapter(
         val eventType = serializer.descriptor.serialName
 
         val outboxEvent = OutboxEvent(
-            id = UUID.randomUUID(),
+            id = Uuid.random(),
             eventType = eventType,
             payload = AppJson.json.encodeToJsonElement(serializer, event),
             createdAt = Clock.System.now(),

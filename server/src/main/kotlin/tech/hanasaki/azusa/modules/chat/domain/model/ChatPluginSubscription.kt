@@ -5,6 +5,8 @@ import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
 import tech.hanasaki.azusa.common.kernel.model.PluginId
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * ChatPluginSubscription 实体 - 表示对话级别的插件订阅
@@ -29,7 +31,7 @@ data class ChatPluginSubscription(
         ): ChatPluginSubscription {
             val now = Clock.System.now()
             return ChatPluginSubscription(
-                id = ChatPluginSubscriptionId(java.util.UUID.randomUUID()),
+                id = ChatPluginSubscriptionId(Uuid.random()),
                 chatId = chatId,
                 pluginId = pluginId,
                 enabled = enabled,
@@ -66,7 +68,7 @@ data class ChatPluginSubscription(
         pluginId: PluginId,
     ): ChatPluginSubscription {
         return ChatPluginSubscription(
-            id = ChatPluginSubscriptionId(java.util.UUID.randomUUID()),
+            id = ChatPluginSubscriptionId(Uuid.random()),
             chatId = chatId,
             pluginId = pluginId,
             enabled = true,

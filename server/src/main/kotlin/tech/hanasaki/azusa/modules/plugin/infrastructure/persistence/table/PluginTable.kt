@@ -7,6 +7,8 @@ import org.jetbrains.exposed.v1.json.jsonb
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSchema
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object PluginTable : Table("plugins") {
     val id = uuid("id")

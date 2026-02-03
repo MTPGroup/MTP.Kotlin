@@ -6,9 +6,10 @@ import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploadedEvent
 import tech.hanasaki.azusa.common.kernel.event.DomainEvent
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * 知识文件实体
@@ -49,7 +50,7 @@ data class KnowledgeFile(
         ): KnowledgeFile {
             val now = Clock.System.now()
             val file = KnowledgeFile(
-                id = KnowledgeFileId(UUID.randomUUID()),
+                id = KnowledgeFileId(Uuid.random()),
                 knowledgeBaseId = knowledgeBaseId,
                 filePath = filePath,
                 fileName = fileName,

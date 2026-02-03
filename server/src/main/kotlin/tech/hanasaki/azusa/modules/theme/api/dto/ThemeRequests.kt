@@ -6,7 +6,8 @@ import tech.hanasaki.azusa.modules.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.modules.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
 import tech.hanasaki.azusa.common.kernel.model.ThemeId
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 data class ThemeDefinitionRequest(
@@ -21,9 +22,10 @@ data class ThemeDefinitionRequest(
     )
 }
 
+
 @Serializable
 data class CreateThemeRequest(
-    @Contextual val id: UUID? = null,
+    @Contextual val id: Uuid? = null,
     val name: String,
     val description: String?,
     val previewUrl: String?,

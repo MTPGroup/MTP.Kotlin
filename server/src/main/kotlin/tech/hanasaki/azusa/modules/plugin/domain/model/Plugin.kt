@@ -6,9 +6,10 @@ import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginApprovedEvent
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginCreatedEvent
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginRejectedEvent
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * 插件聚合根
@@ -41,7 +42,7 @@ class Plugin private constructor(
         ): Plugin {
             val now = Clock.System.now()
             val plugin = Plugin(
-                id = PluginId(UUID.randomUUID()),
+                id = PluginId(Uuid.random()),
                 name = name,
                 description = description,
                 version = version,

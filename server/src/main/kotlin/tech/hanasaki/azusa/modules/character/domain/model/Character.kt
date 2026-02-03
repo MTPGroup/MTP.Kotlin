@@ -7,9 +7,10 @@ import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreatedEvent
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeletedEvent
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdatedEvent
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 data class Character(
     val id: CharacterId,
@@ -37,7 +38,7 @@ data class Character(
         ): Character {
             val now = Clock.System.now()
             val character = Character(
-                id = CharacterId(UUID.randomUUID()),
+                id = CharacterId(Uuid.random()),
                 authorId = authorId,
                 name = name,
                 avatar = avatar,

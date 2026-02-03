@@ -1,7 +1,8 @@
 plugins {
     kotlin("jvm")
     application
-    alias(libs.plugins.kotlinSerialization)
+    alias(serverLibs.plugins.kotlinSerialization)
+    alias(serverLibs.plugins.ktor)
 }
 
 group = "tech.hanasaki"
@@ -9,6 +10,20 @@ version = "0.0.1"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
+}
+
+//ktor {
+//    openApi {
+//        enabled = true
+//        codeInferenceEnabled = true
+//        onlyCommented = false
+//    }
+//}
+
+kotlin {
+    compilerOptions {
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+    }
 }
 
 dependencies {

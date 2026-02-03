@@ -6,13 +6,15 @@ import tech.hanasaki.azusa.common.kernel.exception.DomainException
 import tech.hanasaki.azusa.common.kernel.model.LLMConfig
 import tech.hanasaki.azusa.common.kernel.model.ThemeId
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @JvmInline
 @Serializable
-value class LLMConfigId(@Contextual val value: UUID)
+value class LLMConfigId(@Contextual val value: Uuid)
 
 @Serializable
 enum class AppTheme {

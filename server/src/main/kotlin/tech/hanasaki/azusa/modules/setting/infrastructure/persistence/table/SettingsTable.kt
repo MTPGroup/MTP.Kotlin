@@ -2,6 +2,8 @@ package tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table
 
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object SettingsTable : Table("settings") {
     val id = uuid("uid")

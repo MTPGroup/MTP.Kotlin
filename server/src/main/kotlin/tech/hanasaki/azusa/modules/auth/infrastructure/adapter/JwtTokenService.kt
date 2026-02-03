@@ -9,8 +9,11 @@ import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenPair
 import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
-import java.util.*
+import java.util.Date
 import kotlin.time.toKotlinInstant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 class JwtTokenService(
     private val config: JwtConfig,
@@ -42,7 +45,7 @@ class JwtTokenService(
             .withIssuer(config.issuer)
             .withAudience(config.audience)
             .withSubject(userId.value.toString())
-            .withJWTId(UUID.randomUUID().toString())
+            .withJWTId(Uuid.random().toString())
             .withIssuedAt(Date(now))
             .withExpiresAt(refreshExpiresAt)
             .sign(algorithm)
@@ -66,7 +69,7 @@ class JwtTokenService(
             val decodedJWT = verifier.verify(refreshToken)
             val userIdString = decodedJWT.subject
                 ?: throw AuthenticationException("Refresh token is missing subject (userId)")
-            return UserId(UUID.fromString(userIdString))
+            return UserId(Uuid.parse(userIdString))
         } catch (_: JWTVerificationException) {
             throw AuthenticationException("Invalid or expired refresh token")
         } catch (_: IllegalArgumentException) {

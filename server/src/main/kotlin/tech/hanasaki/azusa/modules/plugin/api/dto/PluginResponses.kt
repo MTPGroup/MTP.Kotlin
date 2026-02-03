@@ -6,16 +6,18 @@ import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 
 import tech.hanasaki.azusa.common.kernel.model.PageResult
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class PluginResponse(
-    @Contextual val id: UUID,
+    @Contextual val id: Uuid,
     val name: String,
     val description: String,
     val version: String,
     val schema: PluginSchemaResponse,
-    @Contextual val authorId: UUID,
+    @Contextual val authorId: Uuid,
     val status: String,
     val likeCount: Int,
     val createdAt: String,
@@ -24,13 +26,13 @@ data class PluginResponse(
 
 @Serializable
 data class PluginDetailResponse(
-    @Contextual val id: UUID,
+    @Contextual val id: Uuid,
     val name: String,
     val description: String,
     val version: String,
     val schema: PluginSchemaResponse,
     val code: String,
-    @Contextual val authorId: UUID,
+    @Contextual val authorId: Uuid,
     val status: String,
     val likeCount: Int,
     val createdAt: String,

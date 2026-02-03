@@ -8,8 +8,9 @@ import tech.hanasaki.azusa.modules.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.modules.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme
 import tech.hanasaki.azusa.modules.theme.domain.repository.ThemeRepository
-import java.util.*
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class ThemeService(
     private val themeRepository: ThemeRepository,
@@ -30,7 +31,7 @@ class ThemeService(
     suspend fun createTheme(authorId: UserId, cmd: CreateThemeCommand): Theme {
         val now = Clock.System.now()
         val theme = Theme(
-            id = cmd.id ?: ThemeId(UUID.randomUUID()),
+            id = cmd.id ?: ThemeId(Uuid.random()),
             authorId = authorId,
             name = cmd.name,
             description = cmd.description,

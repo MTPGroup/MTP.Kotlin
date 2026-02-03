@@ -3,6 +3,8 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import tech.hanasaki.azusa.modules.auth.domain.model.UserStatus
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object UserTable : Table("users") {
     val id = uuid("id")

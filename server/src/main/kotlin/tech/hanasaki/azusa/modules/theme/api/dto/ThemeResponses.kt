@@ -4,7 +4,8 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 data class ThemeDefinitionResponse(
@@ -13,10 +14,11 @@ data class ThemeDefinitionResponse(
     val roundness: Int = 4,
 )
 
+
 @Serializable
 data class ThemeResponse(
-    @Contextual val id: UUID,
-    @Contextual val authorId: UUID,
+    @Contextual val id: Uuid,
+    @Contextual val authorId: Uuid,
     val name: String,
     val description: String?,
     val previewUrl: String?,

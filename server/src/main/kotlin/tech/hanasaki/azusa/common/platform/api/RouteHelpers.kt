@@ -6,8 +6,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import java.util.*
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 
 fun ApplicationCall.requireUserId(): UserId {
@@ -16,17 +16,18 @@ fun ApplicationCall.requireUserId(): UserId {
         "UNAUTHORIZED",
         "Missing authentication"
     )
-    return principal.subject?.let { runCatching { UserId(UUID.fromString(it)) }.getOrNull() }
+    return principal.subject?.let { runCatching { UserId(Uuid.parse(it)) }.getOrNull() }
         ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
 }
 
-fun ApplicationCall.uuidParam(name: String): UUID {
+
+fun ApplicationCall.uuidParam(name: String): Uuid {
     val value = parameters[name] ?: throw ApiException(
         HttpStatusCode.BadRequest,
         "VALIDATION_ERROR",
         "Missing parameter: $name",
     )
-    return runCatching { UUID.fromString(value) }.getOrElse {
+    return runCatching { Uuid.parse(value) }.getOrElse {
         throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Invalid UUID: $name")
     }
 }
@@ -58,8 +59,9 @@ fun parseLimitParam(value: String?): Int {
     return limit
 }
 
-fun parseUuid(value: String, name: String): UUID {
-    return runCatching { UUID.fromString(value) }.getOrElse {
+
+fun parseUuid(value: String, name: String): Uuid {
+    return runCatching { Uuid.parse(value) }.getOrElse {
         throw ApiException(HttpStatusCode.BadRequest, "VALIDATION_ERROR", "Invalid UUID: $name")
     }
 }

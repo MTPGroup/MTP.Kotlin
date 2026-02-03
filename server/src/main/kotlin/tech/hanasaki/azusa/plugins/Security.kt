@@ -11,8 +11,10 @@ import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.common.platform.api.ApiResponse
 import tech.hanasaki.azusa.common.platform.api.ErrorDetail
 import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
-import java.util.*
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 fun Application.configureSecurity() {
     val jwtConfig: JwtConfig by inject()
@@ -46,7 +48,7 @@ fun Application.configureSecurity() {
             }
             validate { credential ->
                 val subject = credential.subject ?: return@validate null
-                runCatching { UUID.fromString(subject) }.getOrNull() ?: return@validate null
+                runCatching { Uuid.parse(subject) }.getOrNull() ?: return@validate null
                 JWTPrincipal(credential.payload)
             }
         }

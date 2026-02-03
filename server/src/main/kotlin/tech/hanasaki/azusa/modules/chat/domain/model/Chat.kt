@@ -6,6 +6,8 @@ import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreatedEvent
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Chat 聚合根 - 表示聊天会话（支持单聊和群聊）
@@ -31,7 +33,7 @@ data class Chat(
         ): Chat {
             val now = Clock.System.now()
             val chat = Chat(
-                id = ChatId(java.util.UUID.randomUUID()),
+                id = ChatId(Uuid.random()),
                 ownerId = ownerId,
                 name = name,
                 lastMessage = null,
@@ -41,7 +43,7 @@ data class Chat(
             )
             chat.addMember(
                 ChatMember(
-                    id = ChatMemberId(java.util.UUID.randomUUID()),
+                    id = ChatMemberId(Uuid.random()),
                     chatId = chat.id,
                     memberType = MemberType.USER,
                     profileId = ownerId,
@@ -53,7 +55,7 @@ data class Chat(
             )
             chat.addMember(
                 ChatMember(
-                    id = ChatMemberId(java.util.UUID.randomUUID()),
+                    id = ChatMemberId(Uuid.random()),
                     chatId = chat.id,
                     memberType = MemberType.CHARACTER,
                     profileId = null,

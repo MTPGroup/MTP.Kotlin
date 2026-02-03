@@ -8,11 +8,13 @@ import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.common.kernel.model.LLMConfig
 import tech.hanasaki.azusa.common.kernel.model.ThemeId
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class CreateLLMConfigRequest(
-    @Contextual val id: UUID? = null,
+    @Contextual val id: Uuid? = null,
     val provider: LLMProvider,
     val baseUrl: String,
     val apiKey: String,
@@ -22,7 +24,7 @@ data class CreateLLMConfigRequest(
     val runOnClient: Boolean = false,
 ) {
     fun toDomain(): LLMConfig = LLMConfig(
-        id = LLMConfigId(id ?: UUID.randomUUID()),
+        id = LLMConfigId(id ?: Uuid.random()),
         provider = provider,
         baseUrl = baseUrl,
         apiKey = apiKey,
@@ -43,7 +45,7 @@ data class UpdateLLMConfigRequest(
     val maxTokens: Int? = null,
     val runOnClient: Boolean = false,
 ) {
-    fun toDomain(configId: UUID): LLMConfig = LLMConfig(
+    fun toDomain(configId: Uuid): LLMConfig = LLMConfig(
         id = LLMConfigId(configId),
         provider = provider,
         baseUrl = baseUrl,
@@ -59,8 +61,8 @@ data class UpdateLLMConfigRequest(
 data class UpdateSettingRequest(
     val theme: AppTheme,
     val llmConfigs: Set<CreateLLMConfigRequest>,
-    @Contextual val activeThemeId: UUID?,
-    @Contextual val activeLlmConfigId: UUID?,
+    @Contextual val activeThemeId: Uuid?,
+    @Contextual val activeLlmConfigId: Uuid?,
 ) {
     fun toCommand(): UpdateSettingCommand = UpdateSettingCommand(
         theme = theme,

@@ -5,13 +5,15 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.common.kernel.event.DomainEvent
 import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * OTP 生成事件 - 跨模块集成事件
  */
+
 @Serializable
 data class OtpGeneratedEvent(
     val email: Email,
@@ -19,6 +21,6 @@ data class OtpGeneratedEvent(
     val otpType: OtpType,
     val expiresAt: Instant,
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent

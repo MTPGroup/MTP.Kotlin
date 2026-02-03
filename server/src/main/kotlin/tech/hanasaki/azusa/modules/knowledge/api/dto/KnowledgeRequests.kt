@@ -4,7 +4,8 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.knowledge.application.command.CreateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.application.command.UpdateKnowledgeBaseCommand
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 data class CreateKnowledgeBaseRequest(
@@ -40,10 +41,11 @@ data class UploadFileRequest(
     val fileType: String?,
 )
 
+
 @Serializable
 data class SearchKnowledgeRequest(
     val query: String,
-    val knowledgeBaseIds: List<@Contextual UUID>? = null,
+    val knowledgeBaseIds: List<@Contextual Uuid>? = null,
     val threshold: Float = 0.7f,
     val limit: Int = 10,
 )

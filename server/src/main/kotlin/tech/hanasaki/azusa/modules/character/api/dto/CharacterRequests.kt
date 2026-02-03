@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
 import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
 data class CreateCharacterRequest(
@@ -41,8 +42,9 @@ data class UpdateCharacterRequest(
     )
 }
 
+
 @Serializable
 data class SubscribeKnowledgeBaseRequest(
-    @Contextual val knowledgeBaseId: UUID,
+    @Contextual val knowledgeBaseId: Uuid,
     val priority: Int = 0,
 )

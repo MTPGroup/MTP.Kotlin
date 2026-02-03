@@ -2,11 +2,13 @@ package tech.hanasaki.azusa.modules.notification.infrastructure.persistence.tabl
 
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
+import kotlin.uuid.ExperimentalUuidApi
 
 
 /**
  * 通知日志表
  */
+
 object NotificationLogTable : Table("notification_logs") {
     val id = uuid("id")
     val userId = uuid("user_id").nullable()

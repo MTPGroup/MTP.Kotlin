@@ -2,11 +2,13 @@ package tech.hanasaki.azusa.modules.notification.infrastructure.persistence.tabl
 
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
+import kotlin.uuid.ExperimentalUuidApi
 
 
 /**
  * 通知模板表
  */
+
 object NotificationTemplateTable : Table("notification_templates") {
     val id = uuid("id")
     val type = varchar("type", 50)

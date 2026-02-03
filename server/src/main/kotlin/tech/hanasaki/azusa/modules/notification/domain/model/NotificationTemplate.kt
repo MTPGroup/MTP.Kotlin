@@ -1,15 +1,17 @@
 package tech.hanasaki.azusa.modules.notification.domain.model
 
 import kotlinx.serialization.Contextual
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * 通知模板 ID
  */
+
 @JvmInline
-value class NotificationTemplateId(@Contextual val value: UUID)
+value class NotificationTemplateId(@Contextual val value: Uuid)
 
 /**
  * 通知模板类型
@@ -49,7 +51,7 @@ data class NotificationTemplate(
         ): NotificationTemplate {
             val now = Clock.System.now()
             return NotificationTemplate(
-                id = NotificationTemplateId(UUID.randomUUID()),
+                id = NotificationTemplateId(Uuid.random()),
                 type = type,
                 channel = channel,
                 name = name,

@@ -3,6 +3,8 @@ package tech.hanasaki.azusa.modules.chat.domain.model
 import kotlinx.serialization.json.JsonObject
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Message 实体 - 表示聊天中的一条消息
@@ -26,7 +28,7 @@ data class Message(
             metadata: JsonObject? = null,
         ): Message {
             return Message(
-                id = MessageId(java.util.UUID.randomUUID()),
+                id = MessageId(Uuid.random()),
                 chatId = chatId,
                 senderType = senderType,
                 content = content,

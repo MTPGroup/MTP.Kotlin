@@ -9,13 +9,14 @@ import tech.hanasaki.azusa.common.platform.event.listener.StreamConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEvent
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
 import tech.hanasaki.azusa.common.platform.util.AppJson
-import java.util.*
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Outbox 事件轮询器
  */
-@OptIn(ExperimentalLettuceCoroutinesApi::class)
+@OptIn(ExperimentalLettuceCoroutinesApi::class, ExperimentalUuidApi::class)
 class OutboxPoller(
     private val outboxRepository: OutboxEventRepository,
     private val outboxConfig: OutboxPollerConfig,
@@ -101,8 +102,8 @@ class OutboxPoller(
 
                 logger.debug("Found ${unpublishedEvents.size} unpublished events")
                 val now = Clock.System.now()
-                val publishedIds = mutableListOf<UUID>()
-                val failedIds = mutableListOf<UUID>()
+                val publishedIds = mutableListOf<Uuid>()
+                val failedIds = mutableListOf<Uuid>()
 
                 unpublishedEvents.forEach { event ->
                     try {

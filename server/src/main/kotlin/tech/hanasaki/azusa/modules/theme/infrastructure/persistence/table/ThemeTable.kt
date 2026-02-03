@@ -8,8 +8,10 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.datetime
 import org.jetbrains.exposed.v1.json.jsonb
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
+import kotlin.uuid.ExperimentalUuidApi
 
 val themeJsonFormat = Json { prettyPrint = true }
+
 
 object ThemeTable : Table("themes") {
     val id = uuid("id")

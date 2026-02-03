@@ -4,15 +4,16 @@ import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.ScriptOutputType
 import io.lettuce.core.SetArgs
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalLettuceCoroutinesApi::class)
+@OptIn(ExperimentalLettuceCoroutinesApi::class, ExperimentalUuidApi::class)
 class LettuceDistLock(
     private val redis: RedisCoroutinesCommands<String, String>,
     private val lockKey: String,
     private val lockTimeoutMs: Long = 5000,
 ) {
-    private val lockValue = UUID.randomUUID().toString()
+    private val lockValue = Uuid.random().toString()
 
     suspend fun tryLock(): Boolean {
         val args = SetArgs().nx().px(lockTimeoutMs)

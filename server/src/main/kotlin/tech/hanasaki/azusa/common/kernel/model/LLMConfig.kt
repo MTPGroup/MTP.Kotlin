@@ -2,10 +2,12 @@ package tech.hanasaki.azusa.common.kernel.model
 
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 data class LLMConfig(
-    val id: LLMConfigId = LLMConfigId(UUID.randomUUID()),
+    val id: LLMConfigId = LLMConfigId(Uuid.random()),
     val provider: LLMProvider,
     val baseUrl: String,
     val apiKey: String,

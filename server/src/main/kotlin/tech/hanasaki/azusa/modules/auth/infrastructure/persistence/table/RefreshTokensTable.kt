@@ -3,6 +3,8 @@ package tech.hanasaki.azusa.modules.auth.infrastructure.persistence.table
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object RefreshTokensTable : Table("refresh_tokens") {
     val id = uuid("id")

@@ -2,6 +2,8 @@ package tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table
 
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.Table
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object LlmConfigsTable : Table("llm_configs") {
     val id = uuid("id")

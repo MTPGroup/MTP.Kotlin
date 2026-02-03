@@ -3,6 +3,8 @@ package tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+
 
 object ChatMemberTable : Table("chat_members") {
     val id = uuid("id")

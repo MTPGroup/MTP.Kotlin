@@ -3,6 +3,8 @@ package tech.hanasaki.azusa.modules.chat.domain.model
 import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * ChatConfig 实体 - 表示聊天配置（LLM 参数等）
@@ -30,7 +32,7 @@ data class ChatConfig(
         ): ChatConfig {
             val now = Clock.System.now()
             return ChatConfig(
-                id = ChatConfigId(java.util.UUID.randomUUID()),
+                id = ChatConfigId(Uuid.random()),
                 chatId = chatId,
                 temperature = temperature,
                 maxTokens = maxTokens,
@@ -71,7 +73,7 @@ data class ChatConfig(
     fun getOrCreate(chatId: ChatId): ChatConfig {
         val now = Clock.System.now()
         return ChatConfig(
-            id = ChatConfigId(java.util.UUID.randomUUID()),
+            id = ChatConfigId(Uuid.random()),
             chatId = chatId,
             temperature = null,
             maxTokens = null,

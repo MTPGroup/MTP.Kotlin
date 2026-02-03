@@ -3,9 +3,10 @@ package tech.hanasaki.azusa.modules.auth.domain.model
 import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
 import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 enum class OtpType(val value: String) {
     VERIFY_EMAIL("verify_email"),
@@ -18,8 +19,9 @@ enum class OtpType(val value: String) {
     }
 }
 
+
 class Otp(
-    val id: UUID = UUID.randomUUID(),
+    val id: Uuid = Uuid.random(),
     val email: Email,
     val codeHash: String,
     val type: OtpType,

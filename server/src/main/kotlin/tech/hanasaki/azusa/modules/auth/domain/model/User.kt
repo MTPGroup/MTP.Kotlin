@@ -7,9 +7,10 @@ import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerifiedEvent
 import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
 @JvmInline
@@ -40,7 +41,8 @@ class User(
             username: Username,
             avatar: AvatarUrl? = null,
         ): User {
-            val id = UserId(UUID.randomUUID())
+
+            val id = UserId(Uuid.random())
             val now = Clock.System.now()
             val user = User(
                 id = id,

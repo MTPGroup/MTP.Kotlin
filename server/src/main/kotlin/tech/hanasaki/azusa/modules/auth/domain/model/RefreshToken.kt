@@ -1,12 +1,14 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 data class RefreshToken(
-    val id: UUID = UUID.randomUUID(),
+    val id: Uuid = Uuid.random(),
     val userId: UserId,
     val tokenHash: String,
     val expiresAt: Instant,

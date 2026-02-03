@@ -8,7 +8,8 @@ import tech.hanasaki.azusa.common.kernel.event.DomainEvent
 import tech.hanasaki.azusa.common.kernel.event.EventListener
 import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
 import tech.hanasaki.azusa.common.kernel.event.SubscriptionMode
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
 /**
@@ -19,6 +20,7 @@ import java.util.*
  * @param constructor 监听器的构造函数，例如 ::UserRegisteredListener
  * @param mode 订阅模式
  */
+
 inline fun <reified L : EventListener<E>, reified E : DomainEvent> Module.subscriber(
     crossinline constructor: Scope.() -> L,
     mode: SubscriptionMode = SubscriptionMode.ASYNCHRONOUS,
@@ -27,7 +29,7 @@ inline fun <reified L : EventListener<E>, reified E : DomainEvent> Module.subscr
         constructor()
     }
 
-    single(named("Subscriber_${L::class.simpleName}_${UUID.randomUUID()}"), createdAtStart = true) {
+    single(named("Subscriber_${L::class.simpleName}_${Uuid.random()}"), createdAtStart = true) {
         val listener = get<L>()
         val subscriber = get<EventSubscriber>()
         runBlocking {

@@ -5,9 +5,11 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.common.kernel.event.DomainEvent
 import tech.hanasaki.azusa.common.kernel.model.Email
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class UserRegisteredEvent(
@@ -15,7 +17,7 @@ data class UserRegisteredEvent(
     val email: Email,
     override val occurredAt: Instant = Clock.System.now(),
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
 ) : DomainEvent
 
 
@@ -25,5 +27,5 @@ data class EmailVerifiedEvent(
     val email: Email,
     override val occurredAt: Instant = Clock.System.now(),
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
 ) : DomainEvent

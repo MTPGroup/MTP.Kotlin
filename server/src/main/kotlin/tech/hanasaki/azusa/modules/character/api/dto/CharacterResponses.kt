@@ -5,12 +5,14 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.common.kernel.model.PageResult
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class CharacterResponse(
-    @Contextual val id: UUID,
-    @Contextual val authorId: UUID,
+    @Contextual val id: Uuid,
+    @Contextual val authorId: Uuid,
     val name: String,
     val avatar: String?,
     val bio: String?,
@@ -33,7 +35,7 @@ data class PagedCharacterResponse(
 
 @Serializable
 data class KnowledgeSubscriptionResponse(
-    @Contextual val knowledgeBaseId: UUID,
+    @Contextual val knowledgeBaseId: Uuid,
     val priority: Int,
 )
 

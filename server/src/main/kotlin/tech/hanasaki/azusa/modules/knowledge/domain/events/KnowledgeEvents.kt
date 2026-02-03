@@ -6,9 +6,11 @@ import tech.hanasaki.azusa.common.kernel.event.DomainEvent
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
 import tech.hanasaki.azusa.common.kernel.model.UserId
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class KnowledgeBaseCreatedEvent(
@@ -16,20 +18,22 @@ data class KnowledgeBaseCreatedEvent(
     val authorId: UserId,
     val name: String,
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
     @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
+
 
 @Serializable
 data class KnowledgeBaseDeletedEvent(
     val knowledgeBaseId: KnowledgeBaseId,
     val authorId: UserId,
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
     @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
+
 
 @Serializable
 data class FileUploadedEvent(
@@ -37,20 +41,22 @@ data class FileUploadedEvent(
     val knowledgeBaseId: KnowledgeBaseId,
     val fileName: String,
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
     @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
+
 
 @Serializable
 data class FileProcessedEvent(
     val fileId: KnowledgeFileId,
     val knowledgeBaseId: KnowledgeBaseId,
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
     @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent
+
 
 @Serializable
 data class FileProcessingFailedEvent(
@@ -58,7 +64,7 @@ data class FileProcessingFailedEvent(
     val knowledgeBaseId: KnowledgeBaseId,
     val errorMessage: String,
     @Contextual
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: Uuid = Uuid.random(),
     @Contextual
     override val occurredAt: Instant = Clock.System.now(),
 ) : DomainEvent

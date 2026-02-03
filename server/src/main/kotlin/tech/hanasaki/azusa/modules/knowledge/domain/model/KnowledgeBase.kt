@@ -5,9 +5,10 @@ import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
 import tech.hanasaki.azusa.common.kernel.model.UserId
 import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseCreatedEvent
 import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeletedEvent
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * 知识库聚合根
@@ -34,7 +35,7 @@ data class KnowledgeBase(
         ): KnowledgeBase {
             val now = Clock.System.now()
             val knowledgeBase = KnowledgeBase(
-                id = KnowledgeBaseId(UUID.randomUUID()),
+                id = KnowledgeBaseId(Uuid.random()),
                 name = name,
                 description = description,
                 authorId = authorId,

@@ -9,11 +9,13 @@ import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
 import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
 import tech.hanasaki.azusa.common.platform.database.dbQuery
 import java.sql.Connection
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * PostgreSQL pgvector 实现的向量存储
  */
+
 class PgVectorStore : VectorStore {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -54,8 +56,8 @@ class PgVectorStore : VectorStore {
                 while (rs.next()) {
                     results.add(
                         SearchResult(
-                            documentId = KnowledgeDocumentId(UUID.fromString(rs.getString("id"))),
-                            knowledgeBaseId = KnowledgeBaseId(UUID.fromString(rs.getString("knowledge_base_id"))),
+                            documentId = KnowledgeDocumentId(Uuid.parse(rs.getString("id"))),
+                            knowledgeBaseId = KnowledgeBaseId(Uuid.parse(rs.getString("knowledge_base_id"))),
                             content = rs.getString("content"),
                             metadata = json.decodeFromString(JsonObject.serializer(), rs.getString("metadata")),
                             similarity = rs.getFloat("similarity"),

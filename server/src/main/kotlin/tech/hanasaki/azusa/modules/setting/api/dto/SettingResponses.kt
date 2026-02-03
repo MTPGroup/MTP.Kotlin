@@ -6,11 +6,13 @@ import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.common.kernel.model.LLMConfig
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 @Serializable
 data class LLMConfigResponse(
-    @Contextual val id: UUID,
+    @Contextual val id: Uuid,
     val provider: LLMProvider,
     val baseUrl: String,
     val apiKey: String,
@@ -22,11 +24,11 @@ data class LLMConfigResponse(
 
 @Serializable
 data class SettingResponse(
-    @Contextual val uid: UUID,
+    @Contextual val uid: Uuid,
     val theme: AppTheme,
     val llmConfigs: Set<LLMConfigResponse>,
-    @Contextual val activeThemeId: UUID?,
-    @Contextual val activeLlmConfigId: UUID?,
+    @Contextual val activeThemeId: Uuid?,
+    @Contextual val activeLlmConfigId: Uuid?,
     val createdAt: String,
     val updatedAt: String,
 )

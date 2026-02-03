@@ -16,7 +16,9 @@ import tech.hanasaki.azusa.modules.theme.api.dto.CreateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.UpdateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.toResponse
 import tech.hanasaki.azusa.modules.theme.application.service.ThemeService
-import java.util.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
 
 fun Route.themeRoutes() {
     val themeService: ThemeService by inject()
@@ -66,7 +68,7 @@ private fun ApplicationCall.requireUserId(): UserId {
         "UNAUTHORIZED",
         "Missing authentication"
     )
-    val userId = principal.subject?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+    val userId = principal.subject?.let { runCatching { Uuid.parse(it) }.getOrNull() }
         ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
     return UserId(userId)
 }

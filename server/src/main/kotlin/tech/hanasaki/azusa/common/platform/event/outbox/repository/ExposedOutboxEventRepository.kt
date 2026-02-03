@@ -9,12 +9,14 @@ import tech.hanasaki.azusa.common.platform.database.dbQuery
 import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEvent
 import tech.hanasaki.azusa.common.platform.event.outbox.model.OutboxEventStatus
 import tech.hanasaki.azusa.common.platform.event.outbox.persistence.OutboxEventTable
-import java.util.*
 import kotlin.time.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Exposed 实现的 Outbox 事件仓储
  */
+
 class ExposedOutboxEventRepository : OutboxEventRepository {
 
     override suspend fun save(event: OutboxEvent): Unit = dbQuery {
@@ -58,21 +60,21 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
             }
     }
 
-    override suspend fun markAsPublished(eventId: UUID, publishedAt: Instant): Unit = dbQuery {
+    override suspend fun markAsPublished(eventId: Uuid, publishedAt: Instant): Unit = dbQuery {
         OutboxEventTable.update({ OutboxEventTable.id eq eventId }) {
             it[status] = OutboxEventStatus.SENT
             it[sentAt] = publishedAt
         }
     }
 
-    override suspend fun markAsFailed(eventId: UUID) {
+    override suspend fun markAsFailed(eventId: Uuid) {
         OutboxEventTable.update({ OutboxEventTable.id eq eventId }) {
             it[status] = OutboxEventStatus.FAILED
             it[retryCount] = retryCount + 1
         }
     }
 
-    override suspend fun markAllAsPublished(eventIds: Collection<UUID>, publishedAt: Instant): Unit = dbQuery {
+    override suspend fun markAllAsPublished(eventIds: Collection<Uuid>, publishedAt: Instant): Unit = dbQuery {
         if (eventIds.isEmpty()) return@dbQuery
         OutboxEventTable.update({ OutboxEventTable.id inList eventIds }) {
             it[status] = OutboxEventStatus.SENT
@@ -80,7 +82,7 @@ class ExposedOutboxEventRepository : OutboxEventRepository {
         }
     }
 
-    override suspend fun markAllAsFailed(eventIds: Collection<UUID>) = dbQuery {
+    override suspend fun markAllAsFailed(eventIds: Collection<Uuid>) = dbQuery {
         if (eventIds.isEmpty()) return@dbQuery
         OutboxEventTable.update({ OutboxEventTable.id inList eventIds }) {
             it[status] = OutboxEventStatus.FAILED
