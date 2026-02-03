@@ -27,6 +27,7 @@ fun Route.authRoutes() {
 
             authService.register(request.toCommand())
 
+            call.response.status(HttpStatusCode.Created)
             call.respondOk(SignUpResponse(success = true))
         }
 

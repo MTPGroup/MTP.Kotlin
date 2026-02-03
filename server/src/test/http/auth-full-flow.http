@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:8080
-@email = user@example.co
+@email = user@example.com
 @password = password123
 @newPassword = newPassword123
 @name = Alice

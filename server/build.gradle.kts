@@ -35,5 +35,11 @@ dependencies {
     implementation(serverLibs.bundles.database)
     implementation(serverLibs.bundles.service)
 
+    testImplementation(platform(serverLibs.testcontainers.bom))
+    testImplementation(kotlin("test-junit5"))
     testImplementation(serverLibs.bundles.test)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

@@ -10,6 +10,7 @@ postgresql = "42.7.9"
 bcrypt = "0.10.2"
 angus-mail = "2.0.5"
 testcontainers = "2.0.3"
+testcontainers-redis = "2.2.4"
 aws-sdk = "2.41.20"
 lettuce = "7.2.1.RELEASE"
 
@@ -53,10 +54,11 @@ aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
 angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "angus-mail" }
 lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
 
-testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+testcontainers = { module = "org.testcontainers:testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
+testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "testcontainers-redis" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation" }
 
 [bundles]
 koin = [
@@ -107,12 +109,12 @@ service = [
 ]
 
 test = [
-    "kotlin-test",
     "koin-test",
     "ktor-server-test-host",
     "ktor-client-content-negotiation",
     "testcontainers",
     "testcontainers-postgresql",
+    "testcontainers-redis",
 ]
 
 [plugins]
