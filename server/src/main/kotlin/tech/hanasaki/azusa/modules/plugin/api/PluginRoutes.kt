@@ -8,7 +8,10 @@ import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.common.kernel.model.PluginId
 import tech.hanasaki.azusa.common.platform.api.*
-import tech.hanasaki.azusa.modules.plugin.api.dto.*
+import tech.hanasaki.azusa.modules.plugin.api.dto.CreatePluginRequest
+import tech.hanasaki.azusa.modules.plugin.api.dto.UpdatePluginRequest
+import tech.hanasaki.azusa.modules.plugin.api.dto.toDetailResponse
+import tech.hanasaki.azusa.modules.plugin.api.dto.toResponse
 import tech.hanasaki.azusa.modules.plugin.application.service.PluginService
 
 fun Route.pluginRoutes() {
@@ -65,7 +68,6 @@ fun Route.pluginRoutes() {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            // ===审核操作（管理员）===
             // TODO: 添加管理员权限检查
 
             // 审批通过
@@ -82,7 +84,6 @@ fun Route.pluginRoutes() {
                 call.respondOk(plugin.toResponse(), "Plugin rejected")
             }
 
-            // ===点赞管理===
             // 点赞
             post("/{pluginId}/like") {
                 val userId = call.requireUserId()
@@ -101,7 +102,6 @@ fun Route.pluginRoutes() {
         }
     }
 
-    // ==================== 用户相关端点 ====================
     authenticate("auth-jwt") {
         route("/me/plugins") {
             // 我创建的插件
@@ -115,7 +115,6 @@ fun Route.pluginRoutes() {
         }
     }
 
-    // ==================== 管理员端点 ====================
     authenticate("auth-jwt") {
         route("/admin/plugins") {
             // 待审核插件列表

@@ -8,7 +8,6 @@ import tech.hanasaki.azusa.common.kernel.model.ThemeId
 import tech.hanasaki.azusa.common.kernel.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 
@@ -72,7 +71,6 @@ data class Setting(
         val newConfigs = llmConfigs.filterNot { it.id == config.id } + config
         return copy(
             llmConfigs = newConfigs.toSet(),
-            activeLlmConfigId = if (newConfigs.size == 1) config.id else activeLlmConfigId,
             updatedAt = Clock.System.now(),
         )
     }
@@ -121,7 +119,7 @@ data class Setting(
     }
 
     private fun validateLlmConfig(config: LLMConfig) {
-        if (config.temperature in 0.0..2.0) {
+        if (config.temperature !in 0.0..2.0) {
             throw DomainException("Temperature must be between 0.0 and 2.0")
         }
         if (config.baseUrl.contains("localhost") || config.baseUrl.contains("127.0.0.1")) {
