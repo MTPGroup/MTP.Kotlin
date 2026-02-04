@@ -1,63 +1,33 @@
 package tech.hanasaki.azusa.modules.character.api
 
 import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
-import org.koin.ktor.plugin.Koin
+import org.koin.core.module.Module
 import tech.hanasaki.azusa.BaseIntegrationTest
 import tech.hanasaki.azusa.common.platform.api.ApiResponse
-import tech.hanasaki.azusa.modules.auth.api.authRoutes
-import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.character.api.dto.CharacterResponse
+import tech.hanasaki.azusa.modules.character.api.dto.KnowledgeSubscriptionResponse
 import tech.hanasaki.azusa.modules.character.characterModule
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class CharacterRoutesTest : BaseIntegrationTest() {
-    private fun testCharacterApplication(
-        block: suspend ApplicationTestBuilder.() -> Unit,
-    ) = testApplication {
-        environment {
-            config = ApplicationConfig("application.yaml")
-        }
-        application {
-            install(Koin) {
-                modules(
-                    testSharedModule(),
-                    authModule(environment.config),
-                    characterModule(environment.config),
-                )
-            }
-            testModule()
-            routing {
-                authRoutes()
-                characterRoutes()
-            }
-        }
-        client = createClient {
-            install(ContentNegotiation) {
-                json(
-                    json = Json {
-                        ignoreUnknownKeys = true
-                        prettyPrint = true
-                    },
-                )
-            }
-        }
-        startApplication()
-        createTestUser()
-        block()
+
+    override fun additionalModules(config: ApplicationConfig): List<Module> = listOf(
+        characterModule(config)
+    )
+
+    override fun Route.additionalRoutes() {
+        characterRoutes()
     }
 
     @Test
-    fun `GET character should return success`() = testCharacterApplication {
+    fun `GET character should return success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.get("/characters") {
             headers {
@@ -69,7 +39,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `GET get public characters should return success`() = testCharacterApplication {
+    fun `GET get public characters should return success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.get("/characters/public") {
             headers {
@@ -81,7 +51,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `GET search public characters should return success`() = testCharacterApplication {
+    fun `GET search public characters should return success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.get("/characters/search?q=test") {
             headers {
@@ -94,7 +64,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `GET character detail should return success`() = testCharacterApplication {
+    fun `GET character detail should return success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val characterId = getCreatedCharacter()?.id
         val response = client.get("/characters/$characterId") {
@@ -107,7 +77,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST character should return created`() = testCharacterApplication {
+    fun `POST character should return created`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.post("/characters") {
             headers {
@@ -131,7 +101,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `PUT character should return ok`() = testCharacterApplication {
+    fun `PUT character should return ok`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val characterId = getCreatedCharacter()?.id
 
@@ -157,7 +127,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `DELETE character should return no content`() = testCharacterApplication {
+    fun `DELETE character should return no content`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val characterId = getCreatedCharacter()?.id
 
@@ -171,7 +141,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `GET character knowledge bases should return success`() = testCharacterApplication {
+    fun `GET character knowledge bases should return success and empty`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val characterId = getCreatedCharacter()?.id
         val response = client.get("/characters/$characterId/knowledge-bases") {
@@ -179,8 +149,10 @@ class CharacterRoutesTest : BaseIntegrationTest() {
                 append("Authorization", "Bearer $accessToken")
             }
         }
+        val responseBody = response.body<ApiResponse<List<KnowledgeSubscriptionResponse>>>()
 
         assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue { responseBody.data?.isEmpty() ?: false }
     }
 
     private suspend fun ClientProvider.getCreatedCharacter(): CharacterResponse? {

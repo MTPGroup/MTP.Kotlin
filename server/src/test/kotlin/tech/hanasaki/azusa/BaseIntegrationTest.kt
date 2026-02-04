@@ -4,10 +4,13 @@ import com.redis.testcontainers.RedisContainer
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
@@ -15,6 +18,7 @@ import io.lettuce.core.RedisURI
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
+import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -26,6 +30,7 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.stopKoin
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.koin.ktor.plugin.Koin
 import org.testcontainers.postgresql.PostgreSQLContainer
 import tech.hanasaki.azusa.common.kernel.event.EventPublisher
 import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
@@ -41,8 +46,10 @@ import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
 import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPollerConfig
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutboxEventRepository
 import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
+import tech.hanasaki.azusa.modules.auth.api.authRoutes
 import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordRequest
 import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordResponse
+import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
 import tech.hanasaki.azusa.modules.auth.domain.model.User
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
@@ -200,11 +207,54 @@ abstract class BaseIntegrationTest {
     }
 
     /**
-     * 获取所有测试模块
+     * 子类可重写以提供额外的 Koin 模块
      */
-    protected fun testModules(config: ApplicationConfig): List<Module> = listOf(
-        testSharedModule(),
-    )
+    protected open fun additionalModules(config: ApplicationConfig): List<Module> = emptyList()
+
+    /**
+     * 子类可重写以提供额外的路由
+     */
+    protected open fun Route.additionalRoutes() {}
+
+    /**
+     * 通用集成测试配置
+     *
+     * 默认包含 testSharedModule 和 authModule，子类可通过重写 additionalModules 和 additionalRoutes 来扩展
+     */
+    protected fun integrationTest(
+        block: suspend ApplicationTestBuilder.() -> Unit,
+    ) = testApplication {
+        environment {
+            config = ApplicationConfig("application.yaml")
+        }
+        application {
+            install(Koin) {
+                modules(
+                    testSharedModule(),
+                    authModule(environment.config),
+                    *additionalModules(environment.config).toTypedArray()
+                )
+            }
+            testModule()
+            routing {
+                authRoutes()
+                additionalRoutes()
+            }
+        }
+        client = createClient {
+            install(ContentNegotiation) {
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        prettyPrint = true
+                    }
+                )
+            }
+        }
+        startApplication()
+        createTestUser()
+        block()
+    }
 
     /**
      * 创建测试用户

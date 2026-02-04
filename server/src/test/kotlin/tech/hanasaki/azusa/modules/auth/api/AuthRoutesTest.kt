@@ -1,58 +1,17 @@
 package tech.hanasaki.azusa.modules.auth.api
 
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.config.*
-import io.ktor.server.routing.*
-import io.ktor.server.testing.*
-import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
-import org.koin.ktor.plugin.Koin
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.modules.auth.authModule
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class AuthRoutesTest : BaseIntegrationTest() {
-    private fun testAuthApplication(
-        block: suspend ApplicationTestBuilder.() -> Unit,
-    ) = testApplication {
-        environment {
-            config = ApplicationConfig("application.yaml")
-        }
-        application {
-            install(Koin) {
-                modules(
-                    testSharedModule(),
-                    authModule(environment.config),
-                )
-            }
-            testModule()
-            routing {
-                authRoutes()
-            }
-        }
-        client = createClient {
-            install(ContentNegotiation) {
-                json(
-                    Json {
-                        ignoreUnknownKeys = true
-                        prettyPrint = true
-                    }
-                )
-            }
-        }
-        startApplication()
-        createTestUser()
-        block()
-    }
 
     @Test
-    fun `POST sign-up with valid data should succeed`() = testAuthApplication {
+    fun `POST sign-up with valid data should succeed`() = integrationTest {
         val response = client.post("/auth/sign-up/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -71,7 +30,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST sign-up with invalid email should return BadRequest`() = testAuthApplication {
+    fun `POST sign-up with invalid email should return BadRequest`() = integrationTest {
         val response = client.post("/auth/sign-up/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -89,7 +48,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST sign-up with short password should return BadRequest`() = testAuthApplication {
+    fun `POST sign-up with short password should return BadRequest`() = integrationTest {
         val response = client.post("/auth/sign-up/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -107,7 +66,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST sign-in with invalid credentials should return error`() = testAuthApplication {
+    fun `POST sign-in with invalid credentials should return error`() = integrationTest {
         val response = client.post("/auth/sign-in/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -125,7 +84,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST sign-in with unverify email should return unauthorized`() = testAuthApplication {
+    fun `POST sign-in with unverify email should return unauthorized`() = integrationTest {
         client.post("/auth/sign-up/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -155,7 +114,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST sign-in with verify email should return success`() = testAuthApplication {
+    fun `POST sign-in with verify email should return success`() = integrationTest {
         val response = client.post("/auth/sign-in/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -172,7 +131,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST send otp should success`() = testAuthApplication {
+    fun `POST send otp should success`() = integrationTest {
         val response = client.post("/auth/email-otp/send") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -189,7 +148,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST refresh should success`() = testAuthApplication {
+    fun `POST refresh should success`() = integrationTest {
         val refreshToken = getSignInInfo()?.refreshToken
         val response = client.post("/auth/refresh") {
             contentType(ContentType.Application.Json)
@@ -206,7 +165,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST sign-out`() = testAuthApplication {
+    fun `POST sign-out`() = integrationTest {
         val refreshToken = getSignInInfo()?.refreshToken
         val response = client.post("/auth/sign-out") {
             contentType(ContentType.Application.Json)
@@ -223,13 +182,13 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `GET auth me without token should return Unauthorized`() = testAuthApplication {
+    fun `GET auth me without token should return Unauthorized`() = integrationTest {
         val response = client.get("/auth/me")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
     @Test
-    fun `GET auth me should return success`() = testAuthApplication {
+    fun `GET auth me should return success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.get("/auth/me") {
             headers {
@@ -241,7 +200,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `POST change password should success`() = testAuthApplication {
+    fun `POST change password should success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.post("/auth/password/change") {
             headers {
@@ -262,7 +221,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `DELETE account should success`() = testAuthApplication {
+    fun `DELETE account should success`() = integrationTest {
         val accessToken = getSignInInfo()?.accessToken
         val response = client.delete("/auth/account") {
             headers {
