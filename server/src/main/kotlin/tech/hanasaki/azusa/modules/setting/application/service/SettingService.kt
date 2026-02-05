@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.setting.application.service
 
-import tech.hanasaki.azusa.common.kernel.exception.ConflictException
-import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
-import tech.hanasaki.azusa.common.kernel.model.LLMConfig
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.exception.ConflictException
+import tech.hanasaki.azusa.common.domain.exception.NotFoundException
+import tech.hanasaki.azusa.common.domain.model.LLMConfig
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.setting.application.command.GetSettingCommand
 import tech.hanasaki.azusa.modules.setting.application.command.UpdateSettingCommand
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId

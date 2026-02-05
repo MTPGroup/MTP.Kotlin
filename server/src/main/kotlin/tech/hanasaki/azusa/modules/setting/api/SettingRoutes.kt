@@ -4,9 +4,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.platform.api.respondOk
-import tech.hanasaki.azusa.common.platform.api.requireUserId
-import tech.hanasaki.azusa.common.platform.api.uuidParam
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.respondOk
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.requireUserId
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
 import tech.hanasaki.azusa.modules.setting.api.dto.CreateLLMConfigRequest
 import tech.hanasaki.azusa.modules.setting.api.dto.UpdateLLMConfigRequest
 import tech.hanasaki.azusa.modules.setting.api.dto.UpdateSettingRequest

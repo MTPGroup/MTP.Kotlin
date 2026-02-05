@@ -6,9 +6,8 @@ import tech.hanasaki.azusa.modules.setting.application.command.UpdateSettingComm
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
-import tech.hanasaki.azusa.common.kernel.model.LLMConfig
-import tech.hanasaki.azusa.common.kernel.model.ThemeId
-import kotlin.uuid.ExperimentalUuidApi
+import tech.hanasaki.azusa.common.domain.model.LLMConfig
+import tech.hanasaki.azusa.common.domain.model.ThemeId
 import kotlin.uuid.Uuid
 
 

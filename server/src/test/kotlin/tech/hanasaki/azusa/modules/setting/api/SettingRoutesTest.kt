@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test
 import org.koin.core.context.GlobalContext
 import org.koin.core.module.Module
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.common.kernel.model.Email
-import tech.hanasaki.azusa.common.platform.api.ApiResponse
-import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
+import tech.hanasaki.azusa.common.domain.model.Email
+import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
 import tech.hanasaki.azusa.modules.setting.api.dto.LLMConfigResponse
 import tech.hanasaki.azusa.modules.setting.api.dto.SettingResponse
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting

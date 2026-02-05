@@ -3,13 +3,12 @@ package tech.hanasaki.azusa.modules.knowledge.infrastructure.vector
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeDocumentId
 import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
 import tech.hanasaki.azusa.modules.knowledge.domain.port.VectorStore
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 import java.sql.Connection
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**

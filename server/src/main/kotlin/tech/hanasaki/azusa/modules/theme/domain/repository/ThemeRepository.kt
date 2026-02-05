@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.theme.domain.repository
 
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme
-import tech.hanasaki.azusa.common.kernel.model.ThemeId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.ThemeId
+import tech.hanasaki.azusa.common.domain.model.UserId
 
 interface ThemeRepository {
     suspend fun findByThemeId(id: ThemeId): Theme?

@@ -1,12 +1,12 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
-import tech.hanasaki.azusa.common.kernel.event.EventPublisher
-import tech.hanasaki.azusa.common.kernel.exception.AuthorizationException
-import tech.hanasaki.azusa.common.kernel.exception.DomainException
-import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.PageResult
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.common.domain.exception.DomainException
+import tech.hanasaki.azusa.common.domain.exception.NotFoundException
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.PageResult
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.knowledge.application.command.CreateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.application.command.UpdateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase

@@ -32,29 +32,25 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import org.testcontainers.postgresql.PostgreSQLContainer
-import tech.hanasaki.azusa.common.kernel.event.EventPublisher
-import tech.hanasaki.azusa.common.kernel.event.EventSubscriber
-import tech.hanasaki.azusa.common.kernel.event.StreamListener
-import tech.hanasaki.azusa.common.kernel.model.Email
-import tech.hanasaki.azusa.common.kernel.port.OutboxProvider
-import tech.hanasaki.azusa.common.platform.api.ApiResponse
-import tech.hanasaki.azusa.common.platform.event.bus.InMemoryEventBus
-import tech.hanasaki.azusa.common.platform.event.listener.RedisStreamListener
-import tech.hanasaki.azusa.common.platform.event.listener.StreamConfig
-import tech.hanasaki.azusa.common.platform.event.outbox.OutboxAdapter
-import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPoller
-import tech.hanasaki.azusa.common.platform.event.outbox.OutboxPollerConfig
-import tech.hanasaki.azusa.common.platform.event.outbox.repository.ExposedOutboxEventRepository
-import tech.hanasaki.azusa.common.platform.event.outbox.repository.OutboxEventRepository
-import tech.hanasaki.azusa.modules.auth.api.authRoutes
-import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordRequest
-import tech.hanasaki.azusa.modules.auth.api.dto.SignInWithPasswordResponse
+import tech.hanasaki.azusa.common.adapter.event.bus.InMemoryEventBus
+import tech.hanasaki.azusa.common.adapter.event.outbox.*
+import tech.hanasaki.azusa.common.adapter.`in`.event.RedisStreamListener
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
+import tech.hanasaki.azusa.common.adapter.out.event.outbox.*
+import tech.hanasaki.azusa.common.adapter.out.event.redis.StreamConfig
+import tech.hanasaki.azusa.common.application.port.out.EventSubscriber
+import tech.hanasaki.azusa.common.domain.model.Email
+import tech.hanasaki.azusa.common.port.out.EventPublisher
+import tech.hanasaki.azusa.common.port.out.OutboxEventRepositoryPort
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.dto.SignInWithPasswordRequest
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.dto.SignInWithPasswordResponse
+import tech.hanasaki.azusa.modules.auth.application.port.out.PasswordEncoder
+import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
 import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
 import tech.hanasaki.azusa.modules.auth.domain.model.User
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
-import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
-import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
 import tech.hanasaki.azusa.plugins.configureCors
 import tech.hanasaki.azusa.plugins.configureSecurity
 import tech.hanasaki.azusa.plugins.configureSerialization
@@ -168,7 +164,7 @@ abstract class BaseIntegrationTest {
         }
 
         // Outbox 仓储
-        single<OutboxEventRepository> { ExposedOutboxEventRepository() }
+        single<OutboxEventRepositoryPort> { ExposedOutboxEventRepository() }
         single<OutboxProvider> { OutboxAdapter(get()) }
 
         // Stream 配置 - 测试用
@@ -182,7 +178,7 @@ abstract class BaseIntegrationTest {
             )
         }
         single<RedisStreamListener> {
-            RedisStreamListener(redis = get(), config = get())
+            RedisStreamListener(redisCommands = get(), config = get())
         }
         single<StreamListener> { get<RedisStreamListener>() }
 
@@ -198,7 +194,7 @@ abstract class BaseIntegrationTest {
         }
         single {
             OutboxPoller(
-                outboxRepository = get(),
+                repository = get(),
                 outboxConfig = get(),
                 streamConfig = get(),
                 redis = get(),
@@ -263,7 +259,7 @@ abstract class BaseIntegrationTest {
         val koin = GlobalContext.get()
         val userRepository = koin.get<UserRepository>()
         val passwordEncoder = koin.get<PasswordEncoder>()
-        val user = User.register(
+        val user = User.create(
             email = Email("test-user@example.com"),
             username = Username("Test User"),
             hashedPassword = PasswordHash(

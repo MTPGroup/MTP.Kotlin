@@ -1,70 +1,68 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.events
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.kernel.event.DomainEvent
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.event.DomainEvent
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 
 @Serializable
-data class KnowledgeBaseCreatedEvent(
-    val knowledgeBaseId: KnowledgeBaseId,
+sealed class KnowledgeBaseEvent : DomainEvent {
+    abstract val knowledgeBaseId: KnowledgeBaseId
+
+    override val aggregateId: String get() = knowledgeBaseId.toString()
+    override val aggregateType: String get() = "KnowledgeBase"
+    override val occurredOn: Instant get() = Clock.System.now()
+
+}
+
+@Serializable
+data class KnowledgeBaseCreated(
+    override val knowledgeBaseId: KnowledgeBaseId,
     val authorId: UserId,
     val name: String,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    @Contextual
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "knowledgeBase.created",
+) : KnowledgeBaseEvent()
 
 
 @Serializable
-data class KnowledgeBaseDeletedEvent(
-    val knowledgeBaseId: KnowledgeBaseId,
+data class KnowledgeBaseDeleted(
+    override val knowledgeBaseId: KnowledgeBaseId,
     val authorId: UserId,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    @Contextual
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "knowledgeBase.deleted",
+) : KnowledgeBaseEvent()
 
 
 @Serializable
-data class FileUploadedEvent(
+data class FileUploaded(
     val fileId: KnowledgeFileId,
-    val knowledgeBaseId: KnowledgeBaseId,
+    override val knowledgeBaseId: KnowledgeBaseId,
     val fileName: String,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    @Contextual
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "knowledgeBase.file.uploaded",
+) : KnowledgeBaseEvent()
 
 
 @Serializable
-data class FileProcessedEvent(
+data class FileProcessed(
     val fileId: KnowledgeFileId,
-    val knowledgeBaseId: KnowledgeBaseId,
-    @Contextual
+    override val knowledgeBaseId: KnowledgeBaseId,
     override val eventId: Uuid = Uuid.random(),
-    @Contextual
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "knowledgeBase.file.processed",
+) : KnowledgeBaseEvent()
 
 
 @Serializable
-data class FileProcessingFailedEvent(
+data class FileProcessingFailed(
     val fileId: KnowledgeFileId,
-    val knowledgeBaseId: KnowledgeBaseId,
+    override val knowledgeBaseId: KnowledgeBaseId,
     val errorMessage: String,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    @Contextual
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "knowledgeBase.file.processingFailed",
+) : KnowledgeBaseEvent()

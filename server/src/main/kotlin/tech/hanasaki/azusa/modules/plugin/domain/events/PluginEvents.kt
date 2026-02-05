@@ -1,62 +1,46 @@
 package tech.hanasaki.azusa.modules.plugin.domain.events
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.kernel.event.DomainEvent
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.event.DomainEvent
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 
 @Serializable
-data class PluginCreatedEvent(
-    val pluginId: PluginId,
+sealed class PluginEvent : DomainEvent {
+    abstract val pluginId: PluginId
+    override val aggregateId: String get() = pluginId.toString()
+    override val aggregateType: String get() = "Plugin"
+    override val occurredOn: Instant get() = Clock.System.now()
+}
+
+@Serializable
+data class PluginCreated(
+    override val pluginId: PluginId,
     val authorId: UserId,
     val name: String,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "plugin.created",
+) : PluginEvent()
 
 
 @Serializable
-data class PluginApprovedEvent(
-    val pluginId: PluginId,
+data class PluginApproved(
+    override val pluginId: PluginId,
     val authorId: UserId,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
-
+    override val eventType: String = "plugin.approved",
+) : PluginEvent()
 
 @Serializable
-data class PluginRejectedEvent(
-    val pluginId: PluginId,
+data class PluginRejected(
+    override val pluginId: PluginId,
     val authorId: UserId,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "plugin.rejected",
+) : PluginEvent()
 
 
-@Serializable
-data class PluginSubscribedEvent(
-    val pluginId: PluginId,
-    val userId: UserId,
-    @Contextual
-    override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
-
-
-@Serializable
-data class PluginUnsubscribedEvent(
-    val pluginId: PluginId,
-    val userId: UserId,
-    @Contextual
-    override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent

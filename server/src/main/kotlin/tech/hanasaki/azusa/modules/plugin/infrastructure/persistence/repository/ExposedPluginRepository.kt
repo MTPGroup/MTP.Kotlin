@@ -5,15 +5,15 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.PageResult
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginRepository
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.mapper.PluginMapper
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginTable
-import tech.hanasaki.azusa.common.kernel.model.PageResult
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedPluginRepository : PluginRepository {
     override suspend fun findById(id: PluginId): Plugin? = dbQuery {

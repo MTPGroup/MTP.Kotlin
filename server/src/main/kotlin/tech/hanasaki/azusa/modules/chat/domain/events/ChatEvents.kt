@@ -1,27 +1,31 @@
 package tech.hanasaki.azusa.modules.chat.domain.events
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import tech.hanasaki.azusa.common.domain.event.DomainEvent
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.kernel.event.DomainEvent
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+
+@Serializable
+sealed class ChatEvent : DomainEvent {
+    abstract val chatId: ChatId
+    override val aggregateId: String = chatId.toString()
+    override val aggregateType: String = "Chat"
+    override val occurredOn: Instant = Clock.System.now()
+}
 
 /**
  * 聊天创建事件
  */
 
 @Serializable
-data class ChatCreatedEvent(
-    val chatId: ChatId,
+data class ChatCreated(
+    override val chatId: ChatId,
     val ownerId: UserId,
     val characterId: CharacterId,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    @Contextual
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "chat.created",
+) : ChatEvent()

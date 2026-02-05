@@ -1,30 +1,31 @@
 package tech.hanasaki.azusa.modules.auth
 
 import io.ktor.server.config.*
-import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-import tech.hanasaki.azusa.common.kernel.event.SubscriptionMode
-import tech.hanasaki.azusa.common.platform.event.di.subscriber
-import tech.hanasaki.azusa.modules.auth.application.listener.OtpGeneratedListener
-import tech.hanasaki.azusa.modules.auth.application.listener.UserRegisteredListener
+import tech.hanasaki.azusa.common.adapter.out.event.registerDomainEvent
+import tech.hanasaki.azusa.common.adapter.out.event.subscribe
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.event.UserRegisteredHandler
+import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.repository.ExposedOtpRepository
+import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.repository.ExposedRefreshTokenRepository
+import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.repository.ExposedUserRepository
+import tech.hanasaki.azusa.modules.auth.adapter.out.security.JwtTokenService
+import tech.hanasaki.azusa.modules.auth.adapter.out.security.PasswordEncoderImpl
+import tech.hanasaki.azusa.modules.auth.config.JwtConfig
+import tech.hanasaki.azusa.modules.auth.config.OtpConfig
+import tech.hanasaki.azusa.modules.auth.config.readJwtConfig
+import tech.hanasaki.azusa.modules.auth.config.readOtpConfig
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
+import tech.hanasaki.azusa.modules.auth.domain.event.UserRegistered
+import tech.hanasaki.azusa.modules.auth.application.port.`in`.AuthUseCase
+import tech.hanasaki.azusa.modules.auth.application.port.`in`.TokenVerifier
 import tech.hanasaki.azusa.modules.auth.application.service.AuthService
+import tech.hanasaki.azusa.modules.auth.application.port.out.OtpRepository
+import tech.hanasaki.azusa.modules.auth.application.port.out.PasswordEncoder
 import tech.hanasaki.azusa.modules.auth.application.service.OtpService
-import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
-import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
-import tech.hanasaki.azusa.modules.auth.domain.model.JwtConfig
-import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
-import tech.hanasaki.azusa.modules.auth.domain.port.PasswordEncoder
-import tech.hanasaki.azusa.modules.auth.domain.port.TokenService
-import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
-import tech.hanasaki.azusa.modules.auth.domain.repository.RefreshTokenRepository
-import tech.hanasaki.azusa.modules.auth.domain.repository.UserRepository
-import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.JwtTokenService
-import tech.hanasaki.azusa.modules.auth.infrastructure.adapter.PasswordEncoderImpl
-import tech.hanasaki.azusa.modules.auth.infrastructure.config.readJwtConfig
-import tech.hanasaki.azusa.modules.auth.infrastructure.config.readOtpConfig
-import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedOtpRepository
-import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedRefreshTokenRepository
-import tech.hanasaki.azusa.modules.auth.infrastructure.persistence.repository.ExposedUserRepository
+import tech.hanasaki.azusa.modules.auth.application.port.out.RefreshTokenRepository
+import tech.hanasaki.azusa.modules.auth.application.port.out.TokenGenerator
+import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
 
 fun authModule(config: ApplicationConfig) = module {
     // 仓储
@@ -38,20 +39,28 @@ fun authModule(config: ApplicationConfig) = module {
 
     // 端口实现
     single<PasswordEncoder> { PasswordEncoderImpl() }
-    single<TokenService> { JwtTokenService(get()) }
+    single { JwtTokenService(get()) }
+    single<TokenGenerator> { get<JwtTokenService>() }
+    single<TokenVerifier> { get<JwtTokenService>() }
 
     // 应用服务
-    factoryOf(::OtpService)
-    factoryOf(::AuthService)
+    singleOf(::OtpService)
+    single<AuthUseCase> {
+        AuthService(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
 
-    // 事件监听器
-    subscriber<UserRegisteredListener, UserRegisteredEvent>(
-        constructor = { UserRegisteredListener(get()) },
-        mode = SubscriptionMode.SYNCHRONOUS
-    )
-
-    subscriber<OtpGeneratedListener, OtpGeneratedEvent>(
-        constructor = { OtpGeneratedListener(get()) },
-        mode = SubscriptionMode.SYNCHRONOUS
-    )
+    // 注册事件和处理器
+    registerDomainEvent(UserRegistered.serializer())
+    registerDomainEvent(OtpCreated.serializer())
+    subscribe<UserRegistered>("auth.user.registered") {
+        UserRegisteredHandler(get())
+    }
 }

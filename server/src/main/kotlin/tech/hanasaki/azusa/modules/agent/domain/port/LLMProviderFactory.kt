@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.agent.domain.port
 
-import tech.hanasaki.azusa.common.kernel.exception.DomainException
+import tech.hanasaki.azusa.common.domain.exception.DomainException
 
 /**
  * LLM 提供者工厂

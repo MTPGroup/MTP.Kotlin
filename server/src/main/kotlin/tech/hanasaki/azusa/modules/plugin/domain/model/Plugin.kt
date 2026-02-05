@@ -1,14 +1,13 @@
 package tech.hanasaki.azusa.modules.plugin.domain.model
 
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.modules.plugin.domain.events.PluginApprovedEvent
-import tech.hanasaki.azusa.modules.plugin.domain.events.PluginCreatedEvent
-import tech.hanasaki.azusa.modules.plugin.domain.events.PluginRejectedEvent
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.modules.plugin.domain.events.PluginApproved
+import tech.hanasaki.azusa.modules.plugin.domain.events.PluginCreated
+import tech.hanasaki.azusa.modules.plugin.domain.events.PluginRejected
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
@@ -55,7 +54,7 @@ class Plugin private constructor(
                 updatedAt = now,
             )
             plugin.addDomainEvent(
-                PluginCreatedEvent(
+                PluginCreated(
                     pluginId = plugin.id,
                     authorId = authorId,
                     name = name,
@@ -126,7 +125,7 @@ class Plugin private constructor(
         status = PluginStatus.APPROVED
         updatedAt = Clock.System.now()
         addDomainEvent(
-            PluginApprovedEvent(
+            PluginApproved(
                 pluginId = id,
                 authorId = authorId,
             )
@@ -143,7 +142,7 @@ class Plugin private constructor(
         status = PluginStatus.REJECTED
         updatedAt = Clock.System.now()
         addDomainEvent(
-            PluginRejectedEvent(
+            PluginRejected(
                 pluginId = id,
                 authorId = authorId,
             )

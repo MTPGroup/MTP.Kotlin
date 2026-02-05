@@ -4,14 +4,14 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper.LLMConfigMapper
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper.SettingMapper
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.SettingsTable
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedSettingRepository : SettingRepository {
     override suspend fun findByUserId(userId: UserId): Setting? = dbQuery {

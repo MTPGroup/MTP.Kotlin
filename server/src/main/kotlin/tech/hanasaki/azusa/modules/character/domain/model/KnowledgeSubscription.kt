@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.character.domain.model
 
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
 
 /**
  * 角色订阅的知识库

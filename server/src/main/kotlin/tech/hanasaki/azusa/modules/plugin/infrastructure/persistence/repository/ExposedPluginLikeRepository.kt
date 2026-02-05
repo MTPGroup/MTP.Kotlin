@@ -5,11 +5,11 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginLikeRepository
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginLikeTable
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedPluginLikeRepository : PluginLikeRepository {
 

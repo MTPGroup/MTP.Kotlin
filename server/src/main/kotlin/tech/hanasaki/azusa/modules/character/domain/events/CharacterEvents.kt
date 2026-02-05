@@ -1,45 +1,48 @@
 package tech.hanasaki.azusa.modules.character.domain.events
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.kernel.event.DomainEvent
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.event.DomainEvent
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@Serializable
+sealed class CharacterEvent : DomainEvent {
+    abstract val characterId: CharacterId
+
+    override val aggregateId: String = characterId.toString()
+    override val aggregateType: String = "Character"
+    override val occurredOn: Instant = Clock.System.now()
+}
 
 @Serializable
-data class CharacterCreatedEvent(
-    val characterId: CharacterId,
+data class CharacterCreated(
+    override val characterId: CharacterId,
     val authorId: UserId,
     val name: String,
     val isPublic: Boolean,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "character.created",
+) : CharacterEvent()
 
 
 @Serializable
-data class CharacterUpdatedEvent(
-    val characterId: CharacterId,
+data class CharacterUpdated(
+    override val characterId: CharacterId,
     val authorId: UserId,
     val name: String,
     val isPublic: Boolean,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "character.updated",
+) : CharacterEvent()
 
 
 @Serializable
-data class CharacterDeletedEvent(
-    val characterId: CharacterId,
+data class CharacterDeleted(
+    override val characterId: CharacterId,
     val authorId: UserId,
-    @Contextual
     override val eventId: Uuid = Uuid.random(),
-    override val occurredAt: Instant = Clock.System.now(),
-) : DomainEvent
+    override val eventType: String = "character.deleted",
+) : CharacterEvent()

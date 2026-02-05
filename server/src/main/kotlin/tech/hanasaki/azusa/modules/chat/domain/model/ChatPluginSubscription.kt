@@ -1,11 +1,10 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
 import kotlinx.serialization.json.JsonObject
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.PluginId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**

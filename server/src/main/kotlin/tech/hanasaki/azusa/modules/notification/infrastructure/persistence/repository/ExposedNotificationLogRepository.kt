@@ -6,6 +6,9 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.PageResult
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLogId
@@ -13,9 +16,6 @@ import tech.hanasaki.azusa.modules.notification.domain.model.NotificationStatus
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.mapper.NotificationLogMapper
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationLogTable
-import tech.hanasaki.azusa.common.kernel.model.PageResult
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 /**
  * 通知日志仓储实现

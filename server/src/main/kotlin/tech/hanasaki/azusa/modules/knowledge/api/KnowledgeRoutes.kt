@@ -6,17 +6,17 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.respondOk
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.parseLimitParam
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.parsePageParam
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.requireUserId
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
 import tech.hanasaki.azusa.modules.knowledge.api.dto.*
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
-import tech.hanasaki.azusa.common.platform.api.parseLimitParam
-import tech.hanasaki.azusa.common.platform.api.parsePageParam
-import tech.hanasaki.azusa.common.platform.api.requireUserId
-import tech.hanasaki.azusa.common.platform.api.uuidParam
-import tech.hanasaki.azusa.common.platform.api.respondOk
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
 
 fun Route.knowledgeRoutes() {
     val knowledgeBaseService: KnowledgeBaseService by inject()

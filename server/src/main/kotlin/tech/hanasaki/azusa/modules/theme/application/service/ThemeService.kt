@@ -1,15 +1,14 @@
 package tech.hanasaki.azusa.modules.theme.application.service
 
-import tech.hanasaki.azusa.common.kernel.exception.AuthorizationException
-import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
-import tech.hanasaki.azusa.common.kernel.model.ThemeId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.common.domain.exception.NotFoundException
+import tech.hanasaki.azusa.common.domain.model.ThemeId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.modules.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme
 import tech.hanasaki.azusa.modules.theme.domain.repository.ThemeRepository
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class ThemeService(

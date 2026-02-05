@@ -5,14 +5,14 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.PageResult
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.mapper.CharacterMapper
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.CharacterTable
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.PageResult
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedCharacterRepository : CharacterRepository {
     override suspend fun findById(id: CharacterId): Character? = dbQuery {

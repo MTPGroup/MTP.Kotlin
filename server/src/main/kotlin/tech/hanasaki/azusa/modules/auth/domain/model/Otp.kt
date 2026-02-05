@@ -1,21 +1,25 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.Email
-import tech.hanasaki.azusa.modules.auth.domain.event.OtpGeneratedEvent
+import tech.hanasaki.azusa.common.domain.exception.DomainException
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.Email
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-enum class OtpType(val value: String) {
-    VERIFY_EMAIL("verify_email"),
-    RESET_PASSWORD("reset_password"),
-    SIGN_IN("sign_in");
+enum class OtpType {
+    VERIFY_EMAIL,
+    RESET_PASSWORD,
+    SIGN_IN;
 
     companion object {
-        fun fromValue(value: String): OtpType = entries.firstOrNull { it.value == value || it.name == value }
-            ?: throw IllegalArgumentException("Unknown OtpType value: $value")
+        fun fromString(value: String) = when (value) {
+            "verify_email" -> VERIFY_EMAIL
+            "reset_password" -> RESET_PASSWORD
+            "sign_in" -> SIGN_IN
+            else -> throw DomainException("不支持的验证码类型")
+        }
     }
 }
 
@@ -32,7 +36,6 @@ class Otp(
     companion object {
         fun create(
             email: Email,
-            code: String,
             codeHash: String,
             type: OtpType,
             expiresAt: Instant,
@@ -44,9 +47,8 @@ class Otp(
                 expiresAt = expiresAt
             )
             otp.addDomainEvent(
-                OtpGeneratedEvent(
+                OtpCreated(
                     email = email,
-                    code = code,
                     otpType = type,
                     expiresAt = expiresAt
                 )

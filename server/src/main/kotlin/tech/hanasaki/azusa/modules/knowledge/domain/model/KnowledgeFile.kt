@@ -1,14 +1,13 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
-import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessedEvent
-import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessingFailedEvent
-import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploadedEvent
-import tech.hanasaki.azusa.common.kernel.event.DomainEvent
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
+import tech.hanasaki.azusa.common.domain.event.DomainEvent
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessed
+import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessingFailed
+import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploaded
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
@@ -62,7 +61,7 @@ data class KnowledgeFile(
                 updatedAt = now,
             )
             file.addDomainEvent(
-                FileUploadedEvent(
+                FileUploaded(
                     fileId = file.id,
                     knowledgeBaseId = knowledgeBaseId,
                     fileName = fileName,
@@ -115,7 +114,7 @@ data class KnowledgeFile(
         errorMessage = null
         updatedAt = Clock.System.now()
         addDomainEvent(
-            FileProcessedEvent(
+            FileProcessed(
                 fileId = id,
                 knowledgeBaseId = knowledgeBaseId,
             )
@@ -130,7 +129,7 @@ data class KnowledgeFile(
         errorMessage = error
         updatedAt = Clock.System.now()
         addDomainEvent(
-            FileProcessingFailedEvent(
+            FileProcessingFailed(
                 fileId = id,
                 knowledgeBaseId = knowledgeBaseId,
                 errorMessage = error,

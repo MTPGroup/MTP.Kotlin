@@ -6,9 +6,9 @@ import tech.hanasaki.azusa.modules.chat.domain.model.ChatMember
 import tech.hanasaki.azusa.modules.chat.domain.model.MemberRole
 import tech.hanasaki.azusa.modules.chat.domain.model.MemberType
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatMemberTable
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.CharacterId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatMemberId
 
 object ChatMemberMapper {

@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -38,7 +38,7 @@ data class ChatMember(
     init {
         require(
             (memberType == MemberType.USER && profileId != null && characterId == null) ||
-                (memberType == MemberType.CHARACTER && characterId != null && profileId == null)
+                    (memberType == MemberType.CHARACTER && characterId != null && profileId == null)
         ) {
             "MemberType and IDs must match: USER requires profileId, CHARACTER requires characterId"
         }

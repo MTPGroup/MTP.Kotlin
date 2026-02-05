@@ -1,0 +1,17 @@
+package tech.hanasaki.azusa.common.domain.model
+
+import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
+import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
+import kotlin.uuid.Uuid
+
+
+data class LLMConfig(
+    val id: LLMConfigId = LLMConfigId(Uuid.random()),
+    val provider: LLMProvider,
+    val baseUrl: String,
+    val apiKey: String,
+    val model: String,
+    val temperature: Float,
+    val maxTokens: Int? = null,
+    val runOnClient: Boolean = false,
+)

@@ -6,21 +6,22 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscription
 import tech.hanasaki.azusa.modules.chat.domain.repository.ChatPluginSubscriptionRepository
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.mapper.ChatPluginSubscriptionMapper
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatPluginSubscriptionTable
-import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedChatPluginSubscriptionRepository : ChatPluginSubscriptionRepository {
-    override suspend fun findById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId): ChatPluginSubscription? = dbQuery {
-        ChatPluginSubscriptionTable.selectAll()
-            .where { ChatPluginSubscriptionTable.id eq id.value }
-            .map(ChatPluginSubscriptionMapper::toDomain)
-            .singleOrNull()
-    }
+    override suspend fun findById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId): ChatPluginSubscription? =
+        dbQuery {
+            ChatPluginSubscriptionTable.selectAll()
+                .where { ChatPluginSubscriptionTable.id eq id.value }
+                .map(ChatPluginSubscriptionMapper::toDomain)
+                .singleOrNull()
+        }
 
     override suspend fun findByChatId(chatId: ChatId): List<ChatPluginSubscription> = dbQuery {
         ChatPluginSubscriptionTable.selectAll()
@@ -32,7 +33,7 @@ class ExposedChatPluginSubscriptionRepository : ChatPluginSubscriptionRepository
         ChatPluginSubscriptionTable.selectAll()
             .where {
                 (ChatPluginSubscriptionTable.chatId eq chatId.value) and
-                    (ChatPluginSubscriptionTable.enabled eq true)
+                        (ChatPluginSubscriptionTable.enabled eq true)
             }
             .map(ChatPluginSubscriptionMapper::toDomain)
     }
@@ -44,16 +45,17 @@ class ExposedChatPluginSubscriptionRepository : ChatPluginSubscriptionRepository
         ChatPluginSubscriptionTable.selectAll()
             .where {
                 (ChatPluginSubscriptionTable.chatId eq chatId.value) and
-                    (ChatPluginSubscriptionTable.pluginId eq pluginId.value)
+                        (ChatPluginSubscriptionTable.pluginId eq pluginId.value)
             }
             .map(ChatPluginSubscriptionMapper::toDomain)
             .singleOrNull()
     }
 
     override suspend fun save(subscription: ChatPluginSubscription): Unit = dbQuery {
-        val updatedRows = ChatPluginSubscriptionTable.update({ ChatPluginSubscriptionTable.id eq subscription.id.value }) {
-            ChatPluginSubscriptionMapper.toEntity(subscription, it)
-        }
+        val updatedRows =
+            ChatPluginSubscriptionTable.update({ ChatPluginSubscriptionTable.id eq subscription.id.value }) {
+                ChatPluginSubscriptionMapper.toEntity(subscription, it)
+            }
         if (updatedRows == 0) {
             ChatPluginSubscriptionTable.insert {
                 it[ChatPluginSubscriptionTable.id] = subscription.id.value
@@ -63,9 +65,10 @@ class ExposedChatPluginSubscriptionRepository : ChatPluginSubscriptionRepository
         }
     }
 
-    override suspend fun deleteById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId): Unit = dbQuery {
-        ChatPluginSubscriptionTable.deleteWhere { ChatPluginSubscriptionTable.id eq id.value }
-    }
+    override suspend fun deleteById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId): Unit =
+        dbQuery {
+            ChatPluginSubscriptionTable.deleteWhere { ChatPluginSubscriptionTable.id eq id.value }
+        }
 
     override suspend fun deleteByChatId(chatId: ChatId): Unit = dbQuery {
         ChatPluginSubscriptionTable.deleteWhere { ChatPluginSubscriptionTable.chatId eq chatId.value }

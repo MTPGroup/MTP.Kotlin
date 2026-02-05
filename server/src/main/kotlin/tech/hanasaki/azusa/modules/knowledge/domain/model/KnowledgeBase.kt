@@ -1,13 +1,12 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseCreatedEvent
-import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeletedEvent
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseCreated
+import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeleted
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
@@ -44,7 +43,7 @@ data class KnowledgeBase(
                 updatedAt = now,
             )
             knowledgeBase.addDomainEvent(
-                KnowledgeBaseCreatedEvent(
+                KnowledgeBaseCreated(
                     knowledgeBaseId = knowledgeBase.id,
                     authorId = authorId,
                     name = name,
@@ -94,7 +93,7 @@ data class KnowledgeBase(
      */
     fun markDeleted() {
         addDomainEvent(
-            KnowledgeBaseDeletedEvent(
+            KnowledgeBaseDeleted(
                 knowledgeBaseId = id,
                 authorId = authorId,
             )

@@ -1,13 +1,14 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
-import tech.hanasaki.azusa.common.kernel.event.EventPublisher
-import tech.hanasaki.azusa.common.kernel.exception.AuthenticationException
-import tech.hanasaki.azusa.common.kernel.exception.DomainException
-import tech.hanasaki.azusa.common.kernel.model.Email
+import tech.hanasaki.azusa.common.domain.exception.AuthenticationException
+import tech.hanasaki.azusa.common.domain.exception.DomainException
+import tech.hanasaki.azusa.common.domain.model.Email
+import tech.hanasaki.azusa.common.port.out.OutboxScheduler
+import tech.hanasaki.azusa.common.port.out.TransactionalPort
+import tech.hanasaki.azusa.modules.auth.application.port.out.OtpRepository
+import tech.hanasaki.azusa.modules.auth.config.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
-import tech.hanasaki.azusa.modules.auth.domain.model.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
 import java.security.MessageDigest
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -17,7 +18,8 @@ import kotlin.time.Duration.Companion.minutes
 class OtpService(
     private val otpRepository: OtpRepository,
     private val otpConfig: OtpConfig,
-    private val eventBus: EventPublisher,
+    private val outboxScheduler: OutboxScheduler,
+    private val tx: TransactionalPort,
 ) {
     companion object {
         private const val OTP_EXPIRE_MINUTES = 10
@@ -25,40 +27,45 @@ class OtpService(
     }
 
     suspend fun generateOtp(email: Email, type: OtpType) {
-        // 限流检查：每小时最多发送 5 次
-        val oneHourAgo = Clock.System.now().minus(1.hours)
-        val sentCount = otpRepository.countSentAfter(email, type, oneHourAgo)
-        if (sentCount >= MAX_OTP_PER_HOUR) {
-            throw DomainException("OTP requests exceeded limit. Please try again later.")
-        }
+        tx.execute {
+            val oneHourAgo = Clock.System.now().minus(1.hours)
+            val sentCount = otpRepository.countSentAfter(email, type, oneHourAgo)
+            if (sentCount >= MAX_OTP_PER_HOUR) {
+                throw DomainException("OTP请求已达限制。请稍后再试。")
+            }
 
-        // 测试模式使用固定验证码
-        val code = if (otpConfig.testMode) otpConfig.testCode else generateCode()
-        val otp = Otp.create(
-            email = email,
-            code = code,
-            codeHash = hashCode(code),
-            type = type,
-            expiresAt = Clock.System.now().plus(OTP_EXPIRE_MINUTES.minutes)
-        )
-        otpRepository.save(otp)
-        eventBus.publishAll(otp.domainEvents)
-        otp.clearDomainEvents()
+            val code = if (otpConfig.testMode) otpConfig.testCode else generateCode()
+            val otp = Otp.create(
+                email = email,
+                codeHash = hashCode(code),
+                type = type,
+                expiresAt = Clock.System.now().plus(OTP_EXPIRE_MINUTES.minutes)
+            )
+            otpRepository.save(otp)
+
+            otp.domainEvents.forEach { event ->
+                outboxScheduler.schedule(event)
+            }
+
+            otp.clearDomainEvents()
+        }
     }
 
     suspend fun verifyOtp(email: Email, type: OtpType, code: String) {
-        val otp = otpRepository.findValidLatest(email, type)
-            ?: throw AuthenticationException("Invalid or expired OTP")
+        tx.execute {
+            val otp = otpRepository.findValidLatest(email, type)
+                ?: throw AuthenticationException("非法或已过期的验证码")
 
-        if (!verifyHash(code, otp.codeHash)) {
-            throw AuthenticationException("Invalid OTP code")
+            if (!verifyHash(code, otp.codeHash)) {
+                throw AuthenticationException("非法的验证码")
+            }
+
+            if (!otp.isValid()) {
+                throw AuthenticationException("验证码已过期")
+            }
+
+            otpRepository.markAsUsed(otp)
         }
-
-        if (!otp.isValid()) {
-            throw AuthenticationException("OTP has expired")
-        }
-
-        otpRepository.markAsUsed(otp)
     }
 
     private fun generateCode(): String {

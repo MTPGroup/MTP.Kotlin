@@ -5,12 +5,12 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.KnowledgeSubscriptionTable
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedKnowledgeSubscriptionRepository : KnowledgeSubscriptionRepository {
     override suspend fun findByCharacterId(characterId: CharacterId): List<KnowledgeSubscription> = dbQuery {

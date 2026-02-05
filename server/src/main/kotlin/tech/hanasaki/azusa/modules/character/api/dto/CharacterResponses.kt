@@ -4,8 +4,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
-import tech.hanasaki.azusa.common.kernel.model.PageResult
-import kotlin.uuid.ExperimentalUuidApi
+import tech.hanasaki.azusa.common.domain.model.PageResult
 import kotlin.uuid.Uuid
 
 

@@ -4,8 +4,8 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginTable
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.UserId
 
 object PluginMapper {
     fun toDomain(row: ResultRow): Plugin = Plugin.reconstitute(

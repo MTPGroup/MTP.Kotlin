@@ -1,114 +1,129 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
-import tech.hanasaki.azusa.common.kernel.model.Email
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerifiedEvent
-import tech.hanasaki.azusa.modules.auth.domain.event.UserRegisteredEvent
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.AvatarUrl
+import tech.hanasaki.azusa.common.domain.model.Email
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerified
+import tech.hanasaki.azusa.modules.auth.domain.event.UserRegistered
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 
 @JvmInline
 value class PasswordHash(val value: String)
 
-@Serializable
-enum class UserStatus(val value: String) {
-    PENDING("pending"),
-    ACTIVE("active"),
-    SUSPENDED("suspended"),
-    DISABLED("disabled"),
-    BANNED("banned"),
+@JvmInline
+value class Username(
+    val value: String,
+) {
+    init {
+        require(value.length in 2..20) { "用户名长度非法(2 ~ 20)" }
+    }
+}
+
+
+data class UserProfile(
+    val userId: UserId,
+    val username: Username,
+    val avatar: AvatarUrl?,
+    val createdAt: Instant,
+    val updatedAt: Instant,
+)
+
+enum class UserStatus {
+    PENDING,
+    ACTIVE,
+    SUSPENDED,
+    DISABLED,
+    BANNED,
 }
 
 class User(
     val id: UserId,
-    private var _passwordHash: PasswordHash,
-    private var _profile: UserProfile,
-    private var _status: UserStatus,
-    private var _email: Email?,
-    private var _emailVerified: Boolean,
-    private var _bannedUntil: Instant?,
+    passwordHash: PasswordHash,
+    profile: UserProfile,
+    status: UserStatus,
+    email: Email?,
+    emailVerified: Boolean,
+    bannedUntil: Instant?,
 ) : AggregateRoot() {
     companion object {
-        fun register(
+        fun create(
             email: Email,
             hashedPassword: PasswordHash,
             username: Username,
             avatar: AvatarUrl? = null,
+            now: Instant = Clock.System.now(),
         ): User {
-
-            val id = UserId(Uuid.random())
-            val now = Clock.System.now()
+            val id = UserId.generate()
             val user = User(
                 id = id,
-                _passwordHash = hashedPassword,
-                _status = UserStatus.PENDING,
-                _email = email,
-                _emailVerified = false,
-                _bannedUntil = null,
-                _profile = UserProfile(id, username, avatar, now, now)
+                passwordHash = hashedPassword,
+                status = UserStatus.PENDING,
+                email = email,
+                emailVerified = false,
+                bannedUntil = null,
+                profile = UserProfile(id, username, avatar, now, now)
             )
-            user.addDomainEvent(UserRegisteredEvent(user.id, user.email!!))
+            user.addDomainEvent(UserRegistered(userId = user.id, email = user.email!!))
             return user
         }
     }
 
-    val passwordHash: PasswordHash
-        get() = _passwordHash
+    var passwordHash: PasswordHash = passwordHash
+        private set
 
-    val profile: UserProfile
-        get() = _profile
+    var profile: UserProfile = profile
+        private set
 
-    val status: UserStatus
-        get() = _status
+    var status: UserStatus = status
+        private set
 
-    val email: Email?
-        get() = _email
+    var email: Email? = email
+        private set
 
-    val isEmailVerified: Boolean
-        get() = _emailVerified
+    var emailVerified: Boolean = emailVerified
+        private set
 
-    val bannedUntilAt: Instant?
-        get() = _bannedUntil
+    var bannedUntil: Instant? = bannedUntil
+        private set
 
     fun canSignIn(now: Instant = Clock.System.now()): Boolean =
-        _status == UserStatus.ACTIVE &&
+        status == UserStatus.ACTIVE &&
                 !isBanned(now) &&
-                (_email == null || _emailVerified)
+                (email == null || emailVerified)
 
     fun verifyEmail() {
-        require(_email != null) { "Email not set" }
-        _emailVerified = true
-        if (_status == UserStatus.PENDING) {
-            _status = UserStatus.ACTIVE
+        checkNotNull(email) { "无法验证邮箱： 邮箱未设置" }
+        if (emailVerified) return
+
+        emailVerified = true
+        if (status == UserStatus.PENDING) {
+            status = UserStatus.ACTIVE
         }
-        addDomainEvent(EmailVerifiedEvent(id, _email!!))
+        addDomainEvent(EmailVerified(id, email = email!!))
     }
 
     fun changePassword(newPasswordHash: PasswordHash) {
-        _passwordHash = newPasswordHash
+        passwordHash = newPasswordHash
     }
 
     fun suspend() {
-        require(_status == UserStatus.ACTIVE) { "Only active accounts can be suspended" }
-        _status = UserStatus.SUSPENDED
+        require(status == UserStatus.ACTIVE) { "Only active accounts can be suspended" }
+        status = UserStatus.SUSPENDED
     }
 
     fun ban(until: Instant?) {
-        _status = UserStatus.BANNED
-        _bannedUntil = until
+        status = UserStatus.BANNED
+        bannedUntil = until
     }
 
     fun liftBan() {
-        _status = UserStatus.ACTIVE
-        _bannedUntil = null
+        status = UserStatus.ACTIVE
+        bannedUntil = null
     }
 
     fun isBanned(now: Instant = Clock.System.now()): Boolean =
-        _status == UserStatus.BANNED || (_bannedUntil?.let { now < it } ?: false)
+        status == UserStatus.BANNED || (bannedUntil?.let { now < it } ?: false)
 }

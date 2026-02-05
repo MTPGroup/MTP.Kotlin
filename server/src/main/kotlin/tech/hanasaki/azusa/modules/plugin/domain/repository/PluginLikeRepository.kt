@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.plugin.domain.repository
 
-import tech.hanasaki.azusa.common.kernel.model.PluginId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.UserId
 
 interface PluginLikeRepository {
     /**

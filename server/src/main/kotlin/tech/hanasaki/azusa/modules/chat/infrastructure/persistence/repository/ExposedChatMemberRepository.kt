@@ -5,20 +5,21 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatMember
 import tech.hanasaki.azusa.modules.chat.domain.repository.ChatMemberRepository
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.mapper.ChatMemberMapper
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatMemberTable
-import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 class ExposedChatMemberRepository : ChatMemberRepository {
-    override suspend fun findById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatMemberId): ChatMember? = dbQuery {
-        ChatMemberTable.selectAll()
-            .where { ChatMemberTable.id eq id.value }
-            .map(ChatMemberMapper::toDomain)
-            .singleOrNull()
-    }
+    override suspend fun findById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatMemberId): ChatMember? =
+        dbQuery {
+            ChatMemberTable.selectAll()
+                .where { ChatMemberTable.id eq id.value }
+                .map(ChatMemberMapper::toDomain)
+                .singleOrNull()
+        }
 
     override suspend fun findByChatId(chatId: ChatId): List<ChatMember> = dbQuery {
         ChatMemberTable.selectAll()

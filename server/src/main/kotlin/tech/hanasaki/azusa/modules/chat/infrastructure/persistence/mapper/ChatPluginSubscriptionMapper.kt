@@ -5,7 +5,7 @@ import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscription
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatPluginSubscriptionTable
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.kernel.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.PluginId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId
 
 object ChatPluginSubscriptionMapper {

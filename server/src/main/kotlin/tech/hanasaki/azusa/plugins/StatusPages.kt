@@ -5,11 +5,14 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
-import tech.hanasaki.azusa.common.platform.api.ApiException
-import tech.hanasaki.azusa.common.platform.api.ApiResponse
-import tech.hanasaki.azusa.common.platform.api.ErrorDetail
-import tech.hanasaki.azusa.common.kernel.exception.*
-import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
+import tech.hanasaki.azusa.common.adapter.`in`.web.error.ApiException
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.ErrorDetail
+import tech.hanasaki.azusa.common.domain.exception.AuthenticationException
+import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.common.domain.exception.AzusaException
+import tech.hanasaki.azusa.common.domain.exception.ConflictException
+import tech.hanasaki.azusa.common.domain.exception.NotFoundException
 import kotlin.time.Clock
 
 fun Application.configureStatusPages() {

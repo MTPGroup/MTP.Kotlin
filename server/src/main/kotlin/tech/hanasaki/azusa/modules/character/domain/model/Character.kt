@@ -1,15 +1,14 @@
 package tech.hanasaki.azusa.modules.character.domain.model
 
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreatedEvent
-import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeletedEvent
-import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdatedEvent
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.AvatarUrl
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreated
+import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeleted
+import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdated
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 data class Character(
@@ -49,7 +48,7 @@ data class Character(
                 updatedAt = now,
             )
             character.addDomainEvent(
-                CharacterCreatedEvent(
+                CharacterCreated(
                     characterId = character.id,
                     authorId = authorId,
                     name = name,
@@ -103,7 +102,7 @@ data class Character(
         this.updatedAt = Clock.System.now()
 
         addDomainEvent(
-            CharacterUpdatedEvent(
+            CharacterUpdated(
                 characterId = id,
                 authorId = authorId,
                 name = name,
@@ -117,7 +116,7 @@ data class Character(
      */
     fun markDeleted() {
         addDomainEvent(
-            CharacterDeletedEvent(
+            CharacterDeleted(
                 characterId = id,
                 authorId = authorId,
             )

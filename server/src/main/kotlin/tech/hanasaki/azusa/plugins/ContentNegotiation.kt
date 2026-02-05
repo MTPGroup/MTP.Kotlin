@@ -3,12 +3,16 @@ package tech.hanasaki.azusa.plugins
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
-import tech.hanasaki.azusa.common.platform.util.AppJson
+import kotlinx.serialization.json.Json
 
 
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-        json(AppJson.json)
+        json(Json {
+            prettyPrint = true
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        })
     }
 }
 

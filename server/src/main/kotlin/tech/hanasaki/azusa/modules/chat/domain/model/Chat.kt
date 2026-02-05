@@ -1,12 +1,11 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
-import tech.hanasaki.azusa.common.kernel.base.AggregateRoot
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.UserId
-import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreatedEvent
+import tech.hanasaki.azusa.common.domain.model.AggregateRoot
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreated
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
@@ -66,7 +65,7 @@ data class Chat(
                 )
             )
             chat.addDomainEvent(
-                ChatCreatedEvent(
+                ChatCreated(
                     chatId = chat.id,
                     ownerId = ownerId,
                     characterId = characterId,
@@ -166,6 +165,6 @@ data class Chat(
      * 判断是否为私聊
      */
     fun isPrivateChat(): Boolean = members.size == 2 &&
-        getUsers().size == 1 &&
-        getCharacters().size == 1
+            getUsers().size == 1 &&
+            getCharacters().size == 1
 }

@@ -5,8 +5,7 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.modules.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
-import tech.hanasaki.azusa.common.kernel.model.ThemeId
-import kotlin.uuid.ExperimentalUuidApi
+import tech.hanasaki.azusa.common.domain.model.ThemeId
 import kotlin.uuid.Uuid
 
 @Serializable

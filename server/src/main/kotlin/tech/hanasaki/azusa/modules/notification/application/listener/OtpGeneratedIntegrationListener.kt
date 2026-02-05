@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.notification.application.listener
 
 import org.slf4j.LoggerFactory
-import tech.hanasaki.azusa.common.kernel.event.IntegrationEventListener
-import tech.hanasaki.azusa.common.kernel.event.OtpGeneratedIntegrationEvent
+import tech.hanasaki.azusa.common.domain.event.IntegrationEventListener
+import tech.hanasaki.azusa.common.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.modules.notification.application.service.NotificationService
 
 class OtpGeneratedIntegrationListener(

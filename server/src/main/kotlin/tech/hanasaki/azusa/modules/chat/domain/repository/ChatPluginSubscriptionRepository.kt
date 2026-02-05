@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.modules.chat.domain.repository
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscription
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.kernel.model.PluginId
+import tech.hanasaki.azusa.common.domain.model.PluginId
 
 /**
  * ChatPluginSubscription 仓储接口

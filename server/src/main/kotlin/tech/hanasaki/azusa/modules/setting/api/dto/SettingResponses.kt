@@ -5,8 +5,7 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
-import tech.hanasaki.azusa.common.kernel.model.LLMConfig
-import kotlin.uuid.ExperimentalUuidApi
+import tech.hanasaki.azusa.common.domain.model.LLMConfig
 import kotlin.uuid.Uuid
 
 

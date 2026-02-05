@@ -1,10 +1,9 @@
 package tech.hanasaki.azusa.modules.notification.domain.model
 
 import kotlinx.serialization.Contextual
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**

@@ -6,9 +6,13 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.platform.api.*
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.respondOk
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.parseLimitParam
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.parsePageParam
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.requireUserId
+import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
 import tech.hanasaki.azusa.modules.character.api.dto.CreateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.SubscribeKnowledgeBaseRequest
 import tech.hanasaki.azusa.modules.character.api.dto.UpdateCharacterRequest

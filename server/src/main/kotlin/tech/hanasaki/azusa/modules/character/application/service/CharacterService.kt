@@ -1,13 +1,13 @@
 package tech.hanasaki.azusa.modules.character.application.service
 
-import tech.hanasaki.azusa.common.kernel.event.EventPublisher
-import tech.hanasaki.azusa.common.kernel.exception.AuthorizationException
-import tech.hanasaki.azusa.common.kernel.exception.DomainException
-import tech.hanasaki.azusa.common.kernel.exception.NotFoundException
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.PageResult
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.common.domain.exception.DomainException
+import tech.hanasaki.azusa.common.domain.exception.NotFoundException
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.PageResult
+import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
 import tech.hanasaki.azusa.modules.character.domain.model.Character

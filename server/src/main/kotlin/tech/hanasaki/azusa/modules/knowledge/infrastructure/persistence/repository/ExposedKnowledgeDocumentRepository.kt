@@ -5,13 +5,13 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
+import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeDocumentId
+import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.table.KnowledgeDocumentTable
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeDocumentId
-import tech.hanasaki.azusa.common.kernel.model.KnowledgeFileId
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 import java.sql.Connection
 import java.sql.Timestamp
 import java.time.Instant

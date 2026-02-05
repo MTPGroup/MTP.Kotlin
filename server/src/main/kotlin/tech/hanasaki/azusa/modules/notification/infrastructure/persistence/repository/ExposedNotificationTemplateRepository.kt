@@ -7,6 +7,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplate
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplateId
@@ -14,7 +15,6 @@ import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplat
 import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationTemplateRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.mapper.NotificationTemplateMapper
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationTemplateTable
-import tech.hanasaki.azusa.common.platform.database.dbQuery
 
 /**
  * 通知模板仓储实现

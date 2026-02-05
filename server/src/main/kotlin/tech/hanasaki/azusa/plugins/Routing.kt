@@ -1,9 +1,8 @@
 package tech.hanasaki.azusa.plugins
 
 import io.ktor.server.application.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import tech.hanasaki.azusa.modules.auth.api.authRoutes
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
 import tech.hanasaki.azusa.modules.character.api.characterRoutes
 import tech.hanasaki.azusa.modules.knowledge.api.knowledgeRoutes
 import tech.hanasaki.azusa.modules.plugin.api.pluginRoutes
@@ -13,15 +12,6 @@ import tech.hanasaki.azusa.modules.theme.api.themeRoutes
 fun Application.configureRouting() {
 
     routing {
-        get("/health") {
-            call.respondText("ok")
-        }
-
-        /*val openApiResource = environment.classLoader.getResource("openapi/documentation.yaml")
-        if (openApiResource != null) {
-            openAPI(path = "openapi")
-            swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
-        }*/
         authRoutes()
         settingRoutes()
         themeRoutes()

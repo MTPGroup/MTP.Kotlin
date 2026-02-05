@@ -4,9 +4,9 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.CharacterTable
-import tech.hanasaki.azusa.common.kernel.model.AvatarUrl
-import tech.hanasaki.azusa.common.kernel.model.CharacterId
-import tech.hanasaki.azusa.common.kernel.model.UserId
+import tech.hanasaki.azusa.common.domain.model.AvatarUrl
+import tech.hanasaki.azusa.common.domain.model.CharacterId
+import tech.hanasaki.azusa.common.domain.model.UserId
 
 object CharacterMapper {
     fun toDomain(row: ResultRow): Character = Character.reconstitute(

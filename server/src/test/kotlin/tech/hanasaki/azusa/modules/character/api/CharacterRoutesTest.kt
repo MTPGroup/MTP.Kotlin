@@ -9,7 +9,7 @@ import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import org.koin.core.module.Module
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.common.platform.api.ApiResponse
+import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
 import tech.hanasaki.azusa.modules.character.api.dto.CharacterResponse
 import tech.hanasaki.azusa.modules.character.api.dto.KnowledgeSubscriptionResponse
 import tech.hanasaki.azusa.modules.character.characterModule
