@@ -1,16 +1,16 @@
-package tech.hanasaki.azusa.modules.notification.domain.repository
+package tech.hanasaki.azusa.modules.notification.domain.port
 
-import tech.hanasaki.azusa.shared.domain.model.page.PageResult
-import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLogId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationStatus
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 /**
  * 通知日志仓储接口
  */
-interface NotificationLogRepository {
+interface NotificationLogRepositoryPort {
     /**
      * 保存通知日志
      */

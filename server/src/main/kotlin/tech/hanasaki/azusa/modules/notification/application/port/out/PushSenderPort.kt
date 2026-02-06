@@ -1,9 +1,9 @@
-package tech.hanasaki.azusa.modules.notification.domain.port
+package tech.hanasaki.azusa.modules.notification.application.port.out
 
 /**
  * 推送通知发送端口接口
  */
-interface PushSender {
+interface PushSenderPort {
     /**
      * 发送推送通知
      *

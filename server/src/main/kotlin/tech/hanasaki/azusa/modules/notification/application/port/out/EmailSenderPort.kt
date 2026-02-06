@@ -1,9 +1,9 @@
-package tech.hanasaki.azusa.modules.notification.domain.port
+package tech.hanasaki.azusa.modules.notification.application.port.out
 
 /**
  * 邮件发送端口接口
  */
-interface EmailSender {
+interface EmailSenderPort {
     /**
      * 发送 HTML 邮件
      *

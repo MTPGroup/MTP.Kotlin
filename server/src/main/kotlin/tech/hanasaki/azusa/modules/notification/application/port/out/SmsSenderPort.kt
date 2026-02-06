@@ -1,9 +1,9 @@
-package tech.hanasaki.azusa.modules.notification.domain.port
+package tech.hanasaki.azusa.modules.notification.application.port.out
 
 /**
  * 短信发送端口接口
  */
-interface SmsSender {
+interface SmsSenderPort {
     /**
      * 发送短信
      *

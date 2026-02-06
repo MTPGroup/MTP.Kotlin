@@ -24,6 +24,16 @@ enum class NotificationStatus {
 }
 
 /**
+ * 通知渠道枚举
+ */
+enum class NotificationChannel {
+    EMAIL,      // 电子邮件
+    SMS,        // 短信
+    PUSH,       // 推送通知
+    WEBSOCKET,  // WebSocket 实时通知
+}
+
+/**
  * 通知日志实体 - 记录所有通知的发送记录
  */
 data class NotificationLog(
@@ -33,7 +43,6 @@ data class NotificationLog(
     val recipient: String,           // 接收地址（邮箱/手机号/设备ID）
     val subject: String?,            // 主题（邮件有，短信无）
     val content: String,             // 通知内容
-    val templateId: NotificationTemplateId?, // 使用的模板（可选）
     val status: NotificationStatus,
     val errorMessage: String?,       // 失败时的错误信息
     val sentAt: Instant?,            // 发送时间
@@ -49,7 +58,6 @@ data class NotificationLog(
             recipient: String,
             subject: String?,
             content: String,
-            templateId: NotificationTemplateId? = null,
         ): NotificationLog = NotificationLog(
             id = NotificationLogId(Uuid.random()),
             userId = userId,
@@ -57,7 +65,6 @@ data class NotificationLog(
             recipient = recipient,
             subject = subject,
             content = content,
-            templateId = templateId,
             status = NotificationStatus.PENDING,
             errorMessage = null,
             sentAt = null,
@@ -74,7 +81,6 @@ data class NotificationLog(
             recipient: String,
             subject: String?,
             content: String,
-            templateId: NotificationTemplateId?,
             status: NotificationStatus,
             errorMessage: String?,
             sentAt: Instant?,
@@ -86,7 +92,6 @@ data class NotificationLog(
             recipient = recipient,
             subject = subject,
             content = content,
-            templateId = templateId,
             status = status,
             errorMessage = errorMessage,
             sentAt = sentAt,

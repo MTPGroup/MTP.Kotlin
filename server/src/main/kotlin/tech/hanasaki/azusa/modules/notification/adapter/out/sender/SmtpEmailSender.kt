@@ -1,39 +1,29 @@
-package tech.hanasaki.azusa.modules.notification.infrastructure.adapter
+package tech.hanasaki.azusa.modules.notification.adapter.out.sender
 
+import freemarker.template.Configuration
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
-import tech.hanasaki.azusa.modules.notification.domain.port.EmailSender
-import tech.hanasaki.azusa.modules.notification.infrastructure.service.EmailTemplateService
+import tech.hanasaki.azusa.modules.notification.application.port.out.EmailSenderPort
+import tech.hanasaki.azusa.modules.notification.config.SmtpConfig
+import java.io.StringWriter
 import java.util.*
 
-/**
- * SMTP 配置
- */
-data class SmtpConfig(
-    val enabled: Boolean,
-    val host: String,
-    val port: Int,
-    val username: String,
-    val password: String,
-    val from: String,
-    val tls: Boolean = true,
-)
 
 /**
  * SMTP 邮件发送器实现
  */
 class SmtpEmailSender(
-    private val config: SmtpConfig,
-    private val templateService: EmailTemplateService? = null,
-) : EmailSender {
+    private val smtpConfig: SmtpConfig,
+    private val freemarkerConfig: Configuration,
+) : EmailSenderPort {
 
     override suspend fun sendHtml(to: String, subject: String, html: String) {
-        if (!config.enabled) return
+        if (!smtpConfig.enabled) return
 
         val session = createSession()
         val message = MimeMessage(session).apply {
-            setFrom(InternetAddress(config.from))
+            setFrom(InternetAddress(smtpConfig.from))
             setRecipients(Message.RecipientType.TO, InternetAddress.parse(to))
             setSubject(subject, "UTF-8")
             setContent(html, "text/html; charset=UTF-8")
@@ -43,11 +33,11 @@ class SmtpEmailSender(
     }
 
     override suspend fun sendText(to: String, subject: String, text: String) {
-        if (!config.enabled) return
+        if (!smtpConfig.enabled) return
 
         val session = createSession()
         val message = MimeMessage(session).apply {
-            setFrom(InternetAddress(config.from))
+            setFrom(InternetAddress(smtpConfig.from))
             setRecipients(Message.RecipientType.TO, InternetAddress.parse(to))
             setSubject(subject, "UTF-8")
             setText(text, "UTF-8")
@@ -62,28 +52,32 @@ class SmtpEmailSender(
         templateName: String,
         model: Map<String, Any>,
     ) {
-        if (!config.enabled) return
-        if (templateService == null) {
-            throw UnsupportedOperationException("EmailTemplateService not configured")
-        }
+        if (!smtpConfig.enabled) return
 
-        val html = templateService.renderTemplate(templateName, model)
+        val html = renderTemplate(templateName, model)
         sendHtml(to, subject, html)
     }
 
     private fun createSession(): Session {
         val props = Properties().apply {
-            put("mail.smtp.host", config.host)
-            put("mail.smtp.port", config.port.toString())
+            put("mail.smtp.host", smtpConfig.host)
+            put("mail.smtp.port", smtpConfig.port.toString())
             put("mail.smtp.auth", "true")
-            put("mail.smtp.starttls.enable", config.tls.toString())
-            put("mail.smtp.starttls.required", config.tls.toString())
+            put("mail.smtp.starttls.enable", smtpConfig.tls.toString())
+            put("mail.smtp.starttls.required", smtpConfig.tls.toString())
         }
 
         return Session.getInstance(props, object : Authenticator() {
             override fun getPasswordAuthentication(): PasswordAuthentication {
-                return PasswordAuthentication(config.username, config.password)
+                return PasswordAuthentication(smtpConfig.username, smtpConfig.password)
             }
         })
+    }
+
+    private fun renderTemplate(templateName: String, model: Map<String, Any>): String {
+        val template = freemarkerConfig.getTemplate(templateName)
+        val writer = StringWriter()
+        template.process(model, writer)
+        return writer.toString()
     }
 }

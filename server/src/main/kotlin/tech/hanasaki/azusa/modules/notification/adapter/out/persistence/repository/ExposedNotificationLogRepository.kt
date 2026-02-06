@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository
+package tech.hanasaki.azusa.modules.notification.adapter.out.persistence.repository
 
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
@@ -6,20 +6,20 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.shared.domain.model.page.PageResult
-import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.modules.notification.adapter.out.persistence.mapper.NotificationLogMapper
+import tech.hanasaki.azusa.modules.notification.adapter.out.persistence.table.NotificationLogTable
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLogId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationStatus
-import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationLogRepository
-import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.mapper.NotificationLogMapper
-import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationLogTable
+import tech.hanasaki.azusa.modules.notification.domain.port.NotificationLogRepositoryPort
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 /**
  * 通知日志仓储实现
  */
-class ExposedNotificationLogRepository : NotificationLogRepository {
+class ExposedNotificationLogRepository : NotificationLogRepositoryPort {
 
     override suspend fun save(log: NotificationLog) {
         val exists = NotificationLogTable.selectAll()

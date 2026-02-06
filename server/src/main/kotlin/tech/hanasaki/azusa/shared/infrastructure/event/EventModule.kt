@@ -29,6 +29,7 @@ import tech.hanasaki.azusa.shared.infrastructure.event.redis.StreamConfig
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.readStreamConfig
 import tech.hanasaki.azusa.shared.port.`in`.DomainEventHandlerPort
 import tech.hanasaki.azusa.shared.port.`in`.EventSubscriberPort
+import tech.hanasaki.azusa.shared.port.`in`.IntegrationEventHandlerPort
 import tech.hanasaki.azusa.shared.port.out.*
 
 
@@ -157,7 +158,7 @@ inline fun <reified EV : DomainEvent> Module.onDomainEvent(
  */
 inline fun <reified IE : IntegrationEvent> Module.onIntegrationEvent(
     eventType: String,
-    crossinline handlerFactory: Scope.() -> suspend (IE) -> Unit,
+    crossinline handlerFactory: Scope.() -> IntegrationEventHandlerPort<IE>,
 ) {
     val name = named("integration_handler_${eventType}_${IE::class.simpleName}")
     single(qualifier = name, createdAtStart = true) {

@@ -1,15 +1,16 @@
-package tech.hanasaki.azusa.modules.notification.application.listener
+package tech.hanasaki.azusa.modules.notification.adapter.`in`.event
 
 import org.slf4j.LoggerFactory
+import tech.hanasaki.azusa.modules.notification.application.port.`in`.NotificationUseCasePort
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
-import tech.hanasaki.azusa.modules.notification.application.service.NotificationService
+import tech.hanasaki.azusa.shared.port.`in`.IntegrationEventHandlerPort
 
-class OtpGeneratedIntegrationListener(
-    private val notificationService: NotificationService,
-) {
-    private val logger = LoggerFactory.getLogger(OtpGeneratedIntegrationListener::class.java)
+class OtpGeneratedHandler(
+    private val notificationService: NotificationUseCasePort,
+) : IntegrationEventHandlerPort<OtpGeneratedIntegrationEvent> {
+    private val logger = LoggerFactory.getLogger(OtpGeneratedHandler::class.java)
 
-    suspend fun handle(event: OtpGeneratedIntegrationEvent) {
+    override suspend fun invoke(event: OtpGeneratedIntegrationEvent) {
         try {
             val subject = when (event.type) {
                 "VERIFY_EMAIL" -> "验证您的邮箱 - Azusa"
@@ -32,12 +33,16 @@ class OtpGeneratedIntegrationListener(
                 else -> "请使用以下验证码："
             }
 
-            notificationService.sendOtpEmail(
+            notificationService.sendEmail(
                 to = event.email,
-                code = event.code,
                 subject = subject,
-                title = title,
-                description = description,
+                templateName = "otp-verification.ftl",
+                model = mapOf(
+                    "title" to title,
+                    "description" to description,
+                    "code" to event.code,
+                    "expireMinutes" to 5,
+                ),
             )
 
             logger.info("OTP email sent to: ${event.email}")

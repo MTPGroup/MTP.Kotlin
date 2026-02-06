@@ -1,9 +1,9 @@
-package tech.hanasaki.azusa.modules.notification.infrastructure.persistence.mapper
+package tech.hanasaki.azusa.modules.notification.adapter.out.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import tech.hanasaki.azusa.modules.notification.adapter.out.persistence.table.NotificationLogTable
 import tech.hanasaki.azusa.modules.notification.domain.model.*
-import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table.NotificationLogTable
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 /**
@@ -18,7 +18,6 @@ object NotificationLogMapper {
         recipient = row[NotificationLogTable.recipient],
         subject = row[NotificationLogTable.subject],
         content = row[NotificationLogTable.content],
-        templateId = row[NotificationLogTable.templateId]?.let { NotificationTemplateId(it) },
         status = NotificationStatus.valueOf(row[NotificationLogTable.status]),
         errorMessage = row[NotificationLogTable.errorMessage],
         sentAt = row[NotificationLogTable.sentAt],
@@ -32,7 +31,6 @@ object NotificationLogMapper {
         target[NotificationLogTable.recipient] = domain.recipient
         target[NotificationLogTable.subject] = domain.subject
         target[NotificationLogTable.content] = domain.content
-        target[NotificationLogTable.templateId] = domain.templateId?.value
         target[NotificationLogTable.status] = domain.status.name
         target[NotificationLogTable.errorMessage] = domain.errorMessage
         target[NotificationLogTable.sentAt] = domain.sentAt

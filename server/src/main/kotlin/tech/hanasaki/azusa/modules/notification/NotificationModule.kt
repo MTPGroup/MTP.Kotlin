@@ -4,96 +4,55 @@ import freemarker.cache.ClassTemplateLoader
 import freemarker.template.Configuration
 import io.ktor.server.config.*
 import org.koin.dsl.module
-import tech.hanasaki.azusa.modules.notification.application.listener.OtpGeneratedIntegrationListener
+import tech.hanasaki.azusa.modules.notification.adapter.`in`.event.OtpGeneratedHandler
+import tech.hanasaki.azusa.modules.notification.adapter.out.persistence.repository.ExposedNotificationLogRepository
+import tech.hanasaki.azusa.modules.notification.adapter.out.sender.SmtpEmailSender
+import tech.hanasaki.azusa.modules.notification.application.port.`in`.NotificationUseCasePort
+import tech.hanasaki.azusa.modules.notification.application.port.out.EmailSenderPort
 import tech.hanasaki.azusa.modules.notification.application.service.NotificationService
-import tech.hanasaki.azusa.modules.notification.domain.port.EmailSender
-import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationLogRepository
-import tech.hanasaki.azusa.modules.notification.domain.repository.NotificationTemplateRepository
-import tech.hanasaki.azusa.modules.notification.infrastructure.adapter.SmtpConfig
-import tech.hanasaki.azusa.modules.notification.infrastructure.adapter.SmtpEmailSender
-import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository.ExposedNotificationLogRepository
-import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository.ExposedNotificationTemplateRepository
-import tech.hanasaki.azusa.modules.notification.infrastructure.service.EmailTemplateService
+import tech.hanasaki.azusa.modules.notification.config.SmtpConfig
+import tech.hanasaki.azusa.modules.notification.config.readSmtpConfig
+import tech.hanasaki.azusa.modules.notification.domain.port.NotificationLogRepositoryPort
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.onIntegrationEvent
 
-/**
- * 通知模块配置
- */
-data class NotificationConfig(
-    val smtp: SmtpConfig,
-)
-
-/**
- * 从应用配置读取通知模块配置
- */
-fun ApplicationConfig.toNotificationConfig(): NotificationConfig {
-    val smtp = config("smtp")
-    return NotificationConfig(
-        smtp = SmtpConfig(
-            enabled = smtp.property("enabled").getString().toBoolean(),
-            host = smtp.property("host").getString(),
-            port = smtp.property("port").getString().toInt(),
-            username = smtp.property("username").getString(),
-            password = smtp.property("password").getString(),
-            from = smtp.property("from").getString(),
-            tls = smtp.propertyOrNull("tls")?.getString()?.toBoolean() ?: true,
-        ),
-    )
-}
 
 /**
  * 通知模块 Koin 定义
  */
 fun notificationModule(config: ApplicationConfig) = module {
-    val notificationConfig = config.toNotificationConfig()
+    single<NotificationLogRepositoryPort> { ExposedNotificationLogRepository() }
 
-    // Repositories
-    single<NotificationLogRepository> { ExposedNotificationLogRepository() }
-    single<NotificationTemplateRepository> { ExposedNotificationTemplateRepository() }
-
-    // FreeMarker Configuration
     single<Configuration> {
         Configuration(Configuration.VERSION_2_3_32).apply {
             defaultEncoding = "UTF-8"
-            setTemplateLoader(
-                ClassTemplateLoader(
-                    javaClass.classLoader,
-                    "templates/email"
-                )
+            templateLoader = ClassTemplateLoader(
+                javaClass.classLoader,
+                "templates/email"
             )
             fallbackOnNullLoopVariable = false
         }
     }
+    single<SmtpConfig> { config.readSmtpConfig() }
 
-    // Services
-    single { EmailTemplateService(get()) }
-
-    // Ports / Adapters
-    single<EmailSender> {
+    single<EmailSenderPort> {
         SmtpEmailSender(
-            config = notificationConfig.smtp,
-            templateService = get(),
+            get(),
+            get()
         )
     }
 
-    // Application Service
-    single {
+    single<NotificationUseCasePort> {
         NotificationService(
             emailSender = get(),
             smsSender = null,   // TODO: Implement SmsSender when needed
             pushSender = null,  // TODO: Implement PushSender when needed
             logRepository = get(),
-            templateRepository = get(),
         )
     }
 
-    // Event Listeners
-    single<OtpGeneratedIntegrationListener> { OtpGeneratedIntegrationListener(get()) }
-
     // 订阅集成事件
-    onIntegrationEvent<OtpGeneratedIntegrationEvent>("notification.otp.generated") {
-        val listener = get<OtpGeneratedIntegrationListener>()
-        return@onIntegrationEvent { event: OtpGeneratedIntegrationEvent -> listener.handle(event) }
+    onIntegrationEvent<OtpGeneratedIntegrationEvent>("auth.otp.generated") {
+        OtpGeneratedHandler(get())
     }
 }
