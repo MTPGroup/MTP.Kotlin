@@ -9,7 +9,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.*
-import tech.hanasaki.azusa.modules.character.application.service.CharacterService
+import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
@@ -21,7 +21,7 @@ import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
 
 fun Route.characterRoutes() {
-    val characterService: CharacterService by inject()
+    val characterService: CharacterUseCasePort by inject()
 
     authenticate("auth-jwt") {
         route("/characters") {
