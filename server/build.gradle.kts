@@ -12,17 +12,17 @@ application {
     mainClass.set("io.ktor.server.netty.EngineMain")
 }
 
-//ktor {
-//    openApi {
-//        enabled = true
-//        codeInferenceEnabled = true
-//        onlyCommented = false
-//    }
-//}
+ktor {
+    openApi {
+        enabled = true
+        codeInferenceEnabled = false
+    }
+}
 
 kotlin {
     compilerOptions {
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("io.ktor.utils.io.ExperimentalKtorApi")
     }
 }
 
