@@ -8,12 +8,14 @@ import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.port.NotificationLogRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
 class NotificationService(
     private val emailSender: EmailSenderPort,
     private val smsSender: SmsSenderPort?,
     private val pushSender: PushSenderPort?,
     private val logRepository: NotificationLogRepositoryPort,
+    private val tx: TransactionalPort,
 ) : NotificationUseCasePort {
     override suspend fun sendEmail(
         to: String,
@@ -33,16 +35,18 @@ class NotificationService(
             content = content ?: "template:$templateName",
         )
 
-        try {
-            if (templateName != null) {
-                emailSender.sendTemplate(to, subject, templateName, model)
-            } else {
-                emailSender.sendHtml(to, subject, content!!)
+        tx.execute {
+            try {
+                if (templateName != null) {
+                    emailSender.sendTemplate(to, subject, templateName, model)
+                } else {
+                    emailSender.sendHtml(to, subject, content!!)
+                }
+                logRepository.save(log.markAsSent())
+            } catch (e: Exception) {
+                logRepository.save(log.markAsFailed(e.message ?: "未知错误"))
+                throw e
             }
-            logRepository.save(log.markAsSent())
-        } catch (e: Exception) {
-            logRepository.save(log.markAsFailed(e.message ?: "未知错误"))
-            throw e
         }
     }
 
@@ -61,12 +65,14 @@ class NotificationService(
             content = content,
         )
 
-        try {
-            sender.send(to, content)
-            logRepository.save(log.markAsSent())
-        } catch (e: Exception) {
-            logRepository.save(log.markAsFailed(e.message ?: "未知错误"))
-            throw e
+        tx.execute {
+            try {
+                sender.send(to, content)
+                logRepository.save(log.markAsSent())
+            } catch (e: Exception) {
+                logRepository.save(log.markAsFailed(e.message ?: "未知错误"))
+                throw e
+            }
         }
     }
 
@@ -87,13 +93,14 @@ class NotificationService(
             content = body,
         )
 
-        try {
-            sender.send(deviceToken, title, body, data)
-            logRepository.save(log.markAsSent())
-        } catch (e: Exception) {
-            logRepository.save(log.markAsFailed(e.message ?: "未知的错误"))
-            throw e
+        tx.execute {
+            try {
+                sender.send(deviceToken, title, body, data)
+                logRepository.save(log.markAsSent())
+            } catch (e: Exception) {
+                logRepository.save(log.markAsFailed(e.message ?: "未知的错误"))
+                throw e
+            }
         }
     }
-
 }

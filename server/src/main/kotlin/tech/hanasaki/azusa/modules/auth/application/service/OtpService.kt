@@ -2,7 +2,6 @@ package tech.hanasaki.azusa.modules.auth.application.service
 
 import tech.hanasaki.azusa.modules.auth.application.port.`in`.OtpUseCasePort
 import tech.hanasaki.azusa.modules.auth.config.OtpConfig
-import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.port.OtpRepositoryPort
@@ -10,7 +9,6 @@ import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.HitLimitException
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
-import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
 import tech.hanasaki.azusa.shared.port.out.StringEncoderPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
@@ -23,7 +21,6 @@ class OtpService(
     private val otpRepository: OtpRepositoryPort,
     private val otpConfig: OtpConfig,
     private val encoder: StringEncoderPort,
-    private val domainEventBus: DomainEventBusPort,
     private val outboxScheduler: OutboxSchedulerPort,
     private val tx: TransactionalPort,
 ) : OtpUseCasePort {
@@ -46,7 +43,6 @@ class OtpService(
                 expiresAt = Clock.System.now().plus(otpConfig.expiresMinutes.minutes)
             )
             otpRepository.save(otp)
-            otp.publishAndClear(domainEventBus)
             outboxScheduler.schedule(
                 OtpGeneratedIntegrationEvent(
                     email = email.value,

@@ -1,8 +1,6 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
 import tech.hanasaki.azusa.shared.domain.exception.ValidationException
-import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -24,7 +22,7 @@ enum class OtpType {
 }
 
 
-class Otp private constructor(
+data class Otp(
     val id: Uuid = Uuid.random(),
     val email: Email,
     val codeHash: String,
@@ -32,29 +30,19 @@ class Otp private constructor(
     val isUsed: Boolean = false,
     val expiresAt: Instant,
     val usedAt: Instant? = null,
-) : AggregateRoot() {
+) {
     companion object {
         fun create(
             email: Email,
             codeHash: String,
             type: OtpType,
             expiresAt: Instant,
-        ): Otp {
-            val otp = Otp(
-                email = email,
-                codeHash = codeHash,
-                type = type,
-                expiresAt = expiresAt
-            )
-            otp.addDomainEvent(
-                OtpCreated(
-                    email = email,
-                    otpType = type,
-                    expiresAt = expiresAt
-                )
-            )
-            return otp
-        }
+        ): Otp = Otp(
+            email = email,
+            codeHash = codeHash,
+            type = type,
+            expiresAt = expiresAt,
+        )
 
         fun reconstitute(
             id: Uuid,
@@ -71,7 +59,7 @@ class Otp private constructor(
             type = type,
             isUsed = isUsed,
             expiresAt = expiresAt,
-            usedAt = usedAt
+            usedAt = usedAt,
         )
     }
 

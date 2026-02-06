@@ -48,7 +48,6 @@ fun authModule(config: ApplicationConfig) = module {
             get(),
             get(),
             get(),
-            get(),
         )
     }
     single<AuthUseCasePort> {

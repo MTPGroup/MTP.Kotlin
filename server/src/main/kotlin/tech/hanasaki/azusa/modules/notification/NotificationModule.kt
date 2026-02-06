@@ -44,10 +44,11 @@ fun notificationModule(config: ApplicationConfig) = module {
 
     single<NotificationUseCasePort> {
         NotificationService(
-            emailSender = get(),
-            smsSender = null,   // TODO: Implement SmsSender when needed
-            pushSender = null,  // TODO: Implement PushSender when needed
-            logRepository = get(),
+            get(),
+            null,   // TODO: Implement SmsSender when needed
+            null,  // TODO: Implement PushSender when needed
+            get(),
+            get(),
         )
     }
 
