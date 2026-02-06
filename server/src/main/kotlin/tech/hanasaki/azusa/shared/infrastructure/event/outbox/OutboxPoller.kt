@@ -80,6 +80,7 @@ class OutboxPoller(
                     logger.debug("处理消息成功: ${event.eventType}")
                 } catch (e: Exception) {
                     logger.error("处理消息失败: ${event.eventType}", e)
+                    repository.markAsFailed(event.id, e.message ?: "未知错误")
                 }
             }
         }

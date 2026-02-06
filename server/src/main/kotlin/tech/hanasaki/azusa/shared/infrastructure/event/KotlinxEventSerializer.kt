@@ -7,19 +7,6 @@ import tech.hanasaki.azusa.shared.port.out.EventSerializerPort
 class KotlinxEventSerializer(
     private val json: Json,
 ) : EventSerializerPort {
-    /*    private val json = Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            serializersModule = SerializersModule {
-                polymorphic(DomainEvent::class) {
-                    subclass(UserRegistered::class, UserRegistered.serializer())
-                    subclass(EmailVerified::class, EmailVerified.serializer())
-                }
-                classDiscriminator = "type"
-            }
-        }*/
-
     override fun serialize(event: DomainEvent): String =
         json.encodeToString(event)
 

@@ -13,33 +13,19 @@ class RedisStreamEventPublisher(
     private val redisCommands: RedisCoroutinesCommands<String, String>,
 ) : EventPublisherPort {
     override suspend fun publish(event: DomainEvent) {
-        val lock = LettuceDistLock(
-            redisCommands,
-            "azusa:lock"
-        )
+        try {
+            val message = mapOf(
+                "eventId" to event.eventId.toString(),
+                "eventType" to event.eventType,
+                "aggregateType" to event.aggregateType,
+                "aggregateId" to event.aggregateId,
+                "occurredOn" to event.occurredOn.toString(),
+                "payload" to eventSerializer.serialize(event)
+            )
 
-        if (lock.tryLock()) {
-            try {
-                val message = mapOf(
-                    "eventId" to event.eventId.toString(),
-                    "eventType" to event.eventType,
-                    "aggregateType" to event.aggregateType,
-                    "aggregateId" to event.aggregateId,
-                    "occurredOn" to event.occurredOn.toString(),
-                    "payload" to eventSerializer.serialize(event)
-                )
-
-                redisCommands.xadd(streamConfig.streamKey, message)
-            } catch (e: Exception) {
-                throw e
-            } finally {
-                lock.unlock()
-            }
+            redisCommands.xadd(streamConfig.streamKey, message)
+        } catch (e: Exception) {
+            throw e
         }
-
-    }
-
-    override suspend fun publishAll(events: Collection<DomainEvent>) {
-        TODO("Not yet implemented")
     }
 }
