@@ -1,18 +1,18 @@
 package tech.hanasaki.azusa.modules.character
 
-import io.ktor.server.config.*
 import org.koin.dsl.module
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.repository.ExposedCharacterRepository
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.repository.ExposedKnowledgeSubscriptionRepository
 import tech.hanasaki.azusa.modules.character.application.service.CharacterService
-import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
-import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
-import tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository.ExposedCharacterRepository
-import tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository.ExposedKnowledgeSubscriptionRepository
+import tech.hanasaki.azusa.modules.character.domain.port.CharacterRepositoryPort
+import tech.hanasaki.azusa.modules.character.domain.port.KnowledgeSubscriptionRepositoryPort
 
-fun characterModule(config: ApplicationConfig) = module {
-    single<CharacterRepository> { ExposedCharacterRepository() }
-    single<KnowledgeSubscriptionRepository> { ExposedKnowledgeSubscriptionRepository() }
+fun characterModule() = module {
+    single<CharacterRepositoryPort> { ExposedCharacterRepository() }
+    single<KnowledgeSubscriptionRepositoryPort> { ExposedKnowledgeSubscriptionRepository() }
     single {
         CharacterService(
+            get(),
             get(),
             get(),
             get(),

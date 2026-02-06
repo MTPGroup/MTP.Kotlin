@@ -23,7 +23,7 @@ fun appModules(config: ApplicationConfig): List<Module> {
         authModule(config),
         settingModule(config),
         themeModule(config),
-        characterModule(config),
+        characterModule(),
         chatModule(config),
         pluginModule(config),
         knowledgeModule(config)

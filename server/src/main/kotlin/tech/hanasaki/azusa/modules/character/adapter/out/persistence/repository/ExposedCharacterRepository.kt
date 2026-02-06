@@ -1,19 +1,19 @@
-package tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository
+package tech.hanasaki.azusa.modules.character.adapter.out.persistence.repository
 
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.mapper.CharacterMapper
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterTable
+import tech.hanasaki.azusa.modules.character.domain.model.Character
+import tech.hanasaki.azusa.modules.character.domain.port.CharacterRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.character.domain.model.Character
-import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
-import tech.hanasaki.azusa.modules.character.infrastructure.persistence.mapper.CharacterMapper
-import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.CharacterTable
 
-class ExposedCharacterRepository : CharacterRepository {
+class ExposedCharacterRepository : CharacterRepositoryPort {
     override suspend fun findById(id: CharacterId): Character? {
         return CharacterTable.selectAll()
             .where { CharacterTable.id eq id.value }
@@ -81,9 +81,17 @@ class ExposedCharacterRepository : CharacterRepository {
         return PageResult(items, total, page, limit)
     }
 
-    override suspend fun searchPublicCharacters(query: String, page: Int, limit: Int): PageResult<Character> {
+    override suspend fun searchCharacters(
+        query: String,
+        page: Int,
+        limit: Int,
+        userId: UserId?,
+    ): PageResult<Character> {
         val searchPattern = "%${query.lowercase()}%"
-        val condition = { (CharacterTable.isPublic eq true) and (CharacterTable.name.lowerCase() like searchPattern) }
+        val condition = {
+            ((CharacterTable.isPublic eq true) or (userId?.let { CharacterTable.authorId eq it.value } ?: Op.FALSE)) and
+                    (CharacterTable.name.lowerCase() like searchPattern)
+        }
 
         val total = CharacterTable.selectAll()
             .where(condition)

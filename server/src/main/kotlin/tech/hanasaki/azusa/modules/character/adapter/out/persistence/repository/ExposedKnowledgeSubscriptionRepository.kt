@@ -1,17 +1,17 @@
-package tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository
+package tech.hanasaki.azusa.modules.character.adapter.out.persistence.repository
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.KnowledgeSubscriptionTable
+import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
+import tech.hanasaki.azusa.modules.character.domain.port.KnowledgeSubscriptionRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
-import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
-import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
-import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.KnowledgeSubscriptionTable
 
-class ExposedKnowledgeSubscriptionRepository : KnowledgeSubscriptionRepository {
+class ExposedKnowledgeSubscriptionRepository : KnowledgeSubscriptionRepositoryPort {
     override suspend fun findByCharacterId(characterId: CharacterId): List<KnowledgeSubscription> =
         KnowledgeSubscriptionTable.selectAll()
             .where { KnowledgeSubscriptionTable.characterId eq characterId.value }

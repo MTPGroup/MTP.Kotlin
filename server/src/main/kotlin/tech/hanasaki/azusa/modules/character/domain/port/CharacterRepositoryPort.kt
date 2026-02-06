@@ -1,11 +1,11 @@
-package tech.hanasaki.azusa.modules.character.domain.repository
+package tech.hanasaki.azusa.modules.character.domain.port
 
+import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.character.domain.model.Character
 
-interface CharacterRepository {
+interface CharacterRepositoryPort {
     suspend fun findById(id: CharacterId): Character?
     suspend fun findByAuthorId(authorId: UserId): List<Character>
     suspend fun findPublicCharacters(): List<Character>
@@ -22,8 +22,5 @@ interface CharacterRepository {
      */
     suspend fun findPublicCharactersPaged(page: Int, limit: Int): PageResult<Character>
 
-    /**
-     * 搜索公开角色（按名称模糊匹配）
-     */
-    suspend fun searchPublicCharacters(query: String, page: Int, limit: Int): PageResult<Character>
+    suspend fun searchCharacters(query: String, page: Int, limit: Int, userId: UserId?): PageResult<Character>
 }

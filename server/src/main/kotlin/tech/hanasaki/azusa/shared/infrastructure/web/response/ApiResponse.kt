@@ -39,3 +39,14 @@ data class ApiResponse<T>(
         }
     }
 }
+
+@Serializable
+data class PagedResponse<T>(
+    val items: List<T>,
+    val total: Long,
+    val page: Int,
+    val limit: Int,
+    val totalPages: Int,
+    val hasNext: Boolean,
+    val hasPrevious: Boolean,
+)

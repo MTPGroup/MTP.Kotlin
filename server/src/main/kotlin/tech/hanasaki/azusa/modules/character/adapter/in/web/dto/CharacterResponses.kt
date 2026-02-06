@@ -1,17 +1,18 @@
-package tech.hanasaki.azusa.modules.character.api.dto
+package tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.infrastructure.web.response.PagedResponse
 import kotlin.uuid.Uuid
 
 
 @Serializable
 data class CharacterResponse(
-    @Contextual val id: Uuid,
-    @Contextual val authorId: Uuid,
+    val id: Uuid,
+    val authorId: Uuid,
     val name: String,
     val avatar: String?,
     val bio: String?,
@@ -21,21 +22,17 @@ data class CharacterResponse(
     val updatedAt: String,
 )
 
-@Serializable
-data class PagedCharacterResponse(
-    val items: List<CharacterResponse>,
-    val total: Long,
-    val page: Int,
-    val limit: Int,
-    val totalPages: Int,
-    val hasNext: Boolean,
-    val hasPrevious: Boolean,
-)
+typealias PagedCharacterResponse = PagedResponse<CharacterResponse>
 
 @Serializable
 data class KnowledgeSubscriptionResponse(
     @Contextual val knowledgeBaseId: Uuid,
     val priority: Int,
+)
+
+@Serializable
+data class SuccessResponse(
+    val success: Boolean = true,
 )
 
 fun Character.toResponse(): CharacterResponse = CharacterResponse(
@@ -60,7 +57,11 @@ fun PageResult<Character>.toResponse(): PagedCharacterResponse = PagedCharacterR
     hasPrevious = hasPrevious,
 )
 
+
 fun KnowledgeSubscription.toResponse(): KnowledgeSubscriptionResponse = KnowledgeSubscriptionResponse(
     knowledgeBaseId = knowledgeBaseId.value,
     priority = priority,
 )
+
+fun List<KnowledgeSubscription>.toResponse(): List<KnowledgeSubscriptionResponse> =
+    map { it.toResponse() }

@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.character.api
+package tech.hanasaki.azusa.modules.character.adapter.`in`.web
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -9,8 +9,8 @@ import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import org.koin.core.module.Module
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.modules.character.api.dto.CharacterResponse
-import tech.hanasaki.azusa.modules.character.api.dto.KnowledgeSubscriptionResponse
+import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.CharacterResponse
+import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.KnowledgeSubscriptionResponse
 import tech.hanasaki.azusa.modules.character.characterModule
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import kotlin.test.assertEquals
@@ -19,7 +19,7 @@ import kotlin.test.assertTrue
 class CharacterRoutesTest : BaseIntegrationTest() {
 
     override fun additionalModules(config: ApplicationConfig): List<Module> = listOf(
-        characterModule(config)
+        characterModule()
     )
 
     override fun Route.additionalRoutes() {

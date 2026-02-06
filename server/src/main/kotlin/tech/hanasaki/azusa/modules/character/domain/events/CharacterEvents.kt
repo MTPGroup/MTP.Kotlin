@@ -10,9 +10,10 @@ import kotlin.uuid.Uuid
 sealed class CharacterEvent : DomainEvent {
     abstract val characterId: CharacterId
 
-    override val aggregateId: String = characterId.toString()
-    override val aggregateType: String = "Character"
-    override val occurredOn: Instant = Clock.System.now()
+    override val aggregateId: String
+        get() = characterId.toString()
+    override val aggregateType: String
+        get() = "Character"
 }
 
 data class CharacterCreated(
@@ -22,6 +23,7 @@ data class CharacterCreated(
     val isPublic: Boolean,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "character.created",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : CharacterEvent()
 
 data class CharacterUpdated(
@@ -31,6 +33,7 @@ data class CharacterUpdated(
     val isPublic: Boolean,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "character.updated",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : CharacterEvent()
 
 data class CharacterDeleted(
@@ -38,4 +41,5 @@ data class CharacterDeleted(
     val authorId: UserId,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "character.deleted",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : CharacterEvent()

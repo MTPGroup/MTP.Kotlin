@@ -1,17 +1,16 @@
 package tech.hanasaki.azusa.modules.character.domain.model
 
+import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreated
+import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdated
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreated
-import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeleted
-import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdated
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-data class Character(
+class Character private constructor(
     val id: CharacterId,
     val authorId: UserId,
     var name: String,
@@ -107,18 +106,6 @@ data class Character(
                 authorId = authorId,
                 name = name,
                 isPublic = isPublic,
-            )
-        )
-    }
-
-    /**
-     * 标记删除（产生删除事件）
-     */
-    fun markDeleted() {
-        addDomainEvent(
-            CharacterDeleted(
-                characterId = id,
-                authorId = authorId,
             )
         )
     }

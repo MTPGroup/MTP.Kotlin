@@ -7,7 +7,7 @@ import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
-import tech.hanasaki.azusa.modules.character.api.characterRoutes
+import tech.hanasaki.azusa.modules.character.adapter.`in`.web.characterRoutes
 import tech.hanasaki.azusa.modules.knowledge.api.knowledgeRoutes
 import tech.hanasaki.azusa.modules.plugin.api.pluginRoutes
 import tech.hanasaki.azusa.modules.setting.api.settingRoutes

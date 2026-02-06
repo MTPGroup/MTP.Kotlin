@@ -104,7 +104,7 @@ fun Application.configureErrorHandling() {
             call.respond(
                 HttpStatusCode.InternalServerError,
                 ApiResponse.error<Unit>(
-                    message = "服务器内部错误",
+                    message = exception.message ?: "服务器内部错误",
                     code = "INTERNAL_SERVER_ERROR"
                 )
             )

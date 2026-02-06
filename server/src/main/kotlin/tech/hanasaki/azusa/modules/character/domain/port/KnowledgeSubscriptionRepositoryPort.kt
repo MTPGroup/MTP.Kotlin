@@ -1,10 +1,10 @@
-package tech.hanasaki.azusa.modules.character.domain.repository
+package tech.hanasaki.azusa.modules.character.domain.port
 
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 
-interface KnowledgeSubscriptionRepository {
+interface KnowledgeSubscriptionRepositoryPort {
     /**
      * 查询角色订阅的所有知识库
      */

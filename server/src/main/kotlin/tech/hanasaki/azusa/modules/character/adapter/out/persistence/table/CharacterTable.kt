@@ -1,9 +1,8 @@
-package tech.hanasaki.azusa.modules.character.infrastructure.persistence.table
+package tech.hanasaki.azusa.modules.character.adapter.out.persistence.table
 
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object CharacterTable : Table("characters") {

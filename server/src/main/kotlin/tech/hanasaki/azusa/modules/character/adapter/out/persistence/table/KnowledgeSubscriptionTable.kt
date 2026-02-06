@@ -1,7 +1,6 @@
-package tech.hanasaki.azusa.modules.character.infrastructure.persistence.table
+package tech.hanasaki.azusa.modules.character.adapter.out.persistence.table
 
 import org.jetbrains.exposed.v1.core.Table
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object KnowledgeSubscriptionTable : Table("knowledge_subscriptions") {

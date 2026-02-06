@@ -1,12 +1,12 @@
-package tech.hanasaki.azusa.modules.character.infrastructure.persistence.mapper
+package tech.hanasaki.azusa.modules.character.adapter.out.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterTable
+import tech.hanasaki.azusa.modules.character.domain.model.Character
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
-import tech.hanasaki.azusa.modules.character.domain.model.Character
-import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.CharacterTable
 
 object CharacterMapper {
     fun toDomain(row: ResultRow): Character = Character.reconstitute(
