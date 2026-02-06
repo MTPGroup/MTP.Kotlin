@@ -52,34 +52,37 @@ server/src/main/kotlin/tech/hanasaki/azusa/
     └── setting/                # 设置模块
 ```
 
-## Module Architecture (DDD Layers)
+## Module Architecture (Hexagonal / Ports & Adapters)
 
-每个业务模块遵循分层架构：
+每个业务模块遵循六边形架构：
 
 ```
 modules/{module}/
-├── {Module}Module.kt           # Koin 模块定义
-├── {Module}Configs.kt          # 模块配置 (可选)
-├── domain/                     # 领域层 (核心)
-│   ├── model/                  # 实体、值对象、聚合根
-│   ├── repository/             # 仓储接口
-│   ├── port/                   # 端口接口 (Hexagonal)
-│   └── events/                 # 领域事件
-├── application/                # 应用层
-│   ├── service/                # 应用服务
-│   ├── command/                # 命令对象 (CQRS)
-│   └── result/                 # 返回结果对象
-├── infrastructure/             # 基础设施层
-│   ├── persistence/
-│   │   ├── table/              # Exposed 表定义
-│   │   ├── mapper/             # ORM 映射器
-│   │   └── repository/         # 仓储实现
-│   ├── security/               # 安全实现
-│   └── external/               # 外部服务实现
-└── api/                        # 表现层 (Presentation)
-    ├── {Module}Routes.kt       # Ktor 路由
-    ├── dto/                    # 请求/响应 DTO
-    └── mapper/                 # DTO 映射器
+├── {Module}Module.kt               # Koin 模块定义
+├── config/                         # 模块配置 (可选)
+├── domain/                         # 领域层 (核心，不依赖任何框架)
+│   ├── model/                      # 实体、值对象、聚合根
+│   ├── port/                       # 领域端口接口 (仓储等)
+│   └── event/                      # 领域事件
+├── application/                    # 应用层
+│   ├── service/                    # 应用服务 (用例实现)
+│   ├── port/
+│   │   ├── in/                     # 入站端口 (用例接口)
+│   │   └── out/                    # 出站端口 (技术抽象)
+│   └── dto/                        # 应用层 DTO
+├── adapter/
+│   ├── in/                         # 入站适配器
+│   │   ├── web/                    # HTTP 路由、请求/响应 DTO、映射器
+│   │   │   ├── {Module}Routes.kt
+│   │   │   ├── dto/
+│   │   │   └── mapper/
+│   │   └── event/                  # 领域事件处理器
+│   └── out/                        # 出站适配器
+│       ├── persistence/            # 数据库实现
+│       │   ├── table/              # Exposed 表定义
+│       │   ├── mapper/             # ORM 映射器
+│       │   └── repository/         # 仓储实现
+│       └── security/               # 安全实现 (可选)
 ```
 
 ## Core DDD Patterns
@@ -124,113 +127,185 @@ value class PasswordHash(val value: String)
 ```kotlin
 // shared/domain/event/DomainEvent.kt
 interface DomainEvent {
-    val eventId: UUID
-    val occurredAt: Instant
+    val eventId: Uuid
+    val occurredOn: Instant
+    val aggregateId: String
+    val aggregateType: String
+    val eventType: String       // 用于内存总线路由，如 "auth.user.registered"
 }
 
-// modules/auth/domain/events/AuthEvents.kt
-@Serializable
-data class UserRegisteredEvent(
-    val userId: UserId,
+// modules/auth/domain/event/AuthEvents.kt — 不需要 @Serializable
+sealed class AuthEvent : DomainEvent {
+    abstract val userId: UserId
+    override val aggregateId: String get() = userId.toString()
+    override val aggregateType: String get() = "User"
+}
+
+data class UserRegistered(
+    override val userId: UserId,
+    override val eventId: Uuid = Uuid.random(),
+    override val eventType: String = "auth.user.registered",
+    override val occurredOn: Instant = Clock.System.now(),
     val email: Email,
-    override val occurredAt: Instant = Clock.System.now()
-) : DomainEvent
+) : AuthEvent()
 ```
 
-### Repository Pattern
+### Repository Pattern (domain/port/)
 
 ```kotlin
-// Domain Layer - 接口定义
-interface UserRepository {
+// domain/port/ - 领域端口接口（仓储）
+interface UserRepositoryPort {
     suspend fun findByEmail(email: Email): User?
     suspend fun findById(id: UserId): User?
     suspend fun save(user: User)
     suspend fun deleteById(id: UserId)
 }
 
-// Infrastructure Layer - 实现
-class ExposedUserRepository : UserRepository {
-    override suspend fun findByEmail(email: Email): User? = dbQuery { ... }
-}
+// adapter/out/persistence/repository/ - 适配器实现
+class ExposedUserRepository : UserRepositoryPort { ... }
 ```
 
-### Ports & Adapters (Hexagonal)
+### Ports & Adapters (application/port/)
 
 ```kotlin
-// domain/port/ - 端口定义
-interface PasswordEncoder {
-    fun encode(raw: String): String
-    fun matches(raw: String, encoded: String): Boolean
+// application/port/out/ - 应用层出站端口（技术抽象）
+interface PasswordEncoderPort {
+    fun encode(raw: PlainPassword): HashedPassword
+    fun matches(raw: PlainPassword, encoded: HashedPassword): Boolean
 }
 
-interface TokenService {
-    fun generateTokens(userId: UserId, email: Email): TokenPair
-    fun verifyRefreshToken(token: String): UserId
+interface TokenServicePort {
+    fun generate(userId: UserId, email: Email): TokenPair
+    fun verify(refreshToken: String): UserId
 }
 
-// infrastructure/security/ - 适配器实现
-class PasswordEncoderImpl : PasswordEncoder { ... }
-class JwtTokenService(config: JwtConfig) : TokenService { ... }
+// adapter/out/security/ - 适配器实现
+class BCryptPasswordEncoder : PasswordEncoderPort { ... }
+class JwtTokenService(config: JwtConfig) : TokenServicePort { ... }
 ```
 
 ## Event System
 
-采用 **Outbox Pattern** + **In-Memory Event Bus**
+采用**双通道事件架构**：
+
+- **DomainEvent** → `InMemoryDomainEventBus`（同步、事务内、模块内）
+- **IntegrationEvent** → `Outbox` → `Redis Stream`（可靠、跨模块）
 
 ### 架构组件
 
 ```
 shared/
 ├── domain/event/
-│   ├── DomainEvent.kt          # 事件接口
-│   ├── EventPublisher.kt       # 发布器/订阅器接口
-│   └── OutboxEvent.kt          # Outbox 实体和仓储接口
+│   ├── DomainEvent.kt              # 领域事件接口（不序列化）
+│   └── IntegrationEvents.kt        # 集成事件接口 + 具体事件定义
+├── port/
+│   ├── out/
+│   │   ├── DomainEventBusPort.kt   # 内存领域事件总线端口
+│   │   ├── OutboxSchedulerPort.kt  # Outbox 调度端口（IntegrationEvent）
+│   │   ├── EventPublisherPort.kt   # Redis Stream 发布端口
+│   │   └── EventSerializerPort.kt  # 集成事件序列化端口
+│   └── in/
+│       ├── DomainEventHandlerPort.kt  # 领域事件处理器接口
+│       └── EventSubscriberPort.kt     # 集成事件订阅端口
 └── infrastructure/event/
-    ├── config/
-    │   └── OutboxPollerConfig.kt   # 轮询器配置
-    ├── persistence/
-    │   └── ExposedOutboxEventRepository.kt
-    └── service/
-        ├── EventSerialization.kt   # 事件注册与序列化
-        ├── InMemoryEventBus.kt     # 事件总线实现
-        └── OutboxPoller.kt         # 失败事件重发轮询器
+    ├── InMemoryDomainEventBus.kt       # 内存领域事件总线实现
+    ├── KotlinxEventSerializer.kt       # 集成事件序列化实现
+    ├── EventModule.kt                  # Koin 注册 + onDomainEvent/onIntegrationEvent helpers
+    ├── EventLifecycle.kt               # 事件系统生命周期
+    ├── outbox/
+    │   ├── OutboxAdapter.kt            # Outbox 调度实现
+    │   ├── OutboxEvent.kt              # Outbox 事件实体
+    │   ├── OutboxEventsTable.kt        # Exposed 表定义
+    │   ├── ExposedOutboxEventRepository.kt
+    │   ├── OutboxPoller.kt             # 轮询器（直接透传 eventType + payload）
+    │   └── OutboxPollerConfig.kt
+    └── redis/
+        ├── RedisStreamEventPublisher.kt  # Redis Stream 发布
+        ├── RedisStreamListener.kt        # Redis Stream 消费（实现 EventSubscriberPort）
+        └── RedisEventConfig.kt
 ```
 
-### 使用方式
+### 事件流
+
+```
+领域事件流（模块内，同步）:
+AggregateRoot.addDomainEvent()
+  → Service: publishAndClear(domainEventBus)
+  → InMemoryDomainEventBus.publish()
+  → DomainEventHandlerPort.invoke()
+
+集成事件流（跨模块，可靠）:
+Service: outboxScheduler.schedule(IntegrationEvent)
+  → OutboxAdapter → 写入 DB (outbox_events)
+  → OutboxPoller 轮询 → eventPublisher.publish(eventType, payload)
+  → Redis Stream → RedisStreamListener
+  → EventSubscriberPort handler
+```
+
+### 领域事件使用方式
 
 ```kotlin
-// 1. 定义事件 (modules/xxx/domain/events/)
-@Serializable
-data class UserRegisteredEvent(
-    val userId: UserId,
+// 1. 定义领域事件（不需要 @Serializable）
+data class UserRegistered(
+    override val userId: UserId,
     val email: Email,
-    override val occurredAt: Instant = Clock.System.now()
-) : DomainEvent
+    override val eventId: Uuid = Uuid.random(),
+    override val eventType: String = "auth.user.registered",
+    override val occurredOn: Instant = Clock.System.now(),
+) : AuthEvent()
 
-// 2. 注册事件类型 (AppModule.kt)
-EventRegistry.register<UserRegisteredEvent>()
-
-// 3. 在聚合根中产生事件
+// 2. 聚合根中产生事件
 class User : AggregateRoot() {
     companion object {
         fun create(...): User {
             val user = User(...)
-            user.addDomainEvent(UserRegisteredEvent(user.id, email))
+            user.addDomainEvent(UserRegistered(user.id, email))
             return user
         }
     }
 }
 
-// 4. 在应用服务中发布事件
+// 3. 应用服务中发布
 userRepository.save(user)
-eventPublisher.publishAll(user.domainEvents)
-user.clearDomainEvents()
+user.publishAndClear(domainEventBus)  // 注入 DomainEventBusPort
 
-// 5. 订阅事件
-eventBus.subscribe<UserRegisteredEvent> { event ->
-    sendWelcomeEmail(event.email)
+// 4. 在 Module 中注册处理器
+onDomainEvent<UserRegistered>("auth.user.registered") {
+    UserRegisteredHandler(get())
 }
 ```
+
+### 集成事件使用方式
+
+```kotlin
+// 1. 定义集成事件（需要 @Serializable）
+@Serializable @SerialName("OtpGenerated")
+data class OtpGeneratedIntegrationEvent(
+    val email: String,
+    val code: String,
+    val type: String,
+    override val eventType: String = "auth.otp.generated",
+) : IntegrationEvent
+
+// 2. 在生产者模块注册序列化器
+registerIntegrationEvent(OtpGeneratedIntegrationEvent.serializer())
+
+// 3. 在服务中发布集成事件
+outboxScheduler.schedule(OtpGeneratedIntegrationEvent(email, code, type))
+
+// 4. 在消费者模块订阅
+onIntegrationEvent<OtpGeneratedIntegrationEvent>("auth.otp.generated") {
+    val listener = get<OtpGeneratedIntegrationListener>()
+    return@onIntegrationEvent { event -> listener.handle(event) }
+}
+```
+
+### 设计原则
+
+- **DomainEvent 不序列化** — 纯内存传递，不需要 `@Serializable`
+- **IntegrationEvent 需序列化** — 经过 Outbox + Redis Stream，需要 `@Serializable`
+- **事件命名用生产者视角** — `auth.otp.generated` 而不是 `notification.otp.generated`
+- **通常在领域事件 Handler 中转换为集成事件** — 除非信息在 Handler 中已丢失（如 OTP 明文 code）
 
 ### 事件配置
 
@@ -243,6 +318,10 @@ event:
     cleanupEnabled: true
     cleanupIntervalMinutes: 1
     retentionDays: 7
+  stream:
+    streamKey: azusa:outbox-events
+    consumerGroup: azusa-consumers
+    consumerName: instance-1
 ```
 
 ## Dependency Injection
@@ -357,27 +436,30 @@ event:
 
 ## Coding Conventions
 
-1. **Domain Layer 不依赖任何框架** - 保持纯 Kotlin
-2. **Repository 接口在 domain 层，实现在 infrastructure 层**
-3. **Port 接口在 domain/port 层，实现在 infrastructure 层**
-4. **使用 value class 定义值对象** - 类型安全且零开销
-5. **聚合根负责发布领域事件** - 在工厂方法或领域方法中调用 `addDomainEvent()`
-6. **应用服务负责事务边界和事件发布**
-7. **DTO 与领域模型完全分离** - 通过 mapper 转换
-8. **所有数据库操作使用 `dbQuery { }` 包装** - 确保协程上下文正确
-9. **新增事件类型需在 `AppModule.kt` 中注册**
+1. **Domain Layer 不依赖任何框架** — 保持纯 Kotlin
+2. **仓储端口在 `domain/port/`，实现在 `adapter/out/persistence/repository/`**
+3. **应用层端口在 `application/port/in/`（用例）和 `application/port/out/`（技术抽象）**
+4. **端口命名统一加 `Port` 后缀** — 如 `UserRepositoryPort`、`PasswordEncoderPort`、`TokenServicePort`
+5. **使用 value class 定义值对象** — 类型安全且零开销
+6. **聚合根负责发布领域事件** — 在工厂方法或领域方法中调用 `addDomainEvent()`
+7. **应用服务负责事务边界和事件发布**
+8. **DTO 与领域模型完全分离** — 通过 mapper 转换
+9. **所有数据库操作使用 `dbQuery { }` 包装** — 确保协程上下文正确
+10. **DomainEvent 不需要 `@Serializable`** — 纯内存传递
+11. **IntegrationEvent 需要 `@Serializable`** — 经过 Outbox + Redis Stream
 
 ## Adding a New Module
 
 1. 创建目录结构 `modules/{newModule}/`
 2. 定义领域模型 `domain/model/`
-3. 定义仓储接口 `domain/repository/`
-4. 定义端口接口 `domain/port/` (如需要)
+3. 定义仓储端口 `domain/port/`
+4. 定义应用层端口 `application/port/in/`（用例）和 `application/port/out/`（技术抽象）
 5. 实现应用服务 `application/service/`
-6. 实现基础设施 `infrastructure/persistence/`
-7. 定义 API 路由 `api/`
+6. 实现出站适配器 `adapter/out/persistence/`
+7. 定义入站适配器 `adapter/in/web/`（路由、DTO、映射器）
 8. 创建 Koin 模块 `{NewModule}Module.kt`
 9. 在 `AppModule.kt` 中注册模块
 10. 在 `Routing.kt` 中添加路由
 11. 编写数据库迁移脚本 `resources/db/migration/`
-12. 如有领域事件，在 `AppModule.kt` 中注册事件类型
+12. 如有领域事件，在模块中使用 `onDomainEvent<>()` 注册处理器
+13. 如有集成事件，在模块中使用 `registerIntegrationEvent()` 和 `onIntegrationEvent<>()` 注册
