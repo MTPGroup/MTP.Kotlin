@@ -8,16 +8,17 @@ import tech.hanasaki.azusa.modules.character.domain.repository.CharacterReposito
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
 
 class CharacterService(
     private val characterRepository: CharacterRepository,
     private val knowledgeSubscriptionRepository: KnowledgeSubscriptionRepository,
-    private val eventPublisher: EventPublisherPort,
+    private val outboxScheduler: OutboxSchedulerPort,
 ) {
     suspend fun listMyCharacters(authorId: UserId): List<Character> {
         return characterRepository.findByAuthorId(authorId)
@@ -58,8 +59,7 @@ class CharacterService(
             isPublic = cmd.isPublic,
         )
         characterRepository.save(character)
-        eventPublisher.publishAll(character.domainEvents)
-        character.clearDomainEvents()
+        character.publishAndClear(outboxScheduler)
         return character
     }
 
@@ -77,8 +77,7 @@ class CharacterService(
             isPublic = cmd.isPublic,
         )
         characterRepository.save(character)
-        eventPublisher.publishAll(character.domainEvents)
-        character.clearDomainEvents()
+        character.publishAndClear(outboxScheduler)
         return character
     }
 
@@ -92,7 +91,7 @@ class CharacterService(
         // 删除角色时同时删除所有知识库订阅
         knowledgeSubscriptionRepository.unsubscribeAll(characterId)
         characterRepository.deleteById(characterId)
-        eventPublisher.publishAll(character.domainEvents)
+        character.publishAndClear(outboxScheduler)
         character.clearDomainEvents()
     }
 

@@ -10,10 +10,11 @@ import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
 
 class KnowledgeFileService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,
@@ -21,7 +22,7 @@ class KnowledgeFileService(
     private val documentRepository: KnowledgeDocumentRepository,
     private val documentParser: DocumentParser,
     private val embeddingService: EmbeddingService,
-    private val eventPublisher: EventPublisherPort,
+    private val outboxScheduler: OutboxSchedulerPort,
 ) {
 
     /**
@@ -49,8 +50,7 @@ class KnowledgeFileService(
             fileType = fileType,
         )
         fileRepository.save(file)
-        eventPublisher.publishAll(file.domainEvents)
-        file.clearDomainEvents()
+        file.publishAndClear(outboxScheduler)
         return file
     }
 
@@ -110,8 +110,7 @@ class KnowledgeFileService(
             } catch (e: Exception) {
                 file.markFailed(e.message ?: "Unknown error")
                 fileRepository.save(file)
-                eventPublisher.publishAll(file.domainEvents)
-                file.clearDomainEvents()
+                file.publishAndClear(outboxScheduler)
             }
         }
         return processedCount
@@ -143,8 +142,7 @@ class KnowledgeFileService(
         // 标记文件处理完成
         file.markCompleted()
         fileRepository.save(file)
-        eventPublisher.publishAll(file.domainEvents)
-        file.clearDomainEvents()
+        file.publishAndClear(outboxScheduler)
     }
 
     /**

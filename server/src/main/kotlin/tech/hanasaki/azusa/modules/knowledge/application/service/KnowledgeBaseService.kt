@@ -8,16 +8,17 @@ import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
 
 class KnowledgeBaseService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,
     private val fileRepository: KnowledgeFileRepository,
     private val documentRepository: KnowledgeDocumentRepository,
-    private val eventPublisher: EventPublisherPort,
+    private val outboxScheduler: OutboxSchedulerPort,
 ) {
 
     /**
@@ -64,8 +65,7 @@ class KnowledgeBaseService(
             isPublic = cmd.isPublic,
         )
         knowledgeBaseRepository.save(kb)
-        eventPublisher.publishAll(kb.domainEvents)
-        kb.clearDomainEvents()
+        kb.publishAndClear(outboxScheduler)
         return kb
     }
 
@@ -88,8 +88,7 @@ class KnowledgeBaseService(
             isPublic = cmd.isPublic,
         )
         knowledgeBaseRepository.save(kb)
-        eventPublisher.publishAll(kb.domainEvents)
-        kb.clearDomainEvents()
+        kb.publishAndClear(outboxScheduler)
         return kb
     }
 
@@ -107,8 +106,7 @@ class KnowledgeBaseService(
         documentRepository.deleteByKnowledgeBaseId(knowledgeBaseId)
         fileRepository.deleteByKnowledgeBaseId(knowledgeBaseId)
         knowledgeBaseRepository.deleteById(knowledgeBaseId)
-        eventPublisher.publishAll(kb.domainEvents)
-        kb.clearDomainEvents()
+        kb.publishAndClear(outboxScheduler)
     }
 
     /**

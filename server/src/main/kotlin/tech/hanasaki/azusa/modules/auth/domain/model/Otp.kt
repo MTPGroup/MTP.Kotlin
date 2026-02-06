@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
+import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
 import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
-import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -24,7 +24,7 @@ enum class OtpType {
 }
 
 
-class Otp(
+class Otp private constructor(
     val id: Uuid = Uuid.random(),
     val email: Email,
     val codeHash: String,
@@ -55,6 +55,24 @@ class Otp(
             )
             return otp
         }
+
+        fun reconstitute(
+            id: Uuid,
+            email: Email,
+            codeHash: String,
+            type: OtpType,
+            isUsed: Boolean,
+            expiresAt: Instant,
+            usedAt: Instant?,
+        ): Otp = Otp(
+            id = id,
+            email = email,
+            codeHash = codeHash,
+            type = type,
+            isUsed = isUsed,
+            expiresAt = expiresAt,
+            usedAt = usedAt
+        )
     }
 
     fun isValid(now: Instant = Clock.System.now()): Boolean = !isUsed && now <= expiresAt

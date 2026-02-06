@@ -7,10 +7,15 @@ import tech.hanasaki.azusa.modules.character.domain.repository.CharacterReposito
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository.ExposedCharacterRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.repository.ExposedKnowledgeSubscriptionRepository
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 fun characterModule(config: ApplicationConfig) = module {
     single<CharacterRepository> { ExposedCharacterRepository() }
     single<KnowledgeSubscriptionRepository> { ExposedKnowledgeSubscriptionRepository() }
-    factory { CharacterService(get(), get(), get<EventPublisherPort>()) }
+    single {
+        CharacterService(
+            get(),
+            get(),
+            get(),
+        )
+    }
 }

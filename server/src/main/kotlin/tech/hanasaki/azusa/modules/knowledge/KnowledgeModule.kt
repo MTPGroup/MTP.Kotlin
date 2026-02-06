@@ -17,7 +17,6 @@ import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.reposito
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository.ExposedKnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository.ExposedKnowledgeFileRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.vector.PgVectorStore
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 fun knowledgeModule(config: ApplicationConfig) = module {
     // Repositories
@@ -31,27 +30,27 @@ fun knowledgeModule(config: ApplicationConfig) = module {
     single<VectorStore> { PgVectorStore() }
 
     // Services
-    factory {
+    single {
         KnowledgeBaseService(
             knowledgeBaseRepository = get(),
             fileRepository = get(),
             documentRepository = get(),
-            eventPublisher = get<EventPublisherPort>(),
+            outboxScheduler = get(),
         )
     }
 
-    factory {
+    single {
         KnowledgeFileService(
             knowledgeBaseRepository = get(),
             fileRepository = get(),
             documentRepository = get(),
             documentParser = get(),
             embeddingService = get(),
-            eventPublisher = get<EventPublisherPort>(),
+            outboxScheduler = get(),
         )
     }
 
-    factory {
+    single {
         KnowledgeSearchService(
             knowledgeBaseRepository = get(),
             embeddingService = get(),

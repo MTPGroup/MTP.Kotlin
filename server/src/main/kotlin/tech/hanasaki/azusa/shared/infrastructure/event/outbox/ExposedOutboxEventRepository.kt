@@ -2,6 +2,7 @@ package tech.hanasaki.azusa.shared.infrastructure.event.outbox
 
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import org.jetbrains.exposed.v1.core.vendors.ForUpdateOption
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -37,10 +38,13 @@ class ExposedOutboxEventRepository : OutboxEventRepositoryPort {
         return OutboxEventsTable
             .selectAll()
             .where {
-                (OutboxEventsTable.status eq OutboxEventStatus.PENDING)
+                (OutboxEventsTable.status eq OutboxEventStatus.PENDING) or
+                        (OutboxEventsTable.status eq OutboxEventStatus.FAILED) and
+                        (OutboxEventsTable.retryCount less 5)
             }
             .orderBy(OutboxEventsTable.createdAt, SortOrder.ASC)
             .limit(limit)
+            .forUpdate(ForUpdateOption.PostgreSQL.ForUpdate(ForUpdateOption.PostgreSQL.MODE.SKIP_LOCKED))
             .map(::toDomain)
     }
 

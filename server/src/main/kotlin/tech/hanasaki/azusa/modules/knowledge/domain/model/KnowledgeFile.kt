@@ -1,11 +1,11 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
-import tech.hanasaki.azusa.shared.domain.event.DomainEvent
-import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
-import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessed
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessingFailed
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploaded
+import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -13,7 +13,7 @@ import kotlin.uuid.Uuid
 /**
  * 知识文件实体
  */
-data class KnowledgeFile(
+class KnowledgeFile(
     val id: KnowledgeFileId,
     val knowledgeBaseId: KnowledgeBaseId,
     val filePath: String,
@@ -24,18 +24,7 @@ data class KnowledgeFile(
     var errorMessage: String?,
     val createdAt: Instant,
     var updatedAt: Instant,
-    private val _domainEvents: MutableList<DomainEvent> = mutableListOf(),
-) {
-    val domainEvents: List<DomainEvent> get() = _domainEvents
-
-    fun clearDomainEvents() {
-        _domainEvents.clear()
-    }
-
-    private fun addDomainEvent(event: DomainEvent) {
-        _domainEvents.add(event)
-    }
-
+) : AggregateRoot() {
     companion object {
         /**
          * 创建新文件记录

@@ -2,12 +2,12 @@ package tech.hanasaki.azusa.modules.auth.adapter.out.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
-import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.OtpTable
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
 
 object OtpMapper {
-    fun toDomain(row: ResultRow): Otp = Otp(
+    fun toDomain(row: ResultRow): Otp = Otp.reconstitute(
         id = row[OtpTable.id],
         email = Email(row[OtpTable.email]),
         codeHash = row[OtpTable.codeHash],

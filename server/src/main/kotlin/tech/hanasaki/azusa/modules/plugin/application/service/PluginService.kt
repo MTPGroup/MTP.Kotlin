@@ -9,16 +9,17 @@ import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginRepository
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
 
 
 class PluginService(
     private val pluginRepository: PluginRepository,
     private val likeRepository: PluginLikeRepository,
-    private val eventPublisher: EventPublisherPort,
+    private val outboxScheduler: OutboxSchedulerPort,
 ) {
 
     // ===插件===
@@ -72,8 +73,7 @@ class PluginService(
             authorId = authorId,
         )
         pluginRepository.save(plugin)
-        eventPublisher.publishAll(plugin.domainEvents)
-        plugin.clearDomainEvents()
+        plugin.publishAndClear(outboxScheduler)
         return plugin
     }
 
@@ -94,8 +94,7 @@ class PluginService(
             code = cmd.code,
         )
         pluginRepository.save(plugin)
-        eventPublisher.publishAll(plugin.domainEvents)
-        plugin.clearDomainEvents()
+        plugin.publishAndClear(outboxScheduler)
         return plugin
     }
 
@@ -121,8 +120,7 @@ class PluginService(
             ?: throw NotFoundException("Plugin not found")
         plugin.approve()
         pluginRepository.save(plugin)
-        eventPublisher.publishAll(plugin.domainEvents)
-        plugin.clearDomainEvents()
+        plugin.publishAndClear(outboxScheduler)
         return plugin
     }
 
@@ -134,8 +132,7 @@ class PluginService(
             ?: throw NotFoundException("Plugin not found")
         plugin.reject()
         pluginRepository.save(plugin)
-        eventPublisher.publishAll(plugin.domainEvents)
-        plugin.clearDomainEvents()
+        plugin.publishAndClear(outboxScheduler)
         return plugin
     }
 
