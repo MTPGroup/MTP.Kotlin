@@ -17,7 +17,6 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
-import org.koin.dsl.onClose
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.config.RedisConfig
@@ -69,8 +68,6 @@ fun eventModule(config: ApplicationConfig) = module {
     }
     single<StatefulRedisConnection<String, String>> {
         get<RedisClient>().connect()
-    } onClose {
-        it?.close()
     }
     single<RedisCoroutinesCommands<String, String>> {
         get<StatefulRedisConnection<String, String>>().coroutines()

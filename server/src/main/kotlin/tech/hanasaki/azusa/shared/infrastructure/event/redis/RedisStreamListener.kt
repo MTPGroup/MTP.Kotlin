@@ -24,7 +24,6 @@ class RedisStreamListener(
     private var listeningJob: Job? = null
 
     override fun registerHandler(eventType: String, handler: suspend (IntegrationEvent) -> Unit) {
-//        logger.info("注册事件处理器: $eventType")
         handlers.computeIfAbsent(eventType) {
             mutableListOf()
         }.add(handler)
@@ -48,7 +47,10 @@ class RedisStreamListener(
                     if (!processed) {
                         delay(100)
                     }
+                } catch (_: CancellationException) {
+                    break
                 } catch (e: Exception) {
+                    if (!running) break
                     logger.error(e) { "在消息循环中发生错误: ${e.message}" }
                     delay(config.pollInterval)
                 }
@@ -56,11 +58,11 @@ class RedisStreamListener(
         }
     }
 
-    fun stop() {
+    suspend fun stop() {
         if (!running) return
         running = false
         logger.info { "正在停止Redis Stream监听器" }
-        listeningJob?.cancel()
+        listeningJob?.cancelAndJoin()
         scope.cancel()
     }
 
@@ -82,57 +84,52 @@ class RedisStreamListener(
     }
 
     private suspend fun onMessage(): Boolean {
-        try {
-            val consumer = Consumer.from(config.consumerGroup, config.consumerName)
-            val messagesFlow = redisCommands.xreadgroup(
-                consumer,
-                XReadArgs.Builder.count(config.batchSize.toLong())
-                    .block(config.pollInterval.inWholeMilliseconds),
-                XReadArgs.StreamOffset.lastConsumed(config.streamKey)
-            )
+        val consumer = Consumer.from(config.consumerGroup, config.consumerName)
+        val messagesFlow = redisCommands.xreadgroup(
+            consumer,
+            XReadArgs.Builder.count(config.batchSize.toLong())
+                .block(config.pollInterval.inWholeMilliseconds),
+            XReadArgs.StreamOffset.lastConsumed(config.streamKey)
+        )
 
-            var messageCount = 0
-            messagesFlow.collect { streamMessage: StreamMessage<String, String> ->
-                messageCount++
-                val bodyMap = streamMessage.body
+        var messageCount = 0
+        messagesFlow.collect { streamMessage: StreamMessage<String, String> ->
+            messageCount++
+            val bodyMap = streamMessage.body
 
-                try {
-                    val eventType = bodyMap["eventType"]
-                    val payload = bodyMap["payload"]
+            try {
+                val eventType = bodyMap["eventType"]
+                val payload = bodyMap["payload"]
 
-                    if (eventType != null && payload != null) {
-                        val eventHandlers = handlers[eventType]
-                        if (!eventHandlers.isNullOrEmpty()) {
-                            val event = eventSerializer.deserialize(payload)
+                if (eventType != null && payload != null) {
+                    val eventHandlers = handlers[eventType]
+                    if (!eventHandlers.isNullOrEmpty()) {
+                        val event = eventSerializer.deserialize(payload)
 
-                            supervisorScope {
-                                eventHandlers.forEach { handler ->
-                                    try {
-                                        handler(event)
-                                    } catch (e: Exception) {
-                                        logger.error(e) { "处理器执行失败 [$eventType]: ${e.message}" }
-                                    }
+                        supervisorScope {
+                            eventHandlers.forEach { handler ->
+                                try {
+                                    handler(event)
+                                } catch (e: Exception) {
+                                    logger.error(e) { "处理器执行失败 [$eventType]: ${e.message}" }
                                 }
-                                redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
-                                logger.debug { "成功分发事件: $eventType 到 ${eventHandlers.size} 个处理器, ID: ${streamMessage.id}" }
                             }
-                        } else {
-                            logger.warn { "未找到事件处理器: $eventType, ID: ${streamMessage.id}" }
                             redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
+                            logger.debug { "成功分发事件: $eventType 到 ${eventHandlers.size} 个处理器, ID: ${streamMessage.id}" }
                         }
                     } else {
-                        logger.warn { "收到格式错误的消息: ${streamMessage.id}" }
+                        logger.warn { "未找到事件处理器: $eventType, ID: ${streamMessage.id}" }
                         redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
                     }
-                } catch (e: Exception) {
-                    logger.error(e) { "处理消息失败 ${streamMessage.id}: ${e.message}" }
+                } else {
+                    logger.warn { "收到格式错误的消息: ${streamMessage.id}" }
+                    redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
                 }
+            } catch (e: Exception) {
+                logger.error(e) { "处理消息失败 ${streamMessage.id}: ${e.message}" }
             }
-
-            return messageCount > 0
-        } catch (e: Exception) {
-            logger.error(e) { "读取流失败: ${e.message}" }
-            return false
         }
+
+        return messageCount > 0
     }
 }

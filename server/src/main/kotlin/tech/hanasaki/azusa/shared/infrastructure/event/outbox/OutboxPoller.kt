@@ -34,8 +34,11 @@ class OutboxPoller(
                 try {
                     processBatch()
                     delay(outboxConfig.pollingInterval)
+                } catch (_: CancellationException) {
+                    break
                 } catch (e: Exception) {
-                    logger.error(e) { "在轮询过程中发生错误: " }
+                    if (!running) break
+                    logger.error(e) { "在轮询过程中发生错误" }
                 }
             }
         }
@@ -46,20 +49,23 @@ class OutboxPoller(
                     delay(outboxConfig.cleanupInterval)
                     try {
                         cleanup()
+                    } catch (_: CancellationException) {
+                        break
                     } catch (e: Exception) {
-                        logger.error(e) { "在轮询器清理过程中发生错误: " }
+                        if (!running) break
+                        logger.error(e) { "在轮询器清理过程中发生错误" }
                     }
                 }
             }
         }
     }
 
-    fun stop() {
+    suspend fun stop() {
         if (!running) return
         running = false
         logger.info { "正在停止轮询器..." }
-        pollingJob?.cancel()
-        cleanupJob?.cancel()
+        pollingJob?.cancelAndJoin()
+        cleanupJob?.cancelAndJoin()
         scope.cancel()
     }
 
