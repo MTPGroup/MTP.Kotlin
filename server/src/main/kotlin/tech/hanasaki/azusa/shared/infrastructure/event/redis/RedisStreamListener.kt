@@ -24,7 +24,7 @@ class RedisStreamListener(
     private var listeningJob: Job? = null
 
     override fun registerHandler(eventType: String, handler: suspend (IntegrationEvent) -> Unit) {
-        logger.info("注册事件处理器: $eventType")
+//        logger.info("注册事件处理器: $eventType")
         handlers.computeIfAbsent(eventType) {
             mutableListOf()
         }.add(handler)

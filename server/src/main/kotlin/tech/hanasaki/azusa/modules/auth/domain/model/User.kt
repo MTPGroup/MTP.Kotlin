@@ -135,7 +135,7 @@ class User private constructor(
 
     fun changePassword(newPasswordHash: HashedPassword) {
         hashedPassword = newPasswordHash
-        addDomainEvent(PasswordChanged(id))
+        addDomainEvent(PasswordChanged(id, email = email))
     }
 
     fun suspend() {

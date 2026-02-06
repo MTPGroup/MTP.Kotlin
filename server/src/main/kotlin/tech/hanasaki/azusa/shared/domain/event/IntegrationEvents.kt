@@ -18,3 +18,10 @@ data class OtpGeneratedIntegrationEvent(
     val type: String,
     override val eventType: String = "auth.otp.generated",
 ) : IntegrationEvent
+
+@Serializable
+@SerialName("PasswordChanged")
+data class PasswordChangedIntegrationEvent(
+    val email: String?,
+    override val eventType: String = "auth.password.changed",
+) : IntegrationEvent

@@ -2,6 +2,7 @@ package tech.hanasaki.azusa.modules.auth
 
 import io.ktor.server.config.*
 import org.koin.dsl.module
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.event.PasswordChangedHandler
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.event.UserRegisteredHandler
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.repository.ExposedOtpRepository
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.repository.ExposedRefreshTokenRepository
@@ -18,11 +19,13 @@ import tech.hanasaki.azusa.modules.auth.config.JwtConfig
 import tech.hanasaki.azusa.modules.auth.config.OtpConfig
 import tech.hanasaki.azusa.modules.auth.config.readJwtConfig
 import tech.hanasaki.azusa.modules.auth.config.readOtpConfig
+import tech.hanasaki.azusa.modules.auth.domain.event.PasswordChanged
 import tech.hanasaki.azusa.modules.auth.domain.event.UserRegistered
 import tech.hanasaki.azusa.modules.auth.domain.port.OtpRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.RefreshTokenRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
+import tech.hanasaki.azusa.shared.domain.event.PasswordChangedIntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.registerIntegrationEvent
 
@@ -59,14 +62,19 @@ fun authModule(config: ApplicationConfig) = module {
             get(),
             get(),
             get(),
+            get(),
         )
     }
 
     // 注册集成事件序列化器
     registerIntegrationEvent(OtpGeneratedIntegrationEvent.serializer())
+    registerIntegrationEvent(PasswordChangedIntegrationEvent.serializer())
 
     // 注册领域事件处理器
     onDomainEvent<UserRegistered>("auth.user.registered") {
         UserRegisteredHandler(get())
+    }
+    onDomainEvent<PasswordChanged>("auth.password.changed") {
+        PasswordChangedHandler(get())
     }
 }

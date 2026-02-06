@@ -5,6 +5,7 @@ import freemarker.template.Configuration
 import io.ktor.server.config.*
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.notification.adapter.`in`.event.OtpGeneratedHandler
+import tech.hanasaki.azusa.modules.notification.adapter.`in`.event.PasswordChangedHandler
 import tech.hanasaki.azusa.modules.notification.adapter.out.persistence.repository.ExposedNotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.adapter.out.sender.SmtpEmailSender
 import tech.hanasaki.azusa.modules.notification.application.port.`in`.NotificationUseCasePort
@@ -14,6 +15,7 @@ import tech.hanasaki.azusa.modules.notification.config.SmtpConfig
 import tech.hanasaki.azusa.modules.notification.config.readSmtpConfig
 import tech.hanasaki.azusa.modules.notification.domain.port.NotificationLogRepositoryPort
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
+import tech.hanasaki.azusa.shared.domain.event.PasswordChangedIntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.onIntegrationEvent
 
 
@@ -55,5 +57,8 @@ fun notificationModule(config: ApplicationConfig) = module {
     // 订阅集成事件
     onIntegrationEvent<OtpGeneratedIntegrationEvent>("auth.otp.generated") {
         OtpGeneratedHandler(get())
+    }
+    onIntegrationEvent<PasswordChangedIntegrationEvent>("auth.password.changed") {
+        PasswordChangedHandler(get())
     }
 }

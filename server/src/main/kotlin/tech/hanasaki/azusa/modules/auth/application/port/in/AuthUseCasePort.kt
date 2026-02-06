@@ -70,4 +70,9 @@ interface AuthUseCasePort {
      * 使用 RefreshToken 刷新 AccessToken
      */
     suspend fun refreshToken(refreshToken: String): AuthenticatedUser
+
+    /**
+     * 密码变更后处理：销毁所有 refresh token，发送通知
+     */
+    suspend fun onPasswordChanged(userId: UserId, email: String?)
 }

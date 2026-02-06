@@ -9,6 +9,7 @@ import tech.hanasaki.azusa.modules.auth.application.port.out.TokenServicePort
 import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.port.RefreshTokenRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
+import tech.hanasaki.azusa.shared.domain.event.PasswordChangedIntegrationEvent
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
@@ -16,6 +17,7 @@ import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
 import tech.hanasaki.azusa.shared.port.out.StringEncoderPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
@@ -26,6 +28,7 @@ class AuthService(
     private val tokenService: TokenServicePort,
     private val encoder: StringEncoderPort,
     private val domainEventBus: DomainEventBusPort,
+    private val outboxScheduler: OutboxSchedulerPort,
     private val tx: TransactionalPort,
 ) : AuthUseCasePort {
 
@@ -173,5 +176,12 @@ class AuthService(
         userRepository.save(user)
 
         return@execute AuthenticatedUser(user.toUserProfileDto(), tokens)
+    }
+
+    override suspend fun onPasswordChanged(userId: UserId, email: String?) = tx.execute {
+        refreshTokenRepository.revokeAllForUser(userId)
+        outboxScheduler.schedule(
+            PasswordChangedIntegrationEvent(email = email)
+        )
     }
 }
