@@ -18,14 +18,13 @@ import tech.hanasaki.azusa.modules.auth.config.JwtConfig
 import tech.hanasaki.azusa.modules.auth.config.OtpConfig
 import tech.hanasaki.azusa.modules.auth.config.readJwtConfig
 import tech.hanasaki.azusa.modules.auth.config.readOtpConfig
-import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
-import tech.hanasaki.azusa.modules.auth.domain.event.PasswordChanged
 import tech.hanasaki.azusa.modules.auth.domain.event.UserRegistered
 import tech.hanasaki.azusa.modules.auth.domain.port.OtpRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.RefreshTokenRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
-import tech.hanasaki.azusa.shared.infrastructure.event.registerDomainEvent
-import tech.hanasaki.azusa.shared.infrastructure.event.subscribe
+import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
+import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
+import tech.hanasaki.azusa.shared.infrastructure.event.registerIntegrationEvent
 
 fun authModule(config: ApplicationConfig) = module {
     // 仓储
@@ -49,6 +48,7 @@ fun authModule(config: ApplicationConfig) = module {
             get(),
             get(),
             get(),
+            get(),
         )
     }
     single<AuthUseCasePort> {
@@ -63,11 +63,11 @@ fun authModule(config: ApplicationConfig) = module {
         )
     }
 
-    // 注册事件和处理器
-    registerDomainEvent(UserRegistered.serializer())
-    registerDomainEvent(PasswordChanged.serializer())
-    registerDomainEvent(OtpCreated.serializer())
-    subscribe<UserRegistered>("auth.user.registered") {
+    // 注册集成事件序列化器
+    registerIntegrationEvent(OtpGeneratedIntegrationEvent.serializer())
+
+    // 注册领域事件处理器
+    onDomainEvent<UserRegistered>("auth.user.registered") {
         UserRegisteredHandler(get())
     }
 }

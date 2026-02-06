@@ -13,13 +13,13 @@ import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 
 
 class PluginService(
     private val pluginRepository: PluginRepository,
     private val likeRepository: PluginLikeRepository,
-    private val outboxScheduler: OutboxSchedulerPort,
+    private val domainEventBus: DomainEventBusPort,
 ) {
 
     // ===插件===
@@ -73,7 +73,7 @@ class PluginService(
             authorId = authorId,
         )
         pluginRepository.save(plugin)
-        plugin.publishAndClear(outboxScheduler)
+        plugin.publishAndClear(domainEventBus)
         return plugin
     }
 
@@ -94,7 +94,7 @@ class PluginService(
             code = cmd.code,
         )
         pluginRepository.save(plugin)
-        plugin.publishAndClear(outboxScheduler)
+        plugin.publishAndClear(domainEventBus)
         return plugin
     }
 
@@ -120,7 +120,7 @@ class PluginService(
             ?: throw NotFoundException("Plugin not found")
         plugin.approve()
         pluginRepository.save(plugin)
-        plugin.publishAndClear(outboxScheduler)
+        plugin.publishAndClear(domainEventBus)
         return plugin
     }
 
@@ -132,7 +132,7 @@ class PluginService(
             ?: throw NotFoundException("Plugin not found")
         plugin.reject()
         pluginRepository.save(plugin)
-        plugin.publishAndClear(outboxScheduler)
+        plugin.publishAndClear(domainEventBus)
         return plugin
     }
 

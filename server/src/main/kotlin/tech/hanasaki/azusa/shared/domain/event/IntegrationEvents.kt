@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 /**
  * 集成事件 - 用于跨模块通信
  */
-interface IntegrationEvent
+interface IntegrationEvent {
+    val eventType: String
+}
 
 @Serializable
 @SerialName("OtpGenerated")
@@ -14,4 +16,5 @@ data class OtpGeneratedIntegrationEvent(
     val email: String,
     val code: String,
     val type: String,
+    override val eventType: String = "auth.otp.generated",
 ) : IntegrationEvent

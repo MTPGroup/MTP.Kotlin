@@ -1,16 +1,15 @@
 package tech.hanasaki.azusa.modules.notification.application.listener
 
 import org.slf4j.LoggerFactory
-import tech.hanasaki.azusa.shared.domain.event.IntegrationEventListener
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.modules.notification.application.service.NotificationService
 
 class OtpGeneratedIntegrationListener(
     private val notificationService: NotificationService,
-) : IntegrationEventListener<OtpGeneratedIntegrationEvent> {
+) {
     private val logger = LoggerFactory.getLogger(OtpGeneratedIntegrationListener::class.java)
 
-    override suspend fun handle(event: OtpGeneratedIntegrationEvent) {
+    suspend fun handle(event: OtpGeneratedIntegrationEvent) {
         try {
             val subject = when (event.type) {
                 "VERIFY_EMAIL" -> "验证您的邮箱 - Azusa"

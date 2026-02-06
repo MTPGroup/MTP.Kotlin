@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.events
 
-import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
@@ -9,18 +8,14 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-
-@Serializable
 sealed class KnowledgeBaseEvent : DomainEvent {
     abstract val knowledgeBaseId: KnowledgeBaseId
 
     override val aggregateId: String get() = knowledgeBaseId.toString()
     override val aggregateType: String get() = "KnowledgeBase"
     override val occurredOn: Instant get() = Clock.System.now()
-
 }
 
-@Serializable
 data class KnowledgeBaseCreated(
     override val knowledgeBaseId: KnowledgeBaseId,
     val authorId: UserId,
@@ -29,8 +24,6 @@ data class KnowledgeBaseCreated(
     override val eventType: String = "knowledgeBase.created",
 ) : KnowledgeBaseEvent()
 
-
-@Serializable
 data class KnowledgeBaseDeleted(
     override val knowledgeBaseId: KnowledgeBaseId,
     val authorId: UserId,
@@ -38,8 +31,6 @@ data class KnowledgeBaseDeleted(
     override val eventType: String = "knowledgeBase.deleted",
 ) : KnowledgeBaseEvent()
 
-
-@Serializable
 data class FileUploaded(
     val fileId: KnowledgeFileId,
     override val knowledgeBaseId: KnowledgeBaseId,
@@ -48,8 +39,6 @@ data class FileUploaded(
     override val eventType: String = "knowledgeBase.file.uploaded",
 ) : KnowledgeBaseEvent()
 
-
-@Serializable
 data class FileProcessed(
     val fileId: KnowledgeFileId,
     override val knowledgeBaseId: KnowledgeBaseId,
@@ -57,8 +46,6 @@ data class FileProcessed(
     override val eventType: String = "knowledgeBase.file.processed",
 ) : KnowledgeBaseEvent()
 
-
-@Serializable
 data class FileProcessingFailed(
     val fileId: KnowledgeFileId,
     override val knowledgeBaseId: KnowledgeBaseId,

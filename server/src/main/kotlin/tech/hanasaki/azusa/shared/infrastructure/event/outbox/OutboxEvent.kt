@@ -6,8 +6,6 @@ import kotlin.uuid.Uuid
 
 data class OutboxEvent(
     val id: Uuid = Uuid.random(),
-    val aggregateType: String,
-    val aggregateId: String,
     val eventType: String,
     val payload: String,
     val status: OutboxEventStatus = OutboxEventStatus.PENDING,

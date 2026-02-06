@@ -14,7 +14,7 @@ import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 
 class KnowledgeFileService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,
@@ -22,7 +22,7 @@ class KnowledgeFileService(
     private val documentRepository: KnowledgeDocumentRepository,
     private val documentParser: DocumentParser,
     private val embeddingService: EmbeddingService,
-    private val outboxScheduler: OutboxSchedulerPort,
+    private val domainEventBus: DomainEventBusPort,
 ) {
 
     /**
@@ -50,7 +50,7 @@ class KnowledgeFileService(
             fileType = fileType,
         )
         fileRepository.save(file)
-        file.publishAndClear(outboxScheduler)
+        file.publishAndClear(domainEventBus)
         return file
     }
 
@@ -110,7 +110,7 @@ class KnowledgeFileService(
             } catch (e: Exception) {
                 file.markFailed(e.message ?: "Unknown error")
                 fileRepository.save(file)
-                file.publishAndClear(outboxScheduler)
+                file.publishAndClear(domainEventBus)
             }
         }
         return processedCount
@@ -142,7 +142,7 @@ class KnowledgeFileService(
         // 标记文件处理完成
         file.markCompleted()
         fileRepository.save(file)
-        file.publishAndClear(outboxScheduler)
+        file.publishAndClear(domainEventBus)
     }
 
     /**

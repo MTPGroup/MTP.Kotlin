@@ -13,12 +13,12 @@ import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 
 class CharacterService(
     private val characterRepository: CharacterRepository,
     private val knowledgeSubscriptionRepository: KnowledgeSubscriptionRepository,
-    private val outboxScheduler: OutboxSchedulerPort,
+    private val domainEventBus: DomainEventBusPort,
 ) {
     suspend fun listMyCharacters(authorId: UserId): List<Character> {
         return characterRepository.findByAuthorId(authorId)
@@ -59,7 +59,7 @@ class CharacterService(
             isPublic = cmd.isPublic,
         )
         characterRepository.save(character)
-        character.publishAndClear(outboxScheduler)
+        character.publishAndClear(domainEventBus)
         return character
     }
 
@@ -77,7 +77,7 @@ class CharacterService(
             isPublic = cmd.isPublic,
         )
         characterRepository.save(character)
-        character.publishAndClear(outboxScheduler)
+        character.publishAndClear(domainEventBus)
         return character
     }
 
@@ -91,7 +91,7 @@ class CharacterService(
         // 删除角色时同时删除所有知识库订阅
         knowledgeSubscriptionRepository.unsubscribeAll(characterId)
         characterRepository.deleteById(characterId)
-        character.publishAndClear(outboxScheduler)
+        character.publishAndClear(domainEventBus)
         character.clearDomainEvents()
     }
 

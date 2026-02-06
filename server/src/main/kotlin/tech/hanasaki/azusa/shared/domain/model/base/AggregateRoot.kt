@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.shared.domain.model.base
 
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 
 abstract class AggregateRoot(
     private val _domainEvents: MutableList<DomainEvent> = mutableListOf(),
@@ -18,7 +18,7 @@ abstract class AggregateRoot(
     }
 }
 
-suspend fun AggregateRoot.publishAndClear(scheduler: OutboxSchedulerPort) {
-    domainEvents.forEach { scheduler.schedule(it) }
+suspend fun AggregateRoot.publishAndClear(bus: DomainEventBusPort) {
+    bus.publishAll(domainEvents)
     clearDomainEvents()
 }

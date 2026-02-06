@@ -47,7 +47,8 @@ import tech.hanasaki.azusa.modules.auth.domain.model.Username
 import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.infrastructure.config.DatabaseConfig
-import tech.hanasaki.azusa.shared.infrastructure.event.DomainEventSerializersModule
+import tech.hanasaki.azusa.shared.infrastructure.event.InMemoryDomainEventBus
+import tech.hanasaki.azusa.shared.infrastructure.event.IntegrationEventSerializersModule
 import tech.hanasaki.azusa.shared.infrastructure.event.KotlinxEventSerializer
 import tech.hanasaki.azusa.shared.infrastructure.event.outbox.ExposedOutboxEventRepository
 import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxAdapter
@@ -61,7 +62,7 @@ import tech.hanasaki.azusa.shared.infrastructure.persistence.ExposedTransactionA
 import tech.hanasaki.azusa.shared.infrastructure.security.securityModule
 import tech.hanasaki.azusa.shared.infrastructure.web.error.configureErrorHandling
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
-import tech.hanasaki.azusa.shared.port.`in`.EventSubscriber
+import tech.hanasaki.azusa.shared.port.`in`.EventSubscriberPort
 import tech.hanasaki.azusa.shared.port.out.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -149,9 +150,12 @@ abstract class BaseIntegrationTest {
      */
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
     protected fun testEventModule(): Module = module {
-        // 注册事件(反)序列化器
+        // 注册内存领域事件总线
+        single<DomainEventBusPort> { InMemoryDomainEventBus() }
+
+        // 注册集成事件(反)序列化器
         single<EventSerializerPort> {
-            val partialModules: List<DomainEventSerializersModule> = getKoin().getAll()
+            val partialModules: List<IntegrationEventSerializersModule> = getKoin().getAll()
             val combinedModule = partialModules.fold(SerializersModule { }) { acc, next ->
                 acc + next.module
             }
@@ -160,7 +164,7 @@ abstract class BaseIntegrationTest {
                 prettyPrint = true
                 ignoreUnknownKeys = true
                 encodeDefaults = true
-                classDiscriminator = "type"
+                classDiscriminator = "_type"
                 serializersModule = combinedModule
             }
 
@@ -200,7 +204,6 @@ abstract class BaseIntegrationTest {
             RedisStreamEventPublisher(
                 get(),
                 get(),
-                get()
             )
         }
         single {
@@ -210,7 +213,7 @@ abstract class BaseIntegrationTest {
                 get(),
             )
         }
-        single<EventSubscriber> { get<RedisStreamListener>() }
+        single<EventSubscriberPort> { get<RedisStreamListener>() }
 
         // 注册 Outbox 相关组件
         single<OutboxPollerConfig> {
@@ -224,7 +227,6 @@ abstract class BaseIntegrationTest {
         }
         single<OutboxPoller> {
             OutboxPoller(
-                get(),
                 get(),
                 get(),
                 get(),

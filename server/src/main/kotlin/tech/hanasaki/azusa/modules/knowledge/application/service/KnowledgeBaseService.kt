@@ -12,13 +12,13 @@ import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 
 class KnowledgeBaseService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,
     private val fileRepository: KnowledgeFileRepository,
     private val documentRepository: KnowledgeDocumentRepository,
-    private val outboxScheduler: OutboxSchedulerPort,
+    private val domainEventBus: DomainEventBusPort,
 ) {
 
     /**
@@ -65,7 +65,7 @@ class KnowledgeBaseService(
             isPublic = cmd.isPublic,
         )
         knowledgeBaseRepository.save(kb)
-        kb.publishAndClear(outboxScheduler)
+        kb.publishAndClear(domainEventBus)
         return kb
     }
 
@@ -88,7 +88,7 @@ class KnowledgeBaseService(
             isPublic = cmd.isPublic,
         )
         knowledgeBaseRepository.save(kb)
-        kb.publishAndClear(outboxScheduler)
+        kb.publishAndClear(domainEventBus)
         return kb
     }
 
@@ -106,7 +106,7 @@ class KnowledgeBaseService(
         documentRepository.deleteByKnowledgeBaseId(knowledgeBaseId)
         fileRepository.deleteByKnowledgeBaseId(knowledgeBaseId)
         knowledgeBaseRepository.deleteById(knowledgeBaseId)
-        kb.publishAndClear(outboxScheduler)
+        kb.publishAndClear(domainEventBus)
     }
 
     /**

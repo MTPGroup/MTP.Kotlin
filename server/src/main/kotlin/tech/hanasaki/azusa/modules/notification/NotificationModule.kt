@@ -14,6 +14,8 @@ import tech.hanasaki.azusa.modules.notification.infrastructure.adapter.SmtpEmail
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository.ExposedNotificationLogRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.repository.ExposedNotificationTemplateRepository
 import tech.hanasaki.azusa.modules.notification.infrastructure.service.EmailTemplateService
+import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
+import tech.hanasaki.azusa.shared.infrastructure.event.onIntegrationEvent
 
 /**
  * 通知模块配置
@@ -89,5 +91,9 @@ fun notificationModule(config: ApplicationConfig) = module {
     // Event Listeners
     single<OtpGeneratedIntegrationListener> { OtpGeneratedIntegrationListener(get()) }
 
-//    integrationEventHandler<OtpGeneratedIntegrationEvent, OtpGeneratedIntegrationListener>()
+    // 订阅集成事件
+    onIntegrationEvent<OtpGeneratedIntegrationEvent>("notification.otp.generated") {
+        val listener = get<OtpGeneratedIntegrationListener>()
+        return@onIntegrationEvent { event: OtpGeneratedIntegrationEvent -> listener.handle(event) }
+    }
 }

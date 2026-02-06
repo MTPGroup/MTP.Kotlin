@@ -12,10 +12,6 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-/**
- * Exposed 实现的 Outbox 事件仓储
- */
-
 class ExposedOutboxEventRepository : OutboxEventRepositoryPort {
 
     override suspend fun save(event: OutboxEvent) {
@@ -86,8 +82,6 @@ class ExposedOutboxEventRepository : OutboxEventRepositoryPort {
     }
 
     private fun toEntity(domain: OutboxEvent, target: UpdateBuilder<*>) {
-        target[OutboxEventsTable.aggregateType] = domain.aggregateType
-        target[OutboxEventsTable.aggregateId] = domain.aggregateId
         target[OutboxEventsTable.eventType] = domain.eventType
         target[OutboxEventsTable.status] = domain.status
         target[OutboxEventsTable.payload] = domain.payload
@@ -96,8 +90,6 @@ class ExposedOutboxEventRepository : OutboxEventRepositoryPort {
 
     private fun toDomain(row: ResultRow): OutboxEvent = OutboxEvent(
         id = row[OutboxEventsTable.id],
-        aggregateType = row[OutboxEventsTable.aggregateType],
-        aggregateId = row[OutboxEventsTable.aggregateId],
         eventType = row[OutboxEventsTable.eventType],
         payload = row[OutboxEventsTable.payload],
         status = row[OutboxEventsTable.status],

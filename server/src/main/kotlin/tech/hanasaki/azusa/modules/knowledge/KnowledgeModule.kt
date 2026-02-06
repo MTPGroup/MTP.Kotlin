@@ -35,7 +35,7 @@ fun knowledgeModule(config: ApplicationConfig) = module {
             knowledgeBaseRepository = get(),
             fileRepository = get(),
             documentRepository = get(),
-            outboxScheduler = get(),
+            domainEventBus = get(),
         )
     }
 
@@ -46,7 +46,7 @@ fun knowledgeModule(config: ApplicationConfig) = module {
             documentRepository = get(),
             documentParser = get(),
             embeddingService = get(),
-            outboxScheduler = get(),
+            domainEventBus = get(),
         )
     }
 

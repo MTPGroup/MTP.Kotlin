@@ -19,6 +19,7 @@ import org.koin.dsl.module
 import org.koin.dsl.onClose
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
+import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.config.RedisConfig
 import tech.hanasaki.azusa.shared.infrastructure.config.readRedisConfig
 import tech.hanasaki.azusa.shared.infrastructure.event.outbox.*
@@ -26,20 +27,19 @@ import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamEventPub
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamListener
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.StreamConfig
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.readStreamConfig
-import tech.hanasaki.azusa.shared.port.`in`.EventHandlerPort
-import tech.hanasaki.azusa.shared.port.`in`.EventSubscriber
-import tech.hanasaki.azusa.shared.port.`in`.subscribe
-import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
-import tech.hanasaki.azusa.shared.port.out.EventSerializerPort
-import tech.hanasaki.azusa.shared.port.out.OutboxEventRepositoryPort
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.`in`.DomainEventHandlerPort
+import tech.hanasaki.azusa.shared.port.`in`.EventSubscriberPort
+import tech.hanasaki.azusa.shared.port.out.*
 
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun eventModule(config: ApplicationConfig) = module {
-    // 注册事件(反)序列化器
+    // 注册内存领域事件总线
+    single<DomainEventBusPort> { InMemoryDomainEventBus() }
+
+    // 注册集成事件(反)序列化器
     single<EventSerializerPort> {
-        val partialModules: List<DomainEventSerializersModule> = getKoin().getAll()
+        val partialModules: List<IntegrationEventSerializersModule> = getKoin().getAll()
         val combinedModule = partialModules.fold(SerializersModule { }) { acc, next ->
             acc + next.module
         }
@@ -48,7 +48,7 @@ fun eventModule(config: ApplicationConfig) = module {
             prettyPrint = true
             ignoreUnknownKeys = true
             encodeDefaults = true
-            classDiscriminator = "type"
+            classDiscriminator = "_type"
             serializersModule = combinedModule
         }
 
@@ -81,7 +81,6 @@ fun eventModule(config: ApplicationConfig) = module {
         RedisStreamEventPublisher(
             get(),
             get(),
-            get()
         )
     }
     single {
@@ -91,13 +90,12 @@ fun eventModule(config: ApplicationConfig) = module {
             get(),
         )
     }
-    single<EventSubscriber> { get<RedisStreamListener>() }
+    single<EventSubscriberPort> { get<RedisStreamListener>() }
 
     // 注册 Outbox 相关组件
     single<OutboxPollerConfig> { config.readOutboxPollerConfig() }
     single<OutboxPoller> {
         OutboxPoller(
-            get(),
             get(),
             get(),
             get(),
@@ -113,35 +111,61 @@ fun eventModule(config: ApplicationConfig) = module {
 }
 
 @JvmInline
-value class DomainEventSerializersModule(val module: SerializersModule)
+value class IntegrationEventSerializersModule(val module: SerializersModule)
 
-inline fun <reified EV : DomainEvent> Module.registerDomainEvent(
-    serializer: KSerializer<EV>,
+/**
+ * 注册集成事件序列化器
+ */
+inline fun <reified IE : IntegrationEvent> Module.registerIntegrationEvent(
+    serializer: KSerializer<IE>,
 ) {
     val logger = LoggerFactory.getLogger(Module::class.java)
-    val qualifier = named("event_serde_${EV::class.simpleName}")
-    logger.info("注册事件序列化器: ${EV::class.simpleName}")
+    val qualifier = named("integration_event_serde_${IE::class.simpleName}")
+    logger.info("注册集成事件序列化器: ${IE::class.simpleName}")
 
     single(qualifier) {
-        DomainEventSerializersModule(
+        IntegrationEventSerializersModule(
             SerializersModule {
-                polymorphic(DomainEvent::class) {
-                    subclass(EV::class, serializer)
+                polymorphic(IntegrationEvent::class) {
+                    subclass(IE::class, serializer)
                 }
             }
         )
     }
 }
 
-inline fun <reified EV : DomainEvent> Module.subscribe(
+/**
+ * 注册领域事件处理器到内存总线
+ */
+inline fun <reified EV : DomainEvent> Module.onDomainEvent(
     eventType: String,
-    crossinline handlerFactory: Scope.() -> EventHandlerPort<EV>,
+    crossinline handlerFactory: Scope.() -> DomainEventHandlerPort<EV>,
 ) {
-    val handlerName = named("subscription_${eventType}_${EV::class.simpleName}")
-    single(qualifier = handlerName, createdAtStart = true) {
-        val subscriber = get<EventSubscriber>()
+    val name = named("domain_handler_${eventType}_${EV::class.simpleName}")
+    single(qualifier = name, createdAtStart = true) {
+        val logger = LoggerFactory.getLogger(java.lang.Module::class.java)
+        val bus = get<DomainEventBusPort>()
         val handler = handlerFactory()
-        subscriber.subscribe<EV>(eventType, handler)
+        logger.info("注册领域事件处理器: ${handler::class.simpleName} -> $eventType")
+        bus.register(eventType) { event -> if (event is EV) handler(event) }
+        handler
+    }
+}
+
+/**
+ * 注册集成事件处理器到 Redis Stream 订阅
+ */
+inline fun <reified IE : IntegrationEvent> Module.onIntegrationEvent(
+    eventType: String,
+    crossinline handlerFactory: Scope.() -> suspend (IE) -> Unit,
+) {
+    val name = named("integration_handler_${eventType}_${IE::class.simpleName}")
+    single(qualifier = name, createdAtStart = true) {
+        val logger = LoggerFactory.getLogger(java.lang.Module::class.java)
+        val subscriber = get<EventSubscriberPort>()
+        val handler = handlerFactory()
+        logger.info("注册集成事件处理器: ${handler::class.simpleName} -> $eventType")
+        subscriber.registerHandler(eventType) { event -> if (event is IE) handler(event) }
         handler
     }
 }

@@ -15,7 +15,7 @@ import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 import tech.hanasaki.azusa.shared.port.out.StringEncoderPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
@@ -25,7 +25,7 @@ class AuthService(
     private val passwordEncoder: PasswordEncoderPort,
     private val tokenService: TokenServicePort,
     private val encoder: StringEncoderPort,
-    private val outboxScheduler: OutboxSchedulerPort,
+    private val domainEventBus: DomainEventBusPort,
     private val tx: TransactionalPort,
 ) : AuthUseCasePort {
 
@@ -47,7 +47,7 @@ class AuthService(
         )
 
         userRepository.save(user)
-        user.publishAndClear(outboxScheduler)
+        user.publishAndClear(domainEventBus)
     }
 
     override suspend fun login(
@@ -101,7 +101,7 @@ class AuthService(
         user.verifyEmail()
 
         userRepository.save(user)
-        user.publishAndClear(outboxScheduler)
+        user.publishAndClear(domainEventBus)
     }
 
     override suspend fun resetPassword(
@@ -114,7 +114,7 @@ class AuthService(
         user.changePassword(passwordEncoder.encode(newPassword))
 
         userRepository.save(user)
-        user.publishAndClear(outboxScheduler)
+        user.publishAndClear(domainEventBus)
     }
 
     override suspend fun changePassword(
@@ -132,7 +132,7 @@ class AuthService(
         user.changePassword(passwordEncoder.encode(newPassword))
 
         userRepository.save(user)
-        user.publishAndClear(outboxScheduler)
+        user.publishAndClear(domainEventBus)
     }
 
     override suspend fun getProfile(userId: UserId): UserProfileDto = tx.readOnly {

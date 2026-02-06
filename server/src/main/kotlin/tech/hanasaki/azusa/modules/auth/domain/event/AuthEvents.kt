@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.auth.domain.event
 
-import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
@@ -9,7 +8,6 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 
-@Serializable
 sealed class AuthEvent : DomainEvent {
     abstract val userId: UserId
 
@@ -20,7 +18,6 @@ sealed class AuthEvent : DomainEvent {
     abstract override val occurredOn: Instant
 }
 
-@Serializable
 data class UserRegistered(
     override val userId: UserId,
     override val eventId: Uuid = Uuid.random(),
@@ -29,8 +26,6 @@ data class UserRegistered(
     val email: Email,
 ) : AuthEvent()
 
-
-@Serializable
 data class EmailVerified(
     override val userId: UserId,
     override val eventId: Uuid = Uuid.random(),
@@ -39,7 +34,6 @@ data class EmailVerified(
     val email: Email,
 ) : AuthEvent()
 
-@Serializable
 data class PasswordReset(
     override val userId: UserId,
     override val eventId: Uuid = Uuid.random(),
@@ -47,11 +41,9 @@ data class PasswordReset(
     override val occurredOn: Instant = Clock.System.now(),
 ) : AuthEvent()
 
-@Serializable
 data class PasswordChanged(
     override val userId: UserId,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "auth.password.changed",
     override val occurredOn: Instant = Clock.System.now(),
 ) : AuthEvent()
-

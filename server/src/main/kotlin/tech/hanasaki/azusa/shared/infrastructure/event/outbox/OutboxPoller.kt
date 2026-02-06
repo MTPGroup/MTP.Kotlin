@@ -3,17 +3,12 @@ package tech.hanasaki.azusa.shared.infrastructure.event.outbox
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
-import tech.hanasaki.azusa.shared.port.out.EventSerializerPort
 import tech.hanasaki.azusa.shared.port.out.OutboxEventRepositoryPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 import kotlin.time.Clock
 
-/**
- * Outbox 事件轮询器
- */
 class OutboxPoller(
     private val repository: OutboxEventRepositoryPort,
-    private val eventSerializer: EventSerializerPort,
     private val eventPublisher: EventPublisherPort,
     private val tx: TransactionalPort,
     private val outboxConfig: OutboxPollerConfig,
@@ -74,8 +69,7 @@ class OutboxPoller(
 
             events.forEach { event ->
                 try {
-                    val domainEvent = eventSerializer.deserialize(event.payload)
-                    eventPublisher.publish(domainEvent)
+                    eventPublisher.publish(event.eventType, event.payload)
                     repository.markAsSent(event.id)
                     logger.debug("处理消息成功: ${event.eventType}")
                 } catch (e: Exception) {

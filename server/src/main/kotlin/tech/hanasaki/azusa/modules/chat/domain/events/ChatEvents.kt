@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.chat.domain.events
 
-import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
@@ -9,7 +8,6 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-@Serializable
 sealed class ChatEvent : DomainEvent {
     abstract val chatId: ChatId
     override val aggregateId: String = chatId.toString()
@@ -17,11 +15,6 @@ sealed class ChatEvent : DomainEvent {
     override val occurredOn: Instant = Clock.System.now()
 }
 
-/**
- * 聊天创建事件
- */
-
-@Serializable
 data class ChatCreated(
     override val chatId: ChatId,
     val ownerId: UserId,
