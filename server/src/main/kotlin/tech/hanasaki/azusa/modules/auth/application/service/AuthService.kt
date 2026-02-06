@@ -10,9 +10,7 @@ import tech.hanasaki.azusa.modules.auth.domain.model.*
 import tech.hanasaki.azusa.modules.auth.domain.port.RefreshTokenRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import tech.hanasaki.azusa.shared.domain.event.PasswordChangedIntegrationEvent
-import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
-import tech.hanasaki.azusa.shared.domain.exception.ConflictException
-import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.exception.*
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
@@ -60,14 +58,14 @@ class AuthService(
         val user = userRepository.findByEmail(email)
 
         if (user == null || !passwordEncoder.matches(password, user.hashedPassword)) {
-            throw NotFoundException("账号或密码错误")
+            throw AuthenticationException("账号或密码错误")
         }
 
         if (!user.canSignIn()) {
             when (user.status) {
-                UserStatus.BANNED -> throw AuthenticationException("账号已被封禁，封禁结束时间： ${user.bannedUntil}")
-                UserStatus.PENDING -> throw AuthenticationException("邮箱未验证")
-                else -> throw AuthenticationException("账号不可用")
+                UserStatus.BANNED -> throw AuthorizationException("账号已被封禁，封禁结束时间： ${user.bannedUntil}")
+                UserStatus.PENDING -> throw AuthorizationException("邮箱未验证")
+                else -> throw AuthorizationException("账号不可用")
             }
         }
 
@@ -129,7 +127,10 @@ class AuthService(
             ?: throw NotFoundException("用户不存在")
 
         if (!passwordEncoder.matches(oldPassword, user.hashedPassword)) {
-            throw AuthenticationException("旧密码错误")
+            throw AuthenticationException("原密码错误")
+        }
+        if (oldPassword == newPassword) {
+            throw ValidationException("新密码不能与旧密码相同")
         }
 
         user.changePassword(passwordEncoder.encode(newPassword))

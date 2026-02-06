@@ -23,7 +23,7 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "otp": "205840"
+  "otp": "225385"
 }
 
 ### 1.2 用户登录 (自动捕获 Token)
@@ -37,9 +37,9 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.data.accessToken);
-    client.global.set("refreshToken", response.body.data.refreshToken);
-    client.log("Access Token captured: " + response.body.data.accessToken);
+    client.global.set("accessToken", response.body.data.tokens.accessToken);
+    client.global.set("refreshToken", response.body.data.tokens.refreshToken);
+    client.log("Access Token captured: " + response.body.data.tokens.accessToken);
 %}
 
 ### 2.1 获取当前用户信息 (需登录)
@@ -58,8 +58,8 @@ Content-Type: application/json
 }
 
 > {%
-    client.global.set("accessToken", response.body.data.accessToken);
-    client.global.set("refreshToken", response.body.data.refreshToken);
+    client.global.set("accessToken", response.body.data.tokens.accessToken);
+    client.global.set("refreshToken", response.body.data.tokens.refreshToken);
     client.log("Refreshed Access Token captured");
 %}
 
@@ -112,7 +112,7 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "otp": "246924",
+  "otp": "898675",
   "password": "{{password}}"
 }
 
