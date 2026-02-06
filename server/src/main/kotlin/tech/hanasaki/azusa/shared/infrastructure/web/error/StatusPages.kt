@@ -1,19 +1,19 @@
 package tech.hanasaki.azusa.shared.infrastructure.web.error
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
-import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.shared.domain.exception.*
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 
-private val logger = LoggerFactory.getLogger(StatusPages::class.java)
+private val logger = KotlinLogging.logger { }
 
 fun Application.configureErrorHandling() {
     install(StatusPages) {
         exception<ValidationException> { call, exception ->
-            logger.warn("验证失败: ${exception.message}")
+            logger.warn { "验证失败: ${exception.message}" }
             call.respond(
                 HttpStatusCode.BadRequest,
                 ApiResponse.error<Unit>(
@@ -26,7 +26,7 @@ fun Application.configureErrorHandling() {
 
         // 认证异常
         exception<AuthenticationException> { call, exception ->
-            logger.warn("认证失败: ${exception.message}")
+            logger.warn { "认证失败: ${exception.message}" }
             call.respond(
                 HttpStatusCode.Unauthorized,
                 ApiResponse.error<Unit>(
@@ -38,7 +38,7 @@ fun Application.configureErrorHandling() {
 
         // 权限异常
         exception<AuthorizationException> { call, exception ->
-            logger.warn("权限不足: ${exception.message}")
+            logger.warn { "权限不足: ${exception.message}" }
             call.respond(
                 HttpStatusCode.Forbidden,
                 ApiResponse.error<Unit>(
@@ -50,7 +50,7 @@ fun Application.configureErrorHandling() {
 
         // 冲突异常（资源已存在）
         exception<ConflictException> { call, exception ->
-            logger.warn("资源冲突: ${exception.message}")
+            logger.warn { "资源冲突: ${exception.message}" }
             call.respond(
                 HttpStatusCode.Conflict,
                 ApiResponse.error<Unit>(
@@ -62,7 +62,7 @@ fun Application.configureErrorHandling() {
 
         // 未找到异常
         exception<NotFoundException> { call, exception ->
-            logger.warn("资源未找到: ${exception.message}")
+            logger.warn { "资源未找到: ${exception.message}" }
             call.respond(
                 HttpStatusCode.NotFound,
                 ApiResponse.error<Unit>(
@@ -74,7 +74,7 @@ fun Application.configureErrorHandling() {
 
         // 速率限制异常
         exception<HitLimitException> { call, exception ->
-            logger.warn("请求过于频繁: ${exception.message}")
+            logger.warn { "请求过于频繁: ${exception.message}" }
             call.respond(
                 HttpStatusCode.TooManyRequests,
                 ApiResponse.error<Unit>(
@@ -87,7 +87,7 @@ fun Application.configureErrorHandling() {
 
         // 所有 Domain 异常的通用处理
         exception<DomainException> { call, exception ->
-            logger.error("领域错误: ${exception.code} - ${exception.message}")
+            logger.error { "领域错误: ${exception.code} - ${exception.message}" }
             val statusCode = exception.toHttpStatusCode()
             call.respond(
                 statusCode,
@@ -100,7 +100,7 @@ fun Application.configureErrorHandling() {
 
         // 其他所有异常
         exception<Throwable> { call, exception ->
-            logger.error("未知错误", exception)
+            logger.error(exception) { "未知错误" }
             call.respond(
                 HttpStatusCode.InternalServerError,
                 ApiResponse.error<Unit>(

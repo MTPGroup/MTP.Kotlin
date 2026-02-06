@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.shared.infrastructure.event.redis
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.lettuce.core.*
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.coroutines.*
-import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
 import tech.hanasaki.azusa.shared.port.`in`.EventSubscriberPort
 import tech.hanasaki.azusa.shared.port.out.EventSerializerPort
@@ -14,7 +14,7 @@ class RedisStreamListener(
     private val config: StreamConfig,
     private val eventSerializer: EventSerializerPort,
 ) : EventSubscriberPort {
-    private val logger = LoggerFactory.getLogger(RedisStreamListener::class.java)
+    private val logger = KotlinLogging.logger { }
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val handlers = mutableMapOf<String, MutableList<suspend (IntegrationEvent) -> Unit>>()
 
@@ -32,14 +32,14 @@ class RedisStreamListener(
 
     suspend fun start() {
         if (running) {
-            logger.warn("Redis Stream监听器正在运行!")
+            logger.warn { "Redis Stream监听器正在运行!" }
             return
         }
 
         ensureConsumerGroupExists()
 
         running = true
-        logger.info("启动Redis Stream监听器: ${config.streamKey}")
+        logger.info { "启动Redis Stream监听器: ${config.streamKey}" }
 
         listeningJob = scope.launch {
             while (isActive && running) {
@@ -49,7 +49,7 @@ class RedisStreamListener(
                         delay(100)
                     }
                 } catch (e: Exception) {
-                    logger.error("在消息循环中发生错误: ${e.message}", e)
+                    logger.error(e) { "在消息循环中发生错误: ${e.message}" }
                     delay(config.pollInterval)
                 }
             }
@@ -59,7 +59,7 @@ class RedisStreamListener(
     fun stop() {
         if (!running) return
         running = false
-        logger.info("正在停止Redis Stream监听器")
+        logger.info { "正在停止Redis Stream监听器" }
         listeningJob?.cancel()
         scope.cancel()
     }
@@ -71,10 +71,10 @@ class RedisStreamListener(
                 config.consumerGroup,
                 XGroupCreateArgs.Builder.mkstream()
             )
-            logger.info("创建消费者组: ${config.consumerGroup}")
+            logger.info { "创建消费者组: ${config.consumerGroup}" }
         } catch (e: Exception) {
             if (e.message?.contains("BUSYGROUP") == true) {
-                logger.info("消费者组 ${config.consumerGroup} 已存在")
+                logger.info { "消费者组 ${config.consumerGroup} 已存在" }
             } else {
                 throw e
             }
@@ -110,28 +110,28 @@ class RedisStreamListener(
                                     try {
                                         handler(event)
                                     } catch (e: Exception) {
-                                        logger.error("处理器执行失败 [$eventType]: ${e.message}", e)
+                                        logger.error(e) { "处理器执行失败 [$eventType]: ${e.message}" }
                                     }
                                 }
                                 redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
-                                logger.debug("成功分发事件: $eventType 到 ${eventHandlers.size} 个处理器, ID: ${streamMessage.id}")
+                                logger.debug { "成功分发事件: $eventType 到 ${eventHandlers.size} 个处理器, ID: ${streamMessage.id}" }
                             }
                         } else {
-                            logger.warn("未找到事件处理器: $eventType, ID: ${streamMessage.id}")
+                            logger.warn { "未找到事件处理器: $eventType, ID: ${streamMessage.id}" }
                             redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
                         }
                     } else {
-                        logger.warn("收到格式错误的消息: ${streamMessage.id}")
+                        logger.warn { "收到格式错误的消息: ${streamMessage.id}" }
                         redisCommands.xack(config.streamKey, config.consumerGroup, streamMessage.id)
                     }
                 } catch (e: Exception) {
-                    logger.error("处理消息失败 ${streamMessage.id}: ${e.message}", e)
+                    logger.error(e) { "处理消息失败 ${streamMessage.id}: ${e.message}" }
                 }
             }
 
             return messageCount > 0
         } catch (e: Exception) {
-            logger.error("读取流失败: ${e.message}", e)
+            logger.error(e) { "读取流失败: ${e.message}" }
             return false
         }
     }

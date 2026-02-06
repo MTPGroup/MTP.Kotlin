@@ -34,6 +34,7 @@ dependencies {
     implementation(serverLibs.bundles.exposed)
     implementation(serverLibs.bundles.database)
     implementation(serverLibs.bundles.service)
+    implementation(serverLibs.bundles.logging)
 
     testImplementation(platform(serverLibs.testcontainers.bom))
     testImplementation(kotlin("test-junit5"))

@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 koin-bom = "4.1.1"
 kotlinx = "1.10.2"
 ktor = "3.4.0"
@@ -13,6 +13,8 @@ testcontainers = "2.0.3"
 testcontainers-redis = "2.2.4"
 aws-sdk = "2.41.20"
 lettuce = "7.2.1.RELEASE"
+kotlin-logging = "7.0.14"
+logback = "1.5.27"
 
 [libraries]
 
@@ -30,11 +32,13 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
-ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
 ktor-server-routing-openapi = { module = "io.ktor:ktor-server-routing-openapi", version.ref = "ktor" }
 ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
 ktor-server-freemarker = { module = "io.ktor:ktor-server-freemarker", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlinx" }
@@ -75,7 +79,6 @@ ktor = [
     "ktor-server-content-negotiation",
     "ktor-server-config-yaml",
     "ktor-server-status-pages",
-    "ktor-server-openapi",
     "ktor-server-routing-openapi",
     "ktor-server-swagger",
     "ktor-server-freemarker",
@@ -106,6 +109,11 @@ service = [
     "angus-mail",
     "aws-sdk-s3",
     "lettuce"
+]
+
+logging = [
+    "kotlin-logging",
+    "logback",
 ]
 
 test = [

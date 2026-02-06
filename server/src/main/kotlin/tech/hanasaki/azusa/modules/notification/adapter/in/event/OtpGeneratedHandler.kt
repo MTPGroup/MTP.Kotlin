@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.notification.adapter.`in`.event
 
-import org.slf4j.LoggerFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import tech.hanasaki.azusa.modules.notification.application.port.`in`.NotificationUseCasePort
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.shared.port.`in`.IntegrationEventHandlerPort
@@ -8,7 +8,7 @@ import tech.hanasaki.azusa.shared.port.`in`.IntegrationEventHandlerPort
 class OtpGeneratedHandler(
     private val notificationService: NotificationUseCasePort,
 ) : IntegrationEventHandlerPort<OtpGeneratedIntegrationEvent> {
-    private val logger = LoggerFactory.getLogger(OtpGeneratedHandler::class.java)
+    private val logger = KotlinLogging.logger { }
 
     override suspend fun invoke(event: OtpGeneratedIntegrationEvent) {
         try {
@@ -45,9 +45,9 @@ class OtpGeneratedHandler(
                 ),
             )
 
-            logger.info("OTP email sent to: ${event.email}")
+            logger.info { "OTP 邮件发送至: ${event.email}" }
         } catch (e: Exception) {
-            logger.error("Failed to send OTP email to ${event.email}: ${e.message}", e)
+            logger.error(e) { "发送 OTP 邮件至${event.email}失败: ${e.message}" }
         }
     }
 }

@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.shared.infrastructure.event
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.config.*
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
@@ -17,7 +18,6 @@ import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import org.koin.dsl.onClose
-import org.slf4j.LoggerFactory
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.config.RedisConfig
@@ -120,9 +120,9 @@ value class IntegrationEventSerializersModule(val module: SerializersModule)
 inline fun <reified IE : IntegrationEvent> Module.registerIntegrationEvent(
     serializer: KSerializer<IE>,
 ) {
-    val logger = LoggerFactory.getLogger(Module::class.java)
+    val logger = KotlinLogging.logger { }
     val qualifier = named("integration_event_serde_${IE::class.simpleName}")
-    logger.info("注册集成事件序列化器: ${IE::class.simpleName}")
+    logger.info { "注册集成事件序列化器: ${IE::class.simpleName}" }
 
     single(qualifier) {
         IntegrationEventSerializersModule(
@@ -144,10 +144,10 @@ inline fun <reified EV : DomainEvent> Module.onDomainEvent(
 ) {
     val name = named("domain_handler_${eventType}_${EV::class.simpleName}")
     single(qualifier = name, createdAtStart = true) {
-        val logger = LoggerFactory.getLogger(java.lang.Module::class.java)
+        val logger = KotlinLogging.logger { }
         val bus = get<DomainEventBusPort>()
         val handler = handlerFactory()
-        logger.info("注册领域事件处理器: ${handler::class.simpleName} -> $eventType")
+        logger.info { "注册领域事件处理器: ${handler::class.simpleName} -> $eventType" }
         bus.register(eventType) { event -> if (event is EV) handler(event) }
         handler
     }
@@ -162,10 +162,10 @@ inline fun <reified IE : IntegrationEvent> Module.onIntegrationEvent(
 ) {
     val name = named("integration_handler_${eventType}_${IE::class.simpleName}")
     single(qualifier = name, createdAtStart = true) {
-        val logger = LoggerFactory.getLogger(java.lang.Module::class.java)
+        val logger = KotlinLogging.logger { }
         val subscriber = get<EventSubscriberPort>()
         val handler = handlerFactory()
-        logger.info("注册集成事件处理器: ${handler::class.simpleName} -> $eventType")
+        logger.info { "注册集成事件处理器: ${handler::class.simpleName} -> $eventType" }
         subscriber.registerHandler(eventType) { event -> if (event is IE) handler(event) }
         handler
     }
