@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.theme.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.ThemeId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.modules.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme

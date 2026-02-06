@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component
 import tech.hanasaki.azusa.auth.domain.model.*
 import tech.hanasaki.azusa.auth.infrastructure.persistence.entity.UserEntity
 import tech.hanasaki.azusa.auth.infrastructure.persistence.entity.UserProfileEntity
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.UserId
 import java.time.Instant
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant

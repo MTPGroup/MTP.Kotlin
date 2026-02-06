@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
-import tech.hanasaki.azusa.common.domain.event.DomainEvent
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.shared.domain.event.DomainEvent
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessed
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileProcessingFailed
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploaded

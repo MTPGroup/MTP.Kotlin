@@ -1,11 +1,11 @@
 package tech.hanasaki.azusa.modules.notification.domain.repository
 
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLogId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationStatus
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
 
 /**
  * 通知日志仓储接口

@@ -13,7 +13,7 @@ import tech.hanasaki.azusa.auth.application.result.LoginResult
 import tech.hanasaki.azusa.auth.domain.model.*
 import tech.hanasaki.azusa.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.auth.domain.repository.UserRepository
-import tech.hanasaki.azusa.common.*
+import tech.hanasaki.azusa.shared.*
 import java.security.MessageDigest
 
 @Service

@@ -3,8 +3,8 @@ package tech.hanasaki.azusa.character.infrastructure.persistence.mapper
 import org.springframework.stereotype.Component
 import tech.hanasaki.azusa.character.domain.model.Character
 import tech.hanasaki.azusa.character.infrastructure.persistence.entity.CharacterEntity
-import tech.hanasaki.azusa.common.CharacterId
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.CharacterId
+import tech.hanasaki.azusa.shared.UserId
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 

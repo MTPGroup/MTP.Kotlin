@@ -1,191 +1,177 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthenticationException
-import tech.hanasaki.azusa.common.domain.exception.ConflictException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.common.domain.model.UserId
-import tech.hanasaki.azusa.common.port.out.OutboxScheduler
-import tech.hanasaki.azusa.common.port.out.TransactionalPort
-import tech.hanasaki.azusa.modules.auth.application.command.LoginCommand
-import tech.hanasaki.azusa.modules.auth.application.command.RegisterCommand
-import tech.hanasaki.azusa.modules.auth.application.command.ResetPasswordCommand
-import tech.hanasaki.azusa.modules.auth.application.port.`in`.AuthUseCase
-import tech.hanasaki.azusa.modules.auth.application.port.`in`.TokenVerifier
-import tech.hanasaki.azusa.modules.auth.application.port.out.PasswordEncoder
-import tech.hanasaki.azusa.modules.auth.application.port.out.RefreshTokenRepository
-import tech.hanasaki.azusa.modules.auth.application.port.out.TokenGenerator
-import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
-import tech.hanasaki.azusa.modules.auth.application.result.LoginResult
-import tech.hanasaki.azusa.modules.auth.application.result.TokenPair
-import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
-import tech.hanasaki.azusa.modules.auth.domain.model.RefreshToken
-import tech.hanasaki.azusa.modules.auth.domain.model.User
-import tech.hanasaki.azusa.modules.auth.domain.model.UserStatus
-import java.security.MessageDigest
+import tech.hanasaki.azusa.modules.auth.application.dto.AuthenticatedUser
+import tech.hanasaki.azusa.modules.auth.application.dto.UserProfileDto
+import tech.hanasaki.azusa.modules.auth.application.dto.toUserProfileDto
+import tech.hanasaki.azusa.modules.auth.application.port.`in`.AuthUseCasePort
+import tech.hanasaki.azusa.modules.auth.application.port.out.PasswordEncoderPort
+import tech.hanasaki.azusa.modules.auth.application.port.out.TokenServicePort
+import tech.hanasaki.azusa.modules.auth.domain.model.*
+import tech.hanasaki.azusa.modules.auth.domain.port.RefreshTokenRepositoryPort
+import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
+import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
+import tech.hanasaki.azusa.shared.domain.exception.ConflictException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.StringEncoderPort
+import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
 class AuthService(
-    private val userRepository: UserRepository,
-    private val refreshTokenRepository: RefreshTokenRepository,
-    private val passwordEncoder: PasswordEncoder,
-    private val tokenGenerator: TokenGenerator,
-    private val tokenVerifier: TokenVerifier,
-    private val outboxScheduler: OutboxScheduler,
+    private val userRepository: UserRepositoryPort,
+    private val refreshTokenRepository: RefreshTokenRepositoryPort,
+    private val passwordEncoder: PasswordEncoderPort,
+    private val tokenService: TokenServicePort,
+    private val encoder: StringEncoderPort,
+    private val outboxScheduler: OutboxSchedulerPort,
     private val tx: TransactionalPort,
-) : AuthUseCase {
+) : AuthUseCasePort {
 
-    override suspend fun register(cmd: RegisterCommand) {
-        tx.execute {
-            val email = cmd.email
+    override suspend fun register(
+        email: Email,
+        password: PlainPassword,
+        username: Username,
+    ) = tx.execute {
+        val email = email
 
-            if (userRepository.findByEmail(email) != null) {
-                throw ConflictException("该邮箱已被注册")
-            }
-
-            val hashedPassword = passwordEncoder.encode(cmd.password)
-
-            val user = User.create(
-                email = cmd.email,
-                hashedPassword = PasswordHash(hashedPassword),
-                username = cmd.username,
-            )
-
-            userRepository.save(user)
-
-            user.domainEvents.forEach { event ->
-                outboxScheduler.schedule(event)
-            }
-//            eventBus.publishAll(user.domainEvents)
-            user.clearDomainEvents()
+        if (userRepository.findByEmail(email) != null) {
+            throw ConflictException("邮箱已被注册")
         }
+
+        val user = User.create(
+            email = email,
+            hashedPassword = passwordEncoder.encode(password),
+            username = username,
+        )
+
+        userRepository.save(user)
+        user.publishAndClear(outboxScheduler)
     }
 
-    override suspend fun login(cmd: LoginCommand): LoginResult {
-        val user = userRepository.findByEmail(cmd.email)
-            ?: throw NotFoundException("User not found")
+    override suspend fun login(
+        email: Email,
+        password: PlainPassword,
+    ): AuthenticatedUser = tx.execute {
+        val user = userRepository.findByEmail(email)
 
-        if (!passwordEncoder.matches(cmd.password, user.passwordHash.value)) {
-            throw AuthenticationException("Invalid credentials")
+        if (user == null || !passwordEncoder.matches(password, user.hashedPassword)) {
+            throw NotFoundException("账号或密码错误")
         }
 
         if (!user.canSignIn()) {
             when (user.status) {
-                UserStatus.BANNED -> throw AuthenticationException("Account banned until ${user.bannedUntil}")
-                UserStatus.PENDING -> throw AuthenticationException("Email not verified")
-                else -> throw AuthenticationException("Account is disabled or suspended")
+                UserStatus.BANNED -> throw AuthenticationException("账号已被封禁，封禁结束时间： ${user.bannedUntil}")
+                UserStatus.PENDING -> throw AuthenticationException("邮箱未验证")
+                else -> throw AuthenticationException("账号不可用")
             }
         }
 
-        val tokens = tokenGenerator.generate(user.id, user.email!!)
+        val tokens = tokenService.generate(user.id, user.email!!)
 
         val refreshToken = RefreshToken(
             userId = user.id,
-            tokenHash = hashToken(tokens.refreshToken),
+            tokenHash = encoder.encode(tokens.refreshToken),
             expiresAt = tokens.refreshTokenExpiresAt,
         )
         refreshTokenRepository.save(refreshToken)
 
-        userRepository.save(user)
-
-        return createLoginResult(user, tokens)
+        return@execute AuthenticatedUser(user.toUserProfileDto(), tokens)
     }
 
-    override suspend fun logout(refreshToken: String) {
-        val tokenHash = hashToken(refreshToken)
+    override suspend fun logout(refreshToken: String) = tx.execute {
+        val tokenHash = encoder.encode(refreshToken)
         val storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
         if (storedToken != null) {
             refreshTokenRepository.revoke(storedToken)
         }
     }
 
-    override suspend fun deleteAccount(userId: UserId) {
+    override suspend fun deleteAccount(userId: UserId) = tx.execute {
         val user = userRepository.findById(userId)
-            ?: throw NotFoundException("User not found")
+            ?: throw NotFoundException("用户不存在")
         userRepository.deleteById(user.id)
     }
 
-    override suspend fun verifyEmail(email: Email) {
+    override suspend fun verifyEmail(email: Email) = tx.execute {
         val user = userRepository.findByEmail(email)
-            ?: throw NotFoundException("User not found")
+            ?: throw NotFoundException("用户不存在")
 
         user.verifyEmail()
 
         userRepository.save(user)
+        user.publishAndClear(outboxScheduler)
     }
 
-    override suspend fun resetPassword(cmd: ResetPasswordCommand) {
-        val user = userRepository.findByEmail(cmd.email)
-            ?: throw NotFoundException("User not found")
+    override suspend fun resetPassword(
+        email: Email,
+        newPassword: PlainPassword,
+    ) = tx.execute {
+        val user = userRepository.findByEmail(email)
+            ?: throw NotFoundException("用户不存在")
 
-        val hashedPassword = passwordEncoder.encode(cmd.newPassword)
-        user.changePassword(PasswordHash(hashedPassword))
+        user.changePassword(passwordEncoder.encode(newPassword))
 
         userRepository.save(user)
+        user.publishAndClear(outboxScheduler)
     }
 
-    override suspend fun changePassword(userId: UserId, oldPassword: String, newPassword: String) {
-        val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
+    override suspend fun changePassword(
+        userId: UserId,
+        oldPassword: PlainPassword,
+        newPassword: PlainPassword,
+    ) = tx.execute {
+        val user = userRepository.findById(userId)
+            ?: throw NotFoundException("用户不存在")
 
-        if (!passwordEncoder.matches(oldPassword, user.passwordHash.value)) {
-            throw AuthenticationException("Invalid credentials")
+        if (!passwordEncoder.matches(oldPassword, user.hashedPassword)) {
+            throw AuthenticationException("旧密码错误")
         }
 
-        val hashedPassword = passwordEncoder.encode(newPassword)
-        user.changePassword(PasswordHash(hashedPassword))
+        user.changePassword(passwordEncoder.encode(newPassword))
 
         userRepository.save(user)
+        user.publishAndClear(outboxScheduler)
     }
 
-    override suspend fun getProfile(userId: UserId): User {
-        return userRepository.findById(userId) ?: throw NotFoundException("User not found")
+    override suspend fun getProfile(userId: UserId): UserProfileDto = tx.readOnly {
+        val user = userRepository.findById(userId)
+            ?: throw NotFoundException("用户不存在")
+
+        return@readOnly user.toUserProfileDto()
     }
 
-    override suspend fun refreshToken(refreshToken: String): LoginResult {
-        tokenVerifier.verify(refreshToken)
+    override suspend fun refreshToken(refreshToken: String): AuthenticatedUser = tx.execute {
+        tokenService.verify(refreshToken)
 
-        val tokenHash = hashToken(refreshToken)
+        val tokenHash = encoder.encode(refreshToken)
         val storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
-            ?: throw AuthenticationException("Refresh token not found")
+            ?: throw AuthenticationException("Refresh token不存在")
 
         if (!storedToken.isValid()) {
-            throw AuthenticationException("Refresh token is expired or has been revoked")
+            throw AuthenticationException("Refresh token 已过期")
         }
         refreshTokenRepository.revoke(storedToken)
 
         val user = userRepository.findById(storedToken.userId)
-            ?: throw NotFoundException("User not found")
+            ?: throw NotFoundException("用户不存在")
 
         if (!user.canSignIn()) {
-            throw AuthenticationException("Account is disabled or suspended")
+            throw AuthenticationException("账号不可用")
         }
 
-        val tokens = tokenGenerator.generate(user.id, user.email!!)
+        val tokens = tokenService.generate(user.id, user.email!!)
 
         val newRefreshToken = RefreshToken(
             userId = user.id,
-            tokenHash = hashToken(tokens.refreshToken),
+            tokenHash = encoder.encode(tokens.refreshToken),
             expiresAt = tokens.refreshTokenExpiresAt,
         )
         refreshTokenRepository.save(newRefreshToken)
 
         userRepository.save(user)
 
-        return createLoginResult(user, tokens)
-    }
-
-    private fun createLoginResult(user: User, tokens: TokenPair) = LoginResult(
-        userId = user.id,
-        username = user.profile.username,
-        email = user.email!!,
-        isEmailVerified = user.emailVerified,
-        avatar = user.profile.avatar,
-        createdAt = user.profile.createdAt,
-        updatedAt = user.profile.updatedAt,
-        tokens = tokens,
-    )
-
-    private fun hashToken(token: String): String {
-        val bytes = MessageDigest.getInstance("SHA-256").digest(token.toByteArray())
-        return bytes.joinToString("") { "%02x".format(it) }
+        return@execute AuthenticatedUser(user.toUserProfileDto(), tokens)
     }
 }

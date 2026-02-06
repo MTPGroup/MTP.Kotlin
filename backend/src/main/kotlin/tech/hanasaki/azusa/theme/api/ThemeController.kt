@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import tech.hanasaki.azusa.common.ApiException
-import tech.hanasaki.azusa.common.ThemeId
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.ApiException
+import tech.hanasaki.azusa.shared.ThemeId
+import tech.hanasaki.azusa.shared.UserId
 import tech.hanasaki.azusa.theme.api.dto.CreateThemeRequest
 import tech.hanasaki.azusa.theme.api.dto.UpdateThemeRequest
 import tech.hanasaki.azusa.theme.application.service.ThemeService

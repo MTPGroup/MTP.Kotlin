@@ -5,7 +5,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatConfig
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.repository.ChatConfigRepository
@@ -14,21 +13,18 @@ import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatCon
 
 class ExposedChatConfigRepository : ChatConfigRepository {
     override suspend fun findById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatConfigId): ChatConfig? =
-        dbQuery {
-            ChatConfigTable.selectAll()
-                .where { ChatConfigTable.id eq id.value }
-                .map(ChatConfigMapper::toDomain)
-                .singleOrNull()
-        }
+        ChatConfigTable.selectAll()
+            .where { ChatConfigTable.id eq id.value }
+            .map(ChatConfigMapper::toDomain)
+            .singleOrNull()
 
-    override suspend fun findByChatId(chatId: ChatId): ChatConfig? = dbQuery {
+    override suspend fun findByChatId(chatId: ChatId): ChatConfig? =
         ChatConfigTable.selectAll()
             .where { ChatConfigTable.chatId eq chatId.value }
             .map(ChatConfigMapper::toDomain)
             .singleOrNull()
-    }
 
-    override suspend fun save(config: ChatConfig): Unit = dbQuery {
+    override suspend fun save(config: ChatConfig) {
         val updatedRows = ChatConfigTable.update({ ChatConfigTable.id eq config.id.value }) {
             ChatConfigMapper.toEntity(config, it)
             it[ChatConfigTable.updatedAt] = config.updatedAt
@@ -43,11 +39,11 @@ class ExposedChatConfigRepository : ChatConfigRepository {
         }
     }
 
-    override suspend fun deleteById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatConfigId): Unit = dbQuery {
+    override suspend fun deleteById(id: tech.hanasaki.azusa.modules.chat.domain.model.ChatConfigId) {
         ChatConfigTable.deleteWhere { ChatConfigTable.id eq id.value }
     }
 
-    override suspend fun deleteByChatId(chatId: ChatId): Unit = dbQuery {
+    override suspend fun deleteByChatId(chatId: ChatId) {
         ChatConfigTable.deleteWhere { ChatConfigTable.chatId eq chatId.value }
     }
 }

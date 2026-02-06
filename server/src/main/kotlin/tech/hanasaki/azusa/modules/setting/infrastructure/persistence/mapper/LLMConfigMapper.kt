@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.apiKey
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.baseUrl
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.maxTokens
@@ -8,7 +9,6 @@ import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmC
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.provider
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.runOnClient
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable.temperature
-import tech.hanasaki.azusa.common.domain.model.LLMConfig
 
 object LLMConfigMapper {
     fun toEntity(domain: LLMConfig, target: UpdateBuilder<*>) {

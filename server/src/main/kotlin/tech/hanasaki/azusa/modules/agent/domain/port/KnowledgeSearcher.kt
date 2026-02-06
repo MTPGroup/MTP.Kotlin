@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.agent.domain.port
 
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 /**
  * 知识库搜索器端口接口

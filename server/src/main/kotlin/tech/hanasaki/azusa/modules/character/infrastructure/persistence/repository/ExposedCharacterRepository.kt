@@ -5,36 +5,34 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.mapper.CharacterMapper
 import tech.hanasaki.azusa.modules.character.infrastructure.persistence.table.CharacterTable
 
 class ExposedCharacterRepository : CharacterRepository {
-    override suspend fun findById(id: CharacterId): Character? = dbQuery {
-        CharacterTable.selectAll()
+    override suspend fun findById(id: CharacterId): Character? {
+        return CharacterTable.selectAll()
             .where { CharacterTable.id eq id.value }
             .map(CharacterMapper::toDomain)
             .singleOrNull()
     }
 
-    override suspend fun findByAuthorId(authorId: UserId): List<Character> = dbQuery {
-        CharacterTable.selectAll()
+    override suspend fun findByAuthorId(authorId: UserId): List<Character> {
+        return CharacterTable.selectAll()
             .where { CharacterTable.authorId eq authorId.value }
             .map(CharacterMapper::toDomain)
     }
 
-    override suspend fun findPublicCharacters(): List<Character> = dbQuery {
-        CharacterTable.selectAll()
-            .where { CharacterTable.isPublic eq true }
-            .map(CharacterMapper::toDomain)
-    }
+    override suspend fun findPublicCharacters(): List<Character> = CharacterTable.selectAll()
+        .where { CharacterTable.isPublic eq true }
+        .map(CharacterMapper::toDomain)
 
-    override suspend fun save(character: Character): Unit = dbQuery {
+
+    override suspend fun save(character: Character) {
         val updatedRows = CharacterTable.update({ CharacterTable.id eq character.id.value }) {
             CharacterMapper.toEntity(character, it)
             it[updatedAt] = character.updatedAt
@@ -49,11 +47,11 @@ class ExposedCharacterRepository : CharacterRepository {
         }
     }
 
-    override suspend fun deleteById(id: CharacterId): Unit = dbQuery {
+    override suspend fun deleteById(id: CharacterId) {
         CharacterTable.deleteWhere { CharacterTable.id eq id.value }
     }
 
-    override suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<Character> = dbQuery {
+    override suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<Character> {
         val total = CharacterTable.selectAll()
             .where { CharacterTable.authorId eq authorId.value }
             .count()
@@ -65,10 +63,10 @@ class ExposedCharacterRepository : CharacterRepository {
             .offset(((page - 1) * limit).toLong())
             .map(CharacterMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
 
-    override suspend fun findPublicCharactersPaged(page: Int, limit: Int): PageResult<Character> = dbQuery {
+    override suspend fun findPublicCharactersPaged(page: Int, limit: Int): PageResult<Character> {
         val total = CharacterTable.selectAll()
             .where { CharacterTable.isPublic eq true }
             .count()
@@ -80,10 +78,10 @@ class ExposedCharacterRepository : CharacterRepository {
             .offset(((page - 1) * limit).toLong())
             .map(CharacterMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
 
-    override suspend fun searchPublicCharacters(query: String, page: Int, limit: Int): PageResult<Character> = dbQuery {
+    override suspend fun searchPublicCharacters(query: String, page: Int, limit: Int): PageResult<Character> {
         val searchPattern = "%${query.lowercase()}%"
         val condition = { (CharacterTable.isPublic eq true) and (CharacterTable.name.lowerCase() like searchPattern) }
 
@@ -98,7 +96,6 @@ class ExposedCharacterRepository : CharacterRepository {
             .offset(((page - 1) * limit).toLong())
             .map(CharacterMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
-
 }

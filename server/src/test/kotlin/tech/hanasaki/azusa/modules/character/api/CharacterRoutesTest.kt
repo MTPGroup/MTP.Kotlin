@@ -9,10 +9,10 @@ import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
 import org.koin.core.module.Module
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
 import tech.hanasaki.azusa.modules.character.api.dto.CharacterResponse
 import tech.hanasaki.azusa.modules.character.api.dto.KnowledgeSubscriptionResponse
 import tech.hanasaki.azusa.modules.character.characterModule
+import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -28,7 +28,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET character should return success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.get("/characters") {
             headers {
                 append("Authorization", "Bearer $accessToken")
@@ -40,7 +40,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET get public characters should return success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.get("/characters/public") {
             headers {
                 append("Authorization", "Bearer $accessToken")
@@ -52,7 +52,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET search public characters should return success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.get("/characters/search?q=test") {
             headers {
                 append("Authorization", "Bearer $accessToken")
@@ -65,7 +65,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET character detail should return success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val characterId = getCreatedCharacter()?.id
         val response = client.get("/characters/$characterId") {
             headers {
@@ -78,7 +78,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST character should return created`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.post("/characters") {
             headers {
                 append("Authorization", "Bearer $accessToken")
@@ -102,7 +102,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `PUT character should return ok`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val characterId = getCreatedCharacter()?.id
 
         val response = client.put("/characters/$characterId") {
@@ -128,7 +128,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `DELETE character should return no content`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val characterId = getCreatedCharacter()?.id
 
         val response = client.delete("/characters/$characterId") {
@@ -142,7 +142,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET character knowledge bases should return success and empty`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val characterId = getCreatedCharacter()?.id
         val response = client.get("/characters/$characterId/knowledge-bases") {
             headers {
@@ -156,7 +156,7 @@ class CharacterRoutesTest : BaseIntegrationTest() {
     }
 
     private suspend fun ClientProvider.getCreatedCharacter(): CharacterResponse? {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         return client.post("/characters") {
             headers {
                 append("Authorization", "Bearer $accessToken")

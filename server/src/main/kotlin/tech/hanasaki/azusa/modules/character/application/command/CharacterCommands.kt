@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.modules.character.application.command
 
-import tech.hanasaki.azusa.common.domain.model.AvatarUrl
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 
 data class CreateCharacterCommand(
     val name: String,

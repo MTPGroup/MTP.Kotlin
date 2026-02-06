@@ -2,15 +2,15 @@ package tech.hanasaki.azusa.modules.auth.adapter.out.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
-import tech.hanasaki.azusa.common.domain.model.AvatarUrl
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.UserTable
-import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
+import tech.hanasaki.azusa.modules.auth.domain.model.HashedPassword
 import tech.hanasaki.azusa.modules.auth.domain.model.User
 import tech.hanasaki.azusa.modules.auth.domain.model.UserProfile
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 object UserMapper {
     fun toDomain(row: ResultRow): User {
@@ -22,9 +22,9 @@ object UserMapper {
             updatedAt = row[ProfileTable.updatedAt],
         )
 
-        return User(
+        return User.reconstitute(
             id = UserId(row[UserTable.id]),
-            passwordHash = PasswordHash(row[UserTable.passwordHash]),
+            hashedPassword = HashedPassword(row[UserTable.passwordHash]),
             profile = userProfile,
             status = row[UserTable.status],
             email = Email(row[UserTable.email]),
@@ -36,9 +36,9 @@ object UserMapper {
     fun toEntity(user: User, target: UpdateBuilder<*>) {
         target[UserTable.id] = user.id.value
         target[UserTable.email] = user.email!!.value
-        target[UserTable.passwordHash] = user.passwordHash.value
+        target[UserTable.passwordHash] = user.hashedPassword.value
         target[UserTable.status] = user.status
-        target[UserTable.emailVerified] = user.emailVerified
+        target[UserTable.emailVerified] = user.isEmailVerified
         target[UserTable.bannedUntil] = user.bannedUntil
     }
 }

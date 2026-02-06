@@ -138,7 +138,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
                 """
                     {
                         "email": "test@example.com",
-                        "type": "VERIFY_EMAIL"
+                        "type": "verify_email"
                     }
                 """.trimIndent()
             )
@@ -149,7 +149,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST refresh should success`() = integrationTest {
-        val refreshToken = getSignInInfo()?.refreshToken
+        val refreshToken = getSignInInfo()?.tokens?.refreshToken
         val response = client.post("/auth/refresh") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -166,7 +166,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST sign-out`() = integrationTest {
-        val refreshToken = getSignInInfo()?.refreshToken
+        val refreshToken = getSignInInfo()?.tokens?.refreshToken
         val response = client.post("/auth/sign-out") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -189,7 +189,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET auth me should return success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.get("/auth/me") {
             headers {
                 append(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -201,7 +201,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST change password should success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.post("/auth/password/change") {
             headers {
                 append(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -222,7 +222,7 @@ class AuthRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `DELETE account should success`() = integrationTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.delete("/auth/account") {
             headers {
                 append(HttpHeaders.Authorization, "Bearer $accessToken")

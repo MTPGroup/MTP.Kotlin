@@ -1,22 +1,18 @@
 package tech.hanasaki.azusa.modules.theme.api
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.adapter.`in`.web.error.ApiException
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
-import tech.hanasaki.azusa.common.domain.model.ThemeId
-import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.theme.api.dto.CreateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.UpdateThemeRequest
 import tech.hanasaki.azusa.modules.theme.api.dto.toResponse
 import tech.hanasaki.azusa.modules.theme.application.service.ThemeService
-import kotlin.uuid.Uuid
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
+import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
+import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
 
 
 fun Route.themeRoutes() {
@@ -61,13 +57,3 @@ fun Route.themeRoutes() {
     }
 }
 
-private fun ApplicationCall.requireUserId(): UserId {
-    val principal = principal<JWTPrincipal>() ?: throw ApiException(
-        HttpStatusCode.Unauthorized,
-        "UNAUTHORIZED",
-        "Missing authentication"
-    )
-    val userId = principal.subject?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-        ?: throw ApiException(HttpStatusCode.Unauthorized, "UNAUTHORIZED", "Invalid subject")
-    return UserId(userId)
-}

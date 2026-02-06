@@ -5,10 +5,9 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.PluginId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginRepository
@@ -16,14 +15,13 @@ import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.mapper.Plug
 import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginTable
 
 class ExposedPluginRepository : PluginRepository {
-    override suspend fun findById(id: PluginId): Plugin? = dbQuery {
+    override suspend fun findById(id: PluginId): Plugin? =
         PluginTable.selectAll()
             .where { PluginTable.id eq id.value }
             .map(PluginMapper::toDomain)
             .singleOrNull()
-    }
 
-    override suspend fun save(plugin: Plugin): Unit = dbQuery {
+    override suspend fun save(plugin: Plugin) {
         val updatedRows = PluginTable.update({ PluginTable.id eq plugin.id.value }) {
             PluginMapper.toEntity(plugin, it)
             it[updatedAt] = plugin.updatedAt
@@ -38,11 +36,11 @@ class ExposedPluginRepository : PluginRepository {
         }
     }
 
-    override suspend fun deleteById(id: PluginId): Unit = dbQuery {
+    override suspend fun deleteById(id: PluginId) {
         PluginTable.deleteWhere { PluginTable.id eq id.value }
     }
 
-    override suspend fun findApprovedPaged(page: Int, limit: Int): PageResult<Plugin> = dbQuery {
+    override suspend fun findApprovedPaged(page: Int, limit: Int): PageResult<Plugin> {
         val condition = { PluginTable.status eq PluginStatus.APPROVED }
 
         val total = getTotalCount(condition)
@@ -55,10 +53,10 @@ class ExposedPluginRepository : PluginRepository {
             .offset(((page - 1) * limit).toLong())
             .map(PluginMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
 
-    override suspend fun searchApproved(query: String, page: Int, limit: Int): PageResult<Plugin> = dbQuery {
+    override suspend fun searchApproved(query: String, page: Int, limit: Int): PageResult<Plugin> {
         val searchPattern = "%${query.lowercase()}%"
         val condition = {
             (PluginTable.status eq PluginStatus.APPROVED) and
@@ -76,10 +74,10 @@ class ExposedPluginRepository : PluginRepository {
             .offset(((page - 1) * limit).toLong())
             .map(PluginMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
 
-    override suspend fun findByStatusPaged(status: PluginStatus, page: Int, limit: Int): PageResult<Plugin> = dbQuery {
+    override suspend fun findByStatusPaged(status: PluginStatus, page: Int, limit: Int): PageResult<Plugin> {
         val condition = { PluginTable.status eq status }
 
         val total = getTotalCount(condition)
@@ -91,10 +89,10 @@ class ExposedPluginRepository : PluginRepository {
             .offset(((page - 1) * limit).toLong())
             .map(PluginMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
 
-    override suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<Plugin> = dbQuery {
+    override suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<Plugin> {
         val condition = { PluginTable.authorId eq authorId.value }
 
         val total = getTotalCount(condition)
@@ -106,7 +104,7 @@ class ExposedPluginRepository : PluginRepository {
             .offset(((page - 1) * limit).toLong())
             .map(PluginMapper::toDomain)
 
-        PageResult(items, total, page, limit)
+        return PageResult(items, total, page, limit)
     }
 
     private fun getTotalCount(condition: () -> Op<Boolean>): Long =

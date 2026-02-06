@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.repository
 
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
 
 interface KnowledgeBaseRepository {
     suspend fun findById(id: KnowledgeBaseId): KnowledgeBase?

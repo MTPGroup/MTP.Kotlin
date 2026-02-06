@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.character.domain.events
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.domain.event.DomainEvent
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.event.DomainEvent
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid

@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.theme.application.command
 
-import tech.hanasaki.azusa.common.ThemeId
+import tech.hanasaki.azusa.shared.ThemeId
 import tech.hanasaki.azusa.theme.domain.model.ThemeDefinition
 
 data class CreateThemeCommand(

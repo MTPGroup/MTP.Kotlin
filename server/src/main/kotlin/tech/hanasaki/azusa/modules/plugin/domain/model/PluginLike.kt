@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.plugin.domain.model
 
-import tech.hanasaki.azusa.common.domain.model.PluginId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Instant
 
 /**

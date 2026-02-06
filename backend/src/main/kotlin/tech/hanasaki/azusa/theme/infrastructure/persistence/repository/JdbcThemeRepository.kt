@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.theme.infrastructure.persistence.repository
 
 import org.springframework.stereotype.Repository
-import tech.hanasaki.azusa.common.ThemeId
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.ThemeId
+import tech.hanasaki.azusa.shared.UserId
 import tech.hanasaki.azusa.theme.domain.model.Theme
 import tech.hanasaki.azusa.theme.domain.repository.ThemeRepository
 import tech.hanasaki.azusa.theme.infrastructure.persistence.mapper.ThemeMapper

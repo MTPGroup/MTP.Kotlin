@@ -1,7 +1,6 @@
 package tech.hanasaki.azusa
 
 import com.redis.testcontainers.RedisContainer
-import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -19,8 +18,9 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.plus
 import org.flywaydb.core.Flyway
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -30,31 +30,39 @@ import org.koin.core.context.GlobalContext
 import org.koin.core.context.stopKoin
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 import org.koin.ktor.plugin.Koin
 import org.testcontainers.postgresql.PostgreSQLContainer
-import tech.hanasaki.azusa.common.adapter.event.bus.InMemoryEventBus
-import tech.hanasaki.azusa.common.adapter.event.outbox.*
-import tech.hanasaki.azusa.common.adapter.`in`.event.RedisStreamListener
-import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
-import tech.hanasaki.azusa.common.adapter.out.event.outbox.*
-import tech.hanasaki.azusa.common.adapter.out.event.redis.StreamConfig
-import tech.hanasaki.azusa.common.application.port.out.EventSubscriber
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.common.port.out.EventPublisher
-import tech.hanasaki.azusa.common.port.out.OutboxEventRepositoryPort
+import tech.hanasaki.azusa.bootstrap.configureCors
+import tech.hanasaki.azusa.bootstrap.configureSerialization
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.configureSecurity
+import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.dto.LoginResponse
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.dto.SignInWithPasswordRequest
-import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.dto.SignInWithPasswordResponse
-import tech.hanasaki.azusa.modules.auth.application.port.out.PasswordEncoder
-import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
+import tech.hanasaki.azusa.modules.auth.application.port.out.PasswordEncoderPort
 import tech.hanasaki.azusa.modules.auth.authModule
-import tech.hanasaki.azusa.modules.auth.domain.model.PasswordHash
+import tech.hanasaki.azusa.modules.auth.domain.model.PlainPassword
 import tech.hanasaki.azusa.modules.auth.domain.model.User
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
-import tech.hanasaki.azusa.plugins.configureCors
-import tech.hanasaki.azusa.plugins.configureSecurity
-import tech.hanasaki.azusa.plugins.configureSerialization
-import tech.hanasaki.azusa.plugins.configureStatusPages
+import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.infrastructure.config.DatabaseConfig
+import tech.hanasaki.azusa.shared.infrastructure.event.DomainEventSerializersModule
+import tech.hanasaki.azusa.shared.infrastructure.event.KotlinxEventSerializer
+import tech.hanasaki.azusa.shared.infrastructure.event.outbox.ExposedOutboxEventRepository
+import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxAdapter
+import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxPoller
+import tech.hanasaki.azusa.shared.infrastructure.event.outbox.OutboxPollerConfig
+import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamEventPublisher
+import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamListener
+import tech.hanasaki.azusa.shared.infrastructure.event.redis.StreamConfig
+import tech.hanasaki.azusa.shared.infrastructure.persistence.DatabaseFactory
+import tech.hanasaki.azusa.shared.infrastructure.persistence.ExposedTransactionAdapter
+import tech.hanasaki.azusa.shared.infrastructure.security.securityModule
+import tech.hanasaki.azusa.shared.infrastructure.web.error.configureErrorHandling
+import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
+import tech.hanasaki.azusa.shared.port.`in`.EventSubscriber
+import tech.hanasaki.azusa.shared.port.out.*
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -97,16 +105,15 @@ abstract class BaseIntegrationTest {
             .migrate()
 
         // 创建数据源
-        testDatasource = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = postgresContainer.jdbcUrl
-            username = postgresContainer.username
-            password = postgresContainer.password
-            driverClassName = "org.postgresql.Driver"
-            maximumPoolSize = 5
-        })
-
-        // 连接数据库
-        Database.connect(testDatasource)
+        testDatasource = DatabaseFactory.init(
+            DatabaseConfig(
+                driver = "org.postgresql.Driver",
+                url = postgresContainer.jdbcUrl,
+                user = postgresContainer.username,
+                password = postgresContainer.password,
+                maxPoolSize = 5,
+            )
+        )
     }
 
     @AfterAll
@@ -133,7 +140,7 @@ abstract class BaseIntegrationTest {
     protected fun Application.testModule() {
         configureSerialization()
         configureCors()
-        configureStatusPages()
+        configureErrorHandling()
         configureSecurity()
     }
 
@@ -141,12 +148,26 @@ abstract class BaseIntegrationTest {
      * 获取测试用的共享模块
      */
     @OptIn(ExperimentalLettuceCoroutinesApi::class)
-    protected fun testSharedModule(): Module = module {
-        // 事件总线
-        single { InMemoryEventBus() }
-        single<EventPublisher> { get<InMemoryEventBus>() }
-        single<EventSubscriber> { get<InMemoryEventBus>() }
+    protected fun testEventModule(): Module = module {
+        // 注册事件(反)序列化器
+        single<EventSerializerPort> {
+            val partialModules: List<DomainEventSerializersModule> = getKoin().getAll()
+            val combinedModule = partialModules.fold(SerializersModule { }) { acc, next ->
+                acc + next.module
+            }
 
+            val json = Json {
+                prettyPrint = true
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+                classDiscriminator = "type"
+                serializersModule = combinedModule
+            }
+
+            KotlinxEventSerializer(json)
+        }
+        // 注册 Outbox 仓储
+        single<OutboxEventRepositoryPort> { ExposedOutboxEventRepository() }
         // Redis - 使用 testcontainer 的动态端口
         single<RedisClient> {
             val uri = RedisURI.Builder
@@ -158,16 +179,14 @@ abstract class BaseIntegrationTest {
         }
         single<StatefulRedisConnection<String, String>> {
             get<RedisClient>().connect()
+        }.onClose {
+            it?.close()
         }
         single<RedisCoroutinesCommands<String, String>> {
             get<StatefulRedisConnection<String, String>>().coroutines()
         }
 
-        // Outbox 仓储
-        single<OutboxEventRepositoryPort> { ExposedOutboxEventRepository() }
-        single<OutboxProvider> { OutboxAdapter(get()) }
-
-        // Stream 配置 - 测试用
+        // 注册 Stream 相关组件
         single<StreamConfig> {
             StreamConfig(
                 streamKey = "azusa:test:outbox-events",
@@ -177,12 +196,23 @@ abstract class BaseIntegrationTest {
                 pollInterval = 1.seconds,
             )
         }
-        single<RedisStreamListener> {
-            RedisStreamListener(redisCommands = get(), config = get())
+        single<EventPublisherPort> {
+            RedisStreamEventPublisher(
+                get(),
+                get(),
+                get()
+            )
         }
-        single<StreamListener> { get<RedisStreamListener>() }
+        single {
+            RedisStreamListener(
+                get(),
+                get(),
+                get(),
+            )
+        }
+        single<EventSubscriber> { get<RedisStreamListener>() }
 
-        // Outbox Poller 配置 - 测试用
+        // 注册 Outbox 相关组件
         single<OutboxPollerConfig> {
             OutboxPollerConfig(
                 pollingInterval = 1.seconds,
@@ -192,14 +222,25 @@ abstract class BaseIntegrationTest {
                 retentionPeriod = 1.seconds,
             )
         }
-        single {
+        single<OutboxPoller> {
             OutboxPoller(
-                repository = get(),
-                outboxConfig = get(),
-                streamConfig = get(),
-                redis = get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
             )
         }
+        single<OutboxSchedulerPort> {
+            OutboxAdapter(
+                get(),
+                get(),
+            )
+        }
+    }
+
+    protected fun testDatabaseModule(): Module = module {
+        single<TransactionalPort> { ExposedTransactionAdapter() }
     }
 
     /**
@@ -226,7 +267,9 @@ abstract class BaseIntegrationTest {
         application {
             install(Koin) {
                 modules(
-                    testSharedModule(),
+                    testEventModule(),
+                    testDatabaseModule(),
+                    securityModule(),
                     authModule(environment.config),
                     *additionalModules(environment.config).toTypedArray()
                 )
@@ -257,21 +300,22 @@ abstract class BaseIntegrationTest {
      */
     protected suspend fun createTestUser() {
         val koin = GlobalContext.get()
-        val userRepository = koin.get<UserRepository>()
-        val passwordEncoder = koin.get<PasswordEncoder>()
+        val userRepository = koin.get<UserRepositoryPort>()
+        val passwordEncoder = koin.get<PasswordEncoderPort>()
+        val tx = koin.get<TransactionalPort>()
         val user = User.create(
             email = Email("test-user@example.com"),
             username = Username("Test User"),
-            hashedPassword = PasswordHash(
-                passwordEncoder.encode("password123"),
-            )
+            hashedPassword = passwordEncoder.encode(PlainPassword("password123")),
         ).apply {
             this.verifyEmail()
         }
-        userRepository.save(user)
+        tx.execute {
+            userRepository.save(user)
+        }
     }
 
-    protected suspend fun ClientProvider.getSignInInfo(): SignInWithPasswordResponse? =
+    protected suspend fun ClientProvider.getSignInInfo(): LoginResponse? =
         client.post("/auth/sign-in/email") {
             contentType(ContentType.Application.Json)
             setBody(
@@ -280,5 +324,5 @@ abstract class BaseIntegrationTest {
                     password = "password123"
                 )
             )
-        }.body<ApiResponse<SignInWithPasswordResponse>>().data
+        }.body<ApiResponse<LoginResponse>>().data
 }

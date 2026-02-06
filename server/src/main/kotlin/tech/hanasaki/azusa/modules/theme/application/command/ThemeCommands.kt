@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.theme.application.command
 
 import tech.hanasaki.azusa.modules.theme.domain.model.ThemeDefinition
-import tech.hanasaki.azusa.common.domain.model.ThemeId
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
 
 data class CreateThemeCommand(
     val id: ThemeId? = null,

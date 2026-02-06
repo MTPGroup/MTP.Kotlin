@@ -1,10 +1,9 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
-
 
 data class RefreshToken(
     val id: Uuid = Uuid.random(),

@@ -1,6 +1,6 @@
 package tech.hanasaki.azusa.theme.api.dto
 
-import tech.hanasaki.azusa.common.ThemeId
+import tech.hanasaki.azusa.shared.ThemeId
 import tech.hanasaki.azusa.theme.application.command.CreateThemeCommand
 import tech.hanasaki.azusa.theme.application.command.UpdateThemeCommand
 import tech.hanasaki.azusa.theme.domain.model.ThemeDefinition

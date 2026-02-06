@@ -6,17 +6,17 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.adapter.`in`.web.response.respondOk
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.parseLimitParam
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.parsePageParam
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.requireUserId
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
 import tech.hanasaki.azusa.modules.knowledge.api.dto.*
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
+import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
+import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
+import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
 
 fun Route.knowledgeRoutes() {
     val knowledgeBaseService: KnowledgeBaseService by inject()
@@ -27,8 +27,8 @@ fun Route.knowledgeRoutes() {
     route("/knowledge-bases") {
         // 获取公开知识库列表
         get("/public") {
-            val page = parsePageParam(call.request.queryParameters["page"])
-            val limit = parseLimitParam(call.request.queryParameters["limit"])
+            val page = validatePage(call.request.queryParameters["page"])
+            val limit = validateLimit(call.request.queryParameters["limit"])
             val result = knowledgeBaseService.listPublicKnowledgeBases(page, limit)
             call.respondOk(result.toResponse())
         }
@@ -36,8 +36,8 @@ fun Route.knowledgeRoutes() {
         // 搜索公开知识库
         get("/search") {
             val query = call.request.queryParameters["q"] ?: ""
-            val page = parsePageParam(call.request.queryParameters["page"])
-            val limit = parseLimitParam(call.request.queryParameters["limit"])
+            val page = validatePage(call.request.queryParameters["page"])
+            val limit = validateLimit(call.request.queryParameters["limit"])
             val result = knowledgeBaseService.searchKnowledgeBases(query, page, limit)
             call.respondOk(result.toResponse())
         }
@@ -48,8 +48,8 @@ fun Route.knowledgeRoutes() {
             // 获取我的知识库列表
             get {
                 val userId = call.requireUserId()
-                val page = parsePageParam(call.request.queryParameters["page"])
-                val limit = parseLimitParam(call.request.queryParameters["limit"])
+                val page = validatePage(call.request.queryParameters["page"])
+                val limit = validateLimit(call.request.queryParameters["limit"])
                 val result = knowledgeBaseService.listMyKnowledgeBases(userId, page, limit)
                 call.respondOk(result.toResponse())
             }

@@ -4,7 +4,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.chat.domain.model.Chat
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatTable
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 object ChatMapper {
     fun toDomain(row: ResultRow, members: List<tech.hanasaki.azusa.modules.chat.domain.model.ChatMember>): Chat =

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository
 import tech.hanasaki.azusa.auth.domain.model.RefreshToken
 import tech.hanasaki.azusa.auth.domain.repository.RefreshTokenRepository
 import tech.hanasaki.azusa.auth.infrastructure.persistence.mapper.RefreshTokenEntityMapper
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.UserId
 
 @Repository
 class JdbcRefreshTokenRepository(

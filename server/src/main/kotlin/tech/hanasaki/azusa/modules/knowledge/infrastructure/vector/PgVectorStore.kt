@@ -3,9 +3,8 @@ package tech.hanasaki.azusa.modules.knowledge.infrastructure.vector
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeDocumentId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeDocumentId
 import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
 import tech.hanasaki.azusa.modules.knowledge.domain.port.VectorStore
 import java.sql.Connection
@@ -24,9 +23,9 @@ class PgVectorStore : VectorStore {
         knowledgeBaseIds: List<KnowledgeBaseId>,
         threshold: Float,
         limit: Int,
-    ): List<SearchResult> = dbQuery {
+    ): List<SearchResult> {
         if (knowledgeBaseIds.isEmpty()) {
-            return@dbQuery emptyList()
+            return emptyList()
         }
 
         val embeddingStr = "[${queryEmbedding.joinToString(",")}]"
@@ -66,6 +65,6 @@ class PgVectorStore : VectorStore {
             }
         }
 
-        results
+        return results
     }
 }

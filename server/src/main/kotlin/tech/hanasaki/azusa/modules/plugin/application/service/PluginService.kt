@@ -1,25 +1,24 @@
 package tech.hanasaki.azusa.modules.plugin.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.common.domain.exception.ConflictException
-import tech.hanasaki.azusa.common.domain.exception.DomainException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.PluginId
-import tech.hanasaki.azusa.common.domain.model.UserId
-import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.plugin.application.command.CreatePluginCommand
 import tech.hanasaki.azusa.modules.plugin.application.command.UpdatePluginCommand
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginLikeRepository
 import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginRepository
+import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.shared.domain.exception.ConflictException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 
 class PluginService(
     private val pluginRepository: PluginRepository,
     private val likeRepository: PluginLikeRepository,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublisherPort,
 ) {
 
     // ===插件===
@@ -64,7 +63,6 @@ class PluginService(
      * 创建插件（状态为 PENDING）
      */
     suspend fun createPlugin(authorId: UserId, cmd: CreatePluginCommand): Plugin {
-        validatePlugin(cmd.name, cmd.code)
         val plugin = Plugin.create(
             name = cmd.name,
             description = cmd.description,
@@ -83,7 +81,6 @@ class PluginService(
      * 更新插件（仅作者可操作）
      */
     suspend fun updatePlugin(userId: UserId, pluginId: PluginId, cmd: UpdatePluginCommand): Plugin {
-        validatePlugin(cmd.name, cmd.code)
         val plugin = pluginRepository.findById(pluginId)
             ?: throw NotFoundException("Plugin not found")
         if (plugin.authorId != userId) {
@@ -164,14 +161,5 @@ class PluginService(
             throw NotFoundException("Like not found")
         }
         likeRepository.unlike(userId, pluginId)
-    }
-
-    private fun validatePlugin(name: String, code: String) {
-        if (name.isBlank()) {
-            throw DomainException("Plugin name is required")
-        }
-        if (code.isBlank()) {
-            throw DomainException("Plugin code is required")
-        }
     }
 }

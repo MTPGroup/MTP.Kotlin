@@ -5,10 +5,9 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeDocumentId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeDocumentId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.table.KnowledgeDocumentTable
@@ -18,14 +17,13 @@ import java.time.Instant
 
 class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepository {
 
-    override suspend fun findById(id: KnowledgeDocumentId): KnowledgeDocument? = dbQuery {
+    override suspend fun findById(id: KnowledgeDocumentId): KnowledgeDocument? =
         KnowledgeDocumentTable.selectAll()
             .where { KnowledgeDocumentTable.id eq id.value }
             .map(::toDomain)
             .singleOrNull()
-    }
 
-    override suspend fun save(document: KnowledgeDocument): Unit = dbQuery {
+    override suspend fun save(document: KnowledgeDocument) {
         val embeddingValue = document.embedding?.let { arr ->
             "[${arr.joinToString(",")}]"
         }
@@ -54,8 +52,8 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepository {
         }
     }
 
-    override suspend fun saveAll(documents: List<KnowledgeDocument>): Unit = dbQuery {
-        if (documents.isEmpty()) return@dbQuery
+    override suspend fun saveAll(documents: List<KnowledgeDocument>) {
+        if (documents.isEmpty()) return
 
         val sql = """
             INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
@@ -82,35 +80,32 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepository {
         }
     }
 
-    override suspend fun deleteById(id: KnowledgeDocumentId): Unit = dbQuery {
+    override suspend fun deleteById(id: KnowledgeDocumentId) {
         KnowledgeDocumentTable.deleteWhere { KnowledgeDocumentTable.id eq id.value }
     }
 
-    override suspend fun findByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId): List<KnowledgeDocument> = dbQuery {
+    override suspend fun findByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId): List<KnowledgeDocument> =
         KnowledgeDocumentTable.selectAll()
             .where { KnowledgeDocumentTable.knowledgeBaseId eq knowledgeBaseId.value }
             .map(::toDomain)
-    }
 
-    override suspend fun findByFileId(fileId: KnowledgeFileId): List<KnowledgeDocument> = dbQuery {
+    override suspend fun findByFileId(fileId: KnowledgeFileId): List<KnowledgeDocument> =
         KnowledgeDocumentTable.selectAll()
             .where { KnowledgeDocumentTable.fileId eq fileId.value }
             .map(::toDomain)
-    }
 
-    override suspend fun deleteByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId): Unit = dbQuery {
+    override suspend fun deleteByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId) {
         KnowledgeDocumentTable.deleteWhere { KnowledgeDocumentTable.knowledgeBaseId eq knowledgeBaseId.value }
     }
 
-    override suspend fun deleteByFileId(fileId: KnowledgeFileId): Unit = dbQuery {
+    override suspend fun deleteByFileId(fileId: KnowledgeFileId) {
         KnowledgeDocumentTable.deleteWhere { KnowledgeDocumentTable.fileId eq fileId.value }
     }
 
-    override suspend fun countByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId): Long = dbQuery {
+    override suspend fun countByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId): Long =
         KnowledgeDocumentTable.selectAll()
             .where { KnowledgeDocumentTable.knowledgeBaseId eq knowledgeBaseId.value }
             .count()
-    }
 
     private fun toDomain(row: ResultRow): KnowledgeDocument = KnowledgeDocument.reconstitute(
         id = KnowledgeDocumentId(row[KnowledgeDocumentTable.id]),

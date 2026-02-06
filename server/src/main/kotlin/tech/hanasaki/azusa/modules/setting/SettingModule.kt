@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.modules.setting
 import io.ktor.server.config.*
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
-import tech.hanasaki.azusa.common.port.out.LLMConfigProvider
+import tech.hanasaki.azusa.shared.port.out.LLMConfigProvider
 import tech.hanasaki.azusa.modules.setting.application.service.SettingService
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
 import tech.hanasaki.azusa.modules.setting.infrastructure.adapter.SettingLLMConfigProvider

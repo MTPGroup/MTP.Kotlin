@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.setting.domain.repository
 
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 interface SettingRepository {
     suspend fun findByUserId(userId: UserId): Setting?

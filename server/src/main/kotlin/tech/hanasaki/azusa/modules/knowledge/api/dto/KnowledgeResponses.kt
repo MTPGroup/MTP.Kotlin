@@ -3,12 +3,12 @@ package tech.hanasaki.azusa.modules.knowledge.api.dto
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseStats
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
 import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
-import tech.hanasaki.azusa.common.domain.model.PageResult
 import kotlin.uuid.Uuid
 
 

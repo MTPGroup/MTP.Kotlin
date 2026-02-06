@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.character.domain.repository
 
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 
 interface KnowledgeSubscriptionRepository {
     /**

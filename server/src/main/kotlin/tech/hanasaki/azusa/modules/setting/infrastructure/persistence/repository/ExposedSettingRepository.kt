@@ -4,8 +4,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper.LLMConfigMapper
@@ -14,16 +13,16 @@ import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmC
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.SettingsTable
 
 class ExposedSettingRepository : SettingRepository {
-    override suspend fun findByUserId(userId: UserId): Setting? = dbQuery {
+    override suspend fun findByUserId(userId: UserId): Setting? {
         val settingRow = SettingsTable.selectAll()
             .where { SettingsTable.id eq userId.value }
-            .singleOrNull() ?: return@dbQuery null
+            .singleOrNull() ?: return null
         val llmRows = LlmConfigsTable.selectAll()
             .where { LlmConfigsTable.settingId eq userId.value }.toList()
-        SettingMapper.toDomain(settingRow, llmRows)
+        return SettingMapper.toDomain(settingRow, llmRows)
     }
 
-    override suspend fun save(setting: Setting): Unit = dbQuery {
+    override suspend fun save(setting: Setting) {
         val updatedRows = SettingsTable.update({ SettingsTable.id eq setting.uid.value }) {
             SettingMapper.toEntity(setting, it)
             it[updatedAt] = setting.updatedAt

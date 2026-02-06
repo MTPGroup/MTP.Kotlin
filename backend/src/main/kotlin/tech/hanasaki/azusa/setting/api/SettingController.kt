@@ -19,8 +19,8 @@ import tech.hanasaki.azusa.setting.application.service.SettingService
 import tech.hanasaki.azusa.setting.domain.model.LLMConfig
 import tech.hanasaki.azusa.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.setting.domain.model.Setting
-import tech.hanasaki.azusa.common.ApiException
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.ApiException
+import tech.hanasaki.azusa.shared.UserId
 import java.util.UUID
 
 @RestController

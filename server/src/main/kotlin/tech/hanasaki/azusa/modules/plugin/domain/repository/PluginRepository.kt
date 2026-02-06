@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.plugin.domain.repository
 
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.PluginId
-import tech.hanasaki.azusa.common.domain.model.UserId
 
 interface PluginRepository {
     suspend fun findById(id: PluginId): Plugin?

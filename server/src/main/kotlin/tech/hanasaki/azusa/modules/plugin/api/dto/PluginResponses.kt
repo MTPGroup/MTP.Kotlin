@@ -3,9 +3,8 @@ package tech.hanasaki.azusa.modules.plugin.api.dto
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
-
-import tech.hanasaki.azusa.common.domain.model.PageResult
 import kotlin.uuid.Uuid
 
 

@@ -1,11 +1,5 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
-import tech.hanasaki.azusa.common.domain.model.UserId
-import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
@@ -14,6 +8,12 @@ import tech.hanasaki.azusa.modules.knowledge.domain.port.EmbeddingService
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
+import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 class KnowledgeFileService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,
@@ -21,7 +21,7 @@ class KnowledgeFileService(
     private val documentRepository: KnowledgeDocumentRepository,
     private val documentParser: DocumentParser,
     private val embeddingService: EmbeddingService,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublisherPort,
 ) {
 
     /**

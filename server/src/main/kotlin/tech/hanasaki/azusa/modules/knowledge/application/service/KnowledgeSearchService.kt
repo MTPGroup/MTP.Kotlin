@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.knowledge.domain.port.EmbeddingService
 import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
 import tech.hanasaki.azusa.modules.knowledge.domain.port.VectorStore

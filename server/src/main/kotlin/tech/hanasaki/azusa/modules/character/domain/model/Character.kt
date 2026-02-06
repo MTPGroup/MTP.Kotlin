@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.character.domain.model
 
-import tech.hanasaki.azusa.common.domain.model.AggregateRoot
-import tech.hanasaki.azusa.common.domain.model.AvatarUrl
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterCreated
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeleted
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterUpdated

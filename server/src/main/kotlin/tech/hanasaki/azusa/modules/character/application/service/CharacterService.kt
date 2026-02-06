@@ -1,24 +1,23 @@
 package tech.hanasaki.azusa.modules.character.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.common.domain.exception.DomainException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
-import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.modules.character.domain.repository.CharacterRepository
 import tech.hanasaki.azusa.modules.character.domain.repository.KnowledgeSubscriptionRepository
+import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 class CharacterService(
     private val characterRepository: CharacterRepository,
     private val knowledgeSubscriptionRepository: KnowledgeSubscriptionRepository,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublisherPort,
 ) {
     suspend fun listMyCharacters(authorId: UserId): List<Character> {
         return characterRepository.findByAuthorId(authorId)
@@ -50,7 +49,6 @@ class CharacterService(
     }
 
     suspend fun createCharacter(authorId: UserId, cmd: CreateCharacterCommand): Character {
-        validate(cmd.name)
         val character = Character.create(
             authorId = authorId,
             name = cmd.name,
@@ -66,7 +64,6 @@ class CharacterService(
     }
 
     suspend fun updateCharacter(authorId: UserId, characterId: CharacterId, cmd: UpdateCharacterCommand): Character {
-        validate(cmd.name)
         val character = characterRepository.findById(characterId)
             ?: throw NotFoundException("Character not found")
         if (character.authorId != authorId) {
@@ -147,9 +144,4 @@ class CharacterService(
         knowledgeSubscriptionRepository.unsubscribe(characterId, knowledgeBaseId)
     }
 
-    private fun validate(name: String) {
-        if (name.isBlank()) {
-            throw DomainException("Name is required")
-        }
-    }
 }

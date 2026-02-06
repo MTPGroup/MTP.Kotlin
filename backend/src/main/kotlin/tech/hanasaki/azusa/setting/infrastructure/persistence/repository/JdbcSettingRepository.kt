@@ -4,7 +4,7 @@ import org.springframework.stereotype.Repository
 import tech.hanasaki.azusa.setting.domain.model.Setting
 import tech.hanasaki.azusa.setting.domain.repository.SettingRepository
 import tech.hanasaki.azusa.setting.infrastructure.persistence.mapper.SettingMapper
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.UserId
 
 @Repository
 class JdbcSettingRepository(

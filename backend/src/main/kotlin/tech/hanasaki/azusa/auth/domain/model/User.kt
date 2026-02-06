@@ -2,8 +2,8 @@ package tech.hanasaki.azusa.auth.domain.model
 
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.auth.UserRegisteredEvent
-import tech.hanasaki.azusa.common.AggregateRoot
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.AggregateRoot
+import tech.hanasaki.azusa.shared.UserId
 import java.util.*
 import kotlin.time.Clock
 import kotlin.time.Instant

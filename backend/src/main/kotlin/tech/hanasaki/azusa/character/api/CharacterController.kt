@@ -15,9 +15,9 @@ import tech.hanasaki.azusa.character.api.dto.CreateCharacterRequest
 import tech.hanasaki.azusa.character.api.dto.UpdateCharacterRequest
 import tech.hanasaki.azusa.character.application.service.CharacterService
 import tech.hanasaki.azusa.character.domain.model.Character
-import tech.hanasaki.azusa.common.ApiException
-import tech.hanasaki.azusa.common.CharacterId
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.ApiException
+import tech.hanasaki.azusa.shared.CharacterId
+import tech.hanasaki.azusa.shared.UserId
 import java.util.UUID
 
 @RestController

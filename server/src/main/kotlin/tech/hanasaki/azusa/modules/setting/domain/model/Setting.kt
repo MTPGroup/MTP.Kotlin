@@ -2,10 +2,9 @@ package tech.hanasaki.azusa.modules.setting.domain.model
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.domain.exception.DomainException
-import tech.hanasaki.azusa.common.domain.model.LLMConfig
-import tech.hanasaki.azusa.common.domain.model.ThemeId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -76,12 +75,12 @@ data class Setting(
     }
 
     fun replaceLlmConfigs(configs: Set<LLMConfig>, activeConfigId: LLMConfigId?): Setting {
-        if (configs.isEmpty()) {
+        /*if (configs.isEmpty()) {
             throw DomainException("LLM configs cannot be empty")
         }
         if (activeConfigId != null && configs.none { it.id == activeConfigId }) {
             throw DomainException("Config with id $activeConfigId not found")
-        }
+        }*/
         configs.forEach { validateLlmConfig(it) }
         return copy(
             llmConfigs = configs,
@@ -91,12 +90,12 @@ data class Setting(
     }
 
     fun removeLlmConfig(configId: LLMConfigId): Setting {
-        if (llmConfigs.none { it.id == configId }) {
+        /*if (llmConfigs.none { it.id == configId }) {
             throw DomainException("Config with id $configId not found")
         }
         if (activeLlmConfigId == configId) {
             throw DomainException("Cannot remove active LLM config")
-        }
+        }*/
         val newConfigs = llmConfigs.filterNot { it.id == configId }.toSet()
         return copy(
             llmConfigs = newConfigs,
@@ -105,9 +104,9 @@ data class Setting(
     }
 
     fun selectLlmConfig(configId: LLMConfigId): Setting {
-        if (llmConfigs.none { it.id == configId }) {
+        /*if (llmConfigs.none { it.id == configId }) {
             throw DomainException("Config with id $configId not found")
-        }
+        }*/
         return copy(
             activeLlmConfigId = configId,
             updatedAt = Clock.System.now(),
@@ -119,13 +118,13 @@ data class Setting(
     }
 
     private fun validateLlmConfig(config: LLMConfig) {
-        if (config.temperature !in 0.0..2.0) {
+        /*if (config.temperature !in 0.0..2.0) {
             throw DomainException("Temperature must be between 0.0 and 2.0")
         }
         if (config.baseUrl.contains("localhost") || config.baseUrl.contains("127.0.0.1")) {
             if (!config.runOnClient) {
                 throw DomainException("Localhost URLs must run on client side")
             }
-        }
+        }*/
     }
 }

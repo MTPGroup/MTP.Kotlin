@@ -7,7 +7,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplate
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationTemplateId
@@ -21,7 +20,7 @@ import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table
  */
 class ExposedNotificationTemplateRepository : NotificationTemplateRepository {
 
-    override suspend fun save(template: NotificationTemplate): Unit = dbQuery {
+    override suspend fun save(template: NotificationTemplate) {
         val exists = NotificationTemplateTable.selectAll()
             .where { NotificationTemplateTable.id eq template.id.value }
             .count() > 0
@@ -37,17 +36,16 @@ class ExposedNotificationTemplateRepository : NotificationTemplateRepository {
         }
     }
 
-    override suspend fun findById(id: NotificationTemplateId): NotificationTemplate? = dbQuery {
+    override suspend fun findById(id: NotificationTemplateId): NotificationTemplate? =
         NotificationTemplateTable.selectAll()
             .where { NotificationTemplateTable.id eq id.value }
             .map { NotificationTemplateMapper.toDomain(it) }
             .singleOrNull()
-    }
 
     override suspend fun findActiveByTypeAndChannel(
         type: NotificationTemplateType,
         channel: NotificationChannel,
-    ): NotificationTemplate? = dbQuery {
+    ): NotificationTemplate? =
         NotificationTemplateTable.selectAll()
             .where {
                 (NotificationTemplateTable.type eq type.name) and
@@ -56,15 +54,13 @@ class ExposedNotificationTemplateRepository : NotificationTemplateRepository {
             }
             .map { NotificationTemplateMapper.toDomain(it) }
             .singleOrNull()
-    }
 
-    override suspend fun findAll(): List<NotificationTemplate> = dbQuery {
+    override suspend fun findAll(): List<NotificationTemplate> =
         NotificationTemplateTable.selectAll()
             .orderBy(NotificationTemplateTable.createdAt, SortOrder.DESC)
             .map { NotificationTemplateMapper.toDomain(it) }
-    }
 
-    override suspend fun deleteById(id: NotificationTemplateId): Unit = dbQuery {
+    override suspend fun deleteById(id: NotificationTemplateId) {
         NotificationTemplateTable.deleteWhere { NotificationTemplateTable.id eq id.value }
     }
 }

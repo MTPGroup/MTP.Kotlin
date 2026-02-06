@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
 import kotlinx.serialization.json.JsonObject
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeDocumentId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeDocumentId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid

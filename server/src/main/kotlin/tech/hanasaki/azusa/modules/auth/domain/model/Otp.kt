@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.common.domain.exception.DomainException
-import tech.hanasaki.azusa.common.domain.model.AggregateRoot
-import tech.hanasaki.azusa.common.domain.model.Email
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
+import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.modules.auth.domain.event.OtpCreated
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -14,11 +14,11 @@ enum class OtpType {
     SIGN_IN;
 
     companion object {
-        fun fromString(value: String) = when (value) {
+        fun fromString(value: String) = when (value.trim().lowercase()) {
             "verify_email" -> VERIFY_EMAIL
             "reset_password" -> RESET_PASSWORD
             "sign_in" -> SIGN_IN
-            else -> throw DomainException("不支持的验证码类型")
+            else -> throw ValidationException("不支持的验证码类型")
         }
     }
 }

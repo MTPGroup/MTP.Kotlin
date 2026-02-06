@@ -6,9 +6,8 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLogId
@@ -22,7 +21,7 @@ import tech.hanasaki.azusa.modules.notification.infrastructure.persistence.table
  */
 class ExposedNotificationLogRepository : NotificationLogRepository {
 
-    override suspend fun save(log: NotificationLog): Unit = dbQuery {
+    override suspend fun save(log: NotificationLog) {
         val exists = NotificationLogTable.selectAll()
             .where { NotificationLogTable.id eq log.id.value }
             .count() > 0
@@ -38,18 +37,17 @@ class ExposedNotificationLogRepository : NotificationLogRepository {
         }
     }
 
-    override suspend fun findById(id: NotificationLogId): NotificationLog? = dbQuery {
+    override suspend fun findById(id: NotificationLogId): NotificationLog? =
         NotificationLogTable.selectAll()
             .where { NotificationLogTable.id eq id.value }
             .map { NotificationLogMapper.toDomain(it) }
             .singleOrNull()
-    }
 
     override suspend fun findByUserIdPaged(
         userId: UserId,
         page: Int,
         limit: Int,
-    ): PageResult<NotificationLog> = dbQuery {
+    ): PageResult<NotificationLog> {
         val total = NotificationLogTable.selectAll()
             .where { NotificationLogTable.userId eq userId.value }
             .count()
@@ -61,7 +59,7 @@ class ExposedNotificationLogRepository : NotificationLogRepository {
             .offset(((page - 1) * limit).toLong())
             .map { NotificationLogMapper.toDomain(it) }
 
-        PageResult(
+        return PageResult(
             items = items,
             total = total,
             page = page,
@@ -69,21 +67,18 @@ class ExposedNotificationLogRepository : NotificationLogRepository {
         )
     }
 
-    override suspend fun findByStatus(status: NotificationStatus): List<NotificationLog> = dbQuery {
+    override suspend fun findByStatus(status: NotificationStatus): List<NotificationLog> =
         NotificationLogTable.selectAll()
             .where { NotificationLogTable.status eq status.name }
             .map { NotificationLogMapper.toDomain(it) }
-    }
 
     override suspend fun findByChannelAndStatus(
         channel: NotificationChannel,
         status: NotificationStatus,
-    ): List<NotificationLog> = dbQuery {
-        NotificationLogTable.selectAll()
-            .where {
-                (NotificationLogTable.channel eq channel.name) and
-                        (NotificationLogTable.status eq status.name)
-            }
-            .map { NotificationLogMapper.toDomain(it) }
-    }
+    ): List<NotificationLog> = NotificationLogTable.selectAll()
+        .where {
+            (NotificationLogTable.channel eq channel.name) and
+                    (NotificationLogTable.status eq status.name)
+        }
+        .map { NotificationLogMapper.toDomain(it) }
 }

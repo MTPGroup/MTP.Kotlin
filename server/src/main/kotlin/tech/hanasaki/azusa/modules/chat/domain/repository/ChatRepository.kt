@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.chat.domain.repository
 
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.chat.domain.model.Chat
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
 
 /**
  * Chat 仓储接口

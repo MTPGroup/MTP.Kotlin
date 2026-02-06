@@ -8,8 +8,8 @@ import tech.hanasaki.azusa.auth.application.port.TokenPair
 import tech.hanasaki.azusa.auth.application.port.TokenService
 import tech.hanasaki.azusa.auth.config.JwtConfig
 import tech.hanasaki.azusa.auth.domain.model.Email
-import tech.hanasaki.azusa.common.AuthenticationException
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.AuthenticationException
+import tech.hanasaki.azusa.shared.UserId
 import java.util.*
 import kotlin.time.toKotlinInstant
 

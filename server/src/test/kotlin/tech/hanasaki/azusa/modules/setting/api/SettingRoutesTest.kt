@@ -10,14 +10,14 @@ import org.junit.jupiter.api.Test
 import org.koin.core.context.GlobalContext
 import org.koin.core.module.Module
 import tech.hanasaki.azusa.BaseIntegrationTest
-import tech.hanasaki.azusa.common.adapter.`in`.web.response.ApiResponse
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
+import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import tech.hanasaki.azusa.modules.setting.api.dto.LLMConfigResponse
 import tech.hanasaki.azusa.modules.setting.api.dto.SettingResponse
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
 import tech.hanasaki.azusa.modules.setting.settingModule
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -38,7 +38,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
      */
     private suspend fun createTestSetting() {
         val koin = GlobalContext.get()
-        val userRepository = koin.get<UserRepository>()
+        val userRepository = koin.get<UserRepositoryPort>()
         val settingRepository = koin.get<SettingRepository>()
         val user = userRepository.findByEmail(Email("test-user@example.com"))!!
         val setting = Setting.create(user.id)
@@ -61,7 +61,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET settings should return user setting`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.get("/settings") {
             headers {
                 append(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -82,7 +82,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET llm-configs should return empty list initially`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.get("/settings/llm-configs") {
             headers {
                 append(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -106,7 +106,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST llm-configs should create new config`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val response = client.post("/settings/llm-configs") {
             headers {
                 append(HttpHeaders.Authorization, "Bearer $accessToken")
@@ -124,7 +124,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET llm-config by id should return the config`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
 
         val createResponse = client.post("/settings/llm-configs") {
             headers {
@@ -151,7 +151,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `GET llm-config by non-existent id should return NotFound`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
         val randomId = Uuid.random()
 
         val response = client.get("/settings/llm-configs/$randomId") {
@@ -165,7 +165,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `PUT llm-config should update the config`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
 
         val createResponse = client.post("/settings/llm-configs") {
             headers {
@@ -206,7 +206,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `DELETE llm-config should remove the config`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
 
         val createResponse = client.post("/settings/llm-configs") {
             headers {
@@ -232,7 +232,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `DELETE active llm-config should return Conflict`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
 
         val createResponse = client.post("/settings/llm-configs") {
             headers {
@@ -261,7 +261,7 @@ class SettingRoutesTest : BaseIntegrationTest() {
 
     @Test
     fun `POST select llm-config should set it as active`() = settingTest {
-        val accessToken = getSignInInfo()?.accessToken
+        val accessToken = getSignInInfo()?.tokens?.accessToken
 
         val createResponse = client.post("/settings/llm-configs") {
             headers {

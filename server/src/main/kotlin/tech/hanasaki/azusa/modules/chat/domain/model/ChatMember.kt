@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 

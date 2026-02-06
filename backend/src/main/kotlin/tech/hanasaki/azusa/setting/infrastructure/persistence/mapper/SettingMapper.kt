@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component
 import tech.hanasaki.azusa.setting.domain.model.*
 import tech.hanasaki.azusa.setting.infrastructure.persistence.entity.LLMConfigEntity
 import tech.hanasaki.azusa.setting.infrastructure.persistence.entity.SettingEntity
-import tech.hanasaki.azusa.common.ThemeId
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.ThemeId
+import tech.hanasaki.azusa.shared.UserId
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 

@@ -6,9 +6,8 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.chat.domain.model.Chat
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.repository.ChatMemberRepository
@@ -19,17 +18,17 @@ import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.ChatTab
 class ExposedChatRepository(
     private val chatMemberRepository: ChatMemberRepository,
 ) : ChatRepository {
-    override suspend fun findById(id: ChatId): Chat? = dbQuery {
+    override suspend fun findById(id: ChatId): Chat? {
         val chatRow = ChatTable.selectAll()
             .where { ChatTable.id eq id.value }
-            .singleOrNull() ?: return@dbQuery null
+            .singleOrNull() ?: return null
 
         val members = chatMemberRepository.findByChatId(id)
 
-        ChatMapper.toDomain(chatRow, members)
+        return ChatMapper.toDomain(chatRow, members)
     }
 
-    override suspend fun save(chat: Chat): Unit = dbQuery {
+    override suspend fun save(chat: Chat) {
         val updatedRows = ChatTable.update({ ChatTable.id eq chat.id.value }) {
             ChatMapper.toEntity(chat, it)
         }
@@ -47,11 +46,11 @@ class ExposedChatRepository(
         }
     }
 
-    override suspend fun deleteById(id: ChatId): Unit = dbQuery {
+    override suspend fun deleteById(id: ChatId) {
         ChatTable.deleteWhere { ChatTable.id eq id.value }
     }
 
-    override suspend fun findByOwnerIdPaged(ownerId: UserId, page: Int, limit: Int): PageResult<Chat> = dbQuery {
+    override suspend fun findByOwnerIdPaged(ownerId: UserId, page: Int, limit: Int): PageResult<Chat> {
         val total = ChatTable.selectAll()
             .where { ChatTable.ownerId eq ownerId.value }
             .count()
@@ -69,6 +68,6 @@ class ExposedChatRepository(
             ChatMapper.toDomain(chatRow, members)
         }
 
-        PageResult(chats, total, page, limit)
+        return PageResult(chats, total, page, limit)
     }
 }

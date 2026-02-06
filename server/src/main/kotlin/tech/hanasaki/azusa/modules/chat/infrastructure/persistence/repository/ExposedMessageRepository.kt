@@ -5,8 +5,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.PageResult
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.model.Message
 import tech.hanasaki.azusa.modules.chat.domain.model.MessageId
@@ -15,7 +14,7 @@ import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.mapper.Messag
 import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.table.MessageTable
 
 class ExposedMessageRepository : MessageRepository {
-    override suspend fun save(message: Message): Unit = dbQuery {
+    override suspend fun save(message: Message) {
         MessageTable.insert {
             it[MessageTable.id] = message.id.value
             MessageMapper.toEntity(message, it)
@@ -28,7 +27,7 @@ class ExposedMessageRepository : MessageRepository {
         chatId: ChatId,
         page: Int,
         limit: Int,
-    ): PageResult<Message> = dbQuery {
+    ): PageResult<Message> {
         val total = MessageTable.selectAll()
             .where { MessageTable.chatId eq chatId.value }
             .count()
@@ -40,21 +39,19 @@ class ExposedMessageRepository : MessageRepository {
             .offset(((page - 1) * limit).toLong())
             .map(MessageMapper::toDomain)
 
-        PageResult(messages, total, page, limit)
+        return PageResult(messages, total, page, limit)
     }
 
-    override suspend fun findByChatId(chatId: ChatId): List<Message> = dbQuery {
-        MessageTable.selectAll()
-            .where { MessageTable.chatId eq chatId.value }
-            .orderBy(MessageTable.createdAt, SortOrder.ASC)
-            .map(MessageMapper::toDomain)
-    }
+    override suspend fun findByChatId(chatId: ChatId): List<Message> = MessageTable.selectAll()
+        .where { MessageTable.chatId eq chatId.value }
+        .orderBy(MessageTable.createdAt, SortOrder.ASC)
+        .map(MessageMapper::toDomain)
 
-    override suspend fun deleteById(id: MessageId): Unit = dbQuery {
+    override suspend fun deleteById(id: MessageId) {
         MessageTable.deleteWhere { MessageTable.id eq id.value }
     }
 
-    override suspend fun deleteByChatId(chatId: ChatId): Unit = dbQuery {
+    override suspend fun deleteByChatId(chatId: ChatId) {
         MessageTable.deleteWhere { MessageTable.chatId eq chatId.value }
     }
 }

@@ -9,28 +9,25 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.ThemeId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.theme.domain.model.Theme
 import tech.hanasaki.azusa.modules.theme.domain.repository.ThemeRepository
 import tech.hanasaki.azusa.modules.theme.infrastructure.persistence.table.ThemeTable
 
 class ExposedThemeRepository : ThemeRepository {
-    override suspend fun findByThemeId(id: ThemeId): Theme? = dbQuery {
+    override suspend fun findByThemeId(id: ThemeId): Theme? =
         ThemeTable.selectAll()
             .where { ThemeTable.id eq id.value }
             .map(::toDomain)
             .singleOrNull()
-    }
 
-    override suspend fun findByAuthorId(authorId: UserId): List<Theme> = dbQuery {
+    override suspend fun findByAuthorId(authorId: UserId): List<Theme> =
         ThemeTable.selectAll()
             .where { ThemeTable.authorId eq authorId.value }
             .map(::toDomain)
-    }
 
-    override suspend fun save(theme: Theme): Unit = dbQuery {
+    override suspend fun save(theme: Theme) {
         val updatedRows = ThemeTable.update({ ThemeTable.id eq theme.id.value }) {
             it[authorId] = theme.authorId.value
             it[name] = theme.name
@@ -57,7 +54,7 @@ class ExposedThemeRepository : ThemeRepository {
         }
     }
 
-    override suspend fun deleteByThemeId(id: ThemeId): Unit = dbQuery {
+    override suspend fun deleteByThemeId(id: ThemeId) {
         ThemeTable.deleteWhere { ThemeTable.id eq id.value }
     }
 

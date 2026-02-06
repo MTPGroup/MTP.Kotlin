@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.character.domain.model
 
-import tech.hanasaki.azusa.common.CharacterId
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.CharacterId
+import tech.hanasaki.azusa.shared.UserId
 import kotlin.time.Instant
 
 data class Character(

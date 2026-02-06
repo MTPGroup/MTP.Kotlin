@@ -6,20 +6,19 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
-import tech.hanasaki.azusa.common.adapter.out.persistence.dbQuery
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.mapper.ProfileMapper
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.mapper.UserMapper
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.UserTable
 import tech.hanasaki.azusa.modules.auth.domain.model.User
-import tech.hanasaki.azusa.modules.auth.application.port.out.UserRepository
+import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import kotlin.time.Clock
 
-class ExposedUserRepository : UserRepository {
-    override suspend fun findByEmail(email: Email): User? = dbQuery {
-        UserTable.join(
+class ExposedUserRepository : UserRepositoryPort {
+    override suspend fun findByEmail(email: Email): User? {
+        return UserTable.join(
             ProfileTable,
             JoinType.INNER,
             UserTable.id,
@@ -31,8 +30,8 @@ class ExposedUserRepository : UserRepository {
             .singleOrNull()
     }
 
-    override suspend fun findById(id: UserId): User? = dbQuery {
-        UserTable.join(
+    override suspend fun findById(id: UserId): User? {
+        return UserTable.join(
             ProfileTable,
             JoinType.INNER,
             UserTable.id,
@@ -44,7 +43,7 @@ class ExposedUserRepository : UserRepository {
             .singleOrNull()
     }
 
-    override suspend fun save(user: User): Unit = dbQuery {
+    override suspend fun save(user: User) {
         val userRowsUpdated = UserTable.update({ UserTable.id eq user.id.value }) {
             UserMapper.toEntity(user, it)
             it[updatedAt] = Clock.System.now()
@@ -69,7 +68,7 @@ class ExposedUserRepository : UserRepository {
         }
     }
 
-    override suspend fun deleteById(id: UserId): Unit = dbQuery {
+    override suspend fun deleteById(id: UserId) {
         UserTable.deleteWhere { UserTable.id eq id.value }
     }
 }

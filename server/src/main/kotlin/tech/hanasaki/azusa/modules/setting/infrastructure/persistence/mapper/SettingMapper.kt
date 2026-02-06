@@ -2,15 +2,15 @@ package tech.hanasaki.azusa.modules.setting.infrastructure.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.LlmConfigsTable
 import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table.SettingsTable
-import tech.hanasaki.azusa.common.domain.model.LLMConfig
-import tech.hanasaki.azusa.common.domain.model.ThemeId
-import tech.hanasaki.azusa.common.domain.model.UserId
 
 object SettingMapper {
     fun toDomain(settingRow: ResultRow, llmRows: List<ResultRow>): Setting {

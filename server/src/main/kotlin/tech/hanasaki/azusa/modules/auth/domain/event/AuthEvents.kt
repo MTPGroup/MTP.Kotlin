@@ -1,9 +1,9 @@
 package tech.hanasaki.azusa.modules.auth.domain.event
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.domain.event.DomainEvent
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.event.DomainEvent
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -37,5 +37,21 @@ data class EmailVerified(
     override val eventType: String = "auth.email.verified",
     override val occurredOn: Instant = Clock.System.now(),
     val email: Email,
+) : AuthEvent()
+
+@Serializable
+data class PasswordReset(
+    override val userId: UserId,
+    override val eventId: Uuid = Uuid.random(),
+    override val eventType: String = "auth.password.reset",
+    override val occurredOn: Instant = Clock.System.now(),
+) : AuthEvent()
+
+@Serializable
+data class PasswordChanged(
+    override val userId: UserId,
+    override val eventId: Uuid = Uuid.random(),
+    override val eventType: String = "auth.password.changed",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : AuthEvent()
 

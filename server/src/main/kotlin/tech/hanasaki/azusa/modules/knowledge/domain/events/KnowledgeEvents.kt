@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.events
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.domain.event.DomainEvent
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeFileId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.event.DomainEvent
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid

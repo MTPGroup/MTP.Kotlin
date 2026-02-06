@@ -1,23 +1,33 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import tech.hanasaki.azusa.common.domain.model.AggregateRoot
-import tech.hanasaki.azusa.common.domain.model.AvatarUrl
-import tech.hanasaki.azusa.common.domain.model.Email
-import tech.hanasaki.azusa.common.domain.model.UserId
 import tech.hanasaki.azusa.modules.auth.domain.event.EmailVerified
+import tech.hanasaki.azusa.modules.auth.domain.event.PasswordChanged
 import tech.hanasaki.azusa.modules.auth.domain.event.UserRegistered
+import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
 
 
 @JvmInline
-value class PasswordHash(val value: String)
+value class HashedPassword(val value: String)
+
+@JvmInline
+value class PlainPassword(val value: String) {
+    init {
+        require(value.length >= 8) { "密码长度不能小于8位" }
+        require(value.isNotBlank()) { "密码不能为空" }
+    }
+}
 
 @JvmInline
 value class Username(
     val value: String,
 ) {
     init {
+        require(value.isNotBlank()) { "用户名不能为空" }
         require(value.length in 2..20) { "用户名长度非法(2 ~ 20)" }
     }
 }
@@ -39,9 +49,9 @@ enum class UserStatus {
     BANNED,
 }
 
-class User(
+class User private constructor(
     val id: UserId,
-    passwordHash: PasswordHash,
+    hashedPassword: HashedPassword,
     profile: UserProfile,
     status: UserStatus,
     email: Email?,
@@ -51,7 +61,7 @@ class User(
     companion object {
         fun create(
             email: Email,
-            hashedPassword: PasswordHash,
+            hashedPassword: HashedPassword,
             username: Username,
             avatar: AvatarUrl? = null,
             now: Instant = Clock.System.now(),
@@ -59,7 +69,7 @@ class User(
             val id = UserId.generate()
             val user = User(
                 id = id,
-                passwordHash = hashedPassword,
+                hashedPassword = hashedPassword,
                 status = UserStatus.PENDING,
                 email = email,
                 emailVerified = false,
@@ -69,9 +79,27 @@ class User(
             user.addDomainEvent(UserRegistered(userId = user.id, email = user.email!!))
             return user
         }
+
+        fun reconstitute(
+            id: UserId,
+            hashedPassword: HashedPassword,
+            profile: UserProfile,
+            status: UserStatus,
+            email: Email?,
+            emailVerified: Boolean,
+            bannedUntil: Instant?,
+        ): User = User(
+            id = id,
+            hashedPassword = hashedPassword,
+            profile = profile,
+            status = status,
+            email = email,
+            emailVerified = emailVerified,
+            bannedUntil = bannedUntil
+        )
     }
 
-    var passwordHash: PasswordHash = passwordHash
+    var hashedPassword: HashedPassword = hashedPassword
         private set
 
     var profile: UserProfile = profile
@@ -83,7 +111,7 @@ class User(
     var email: Email? = email
         private set
 
-    var emailVerified: Boolean = emailVerified
+    var isEmailVerified: Boolean = emailVerified
         private set
 
     var bannedUntil: Instant? = bannedUntil
@@ -92,21 +120,22 @@ class User(
     fun canSignIn(now: Instant = Clock.System.now()): Boolean =
         status == UserStatus.ACTIVE &&
                 !isBanned(now) &&
-                (email == null || emailVerified)
+                (email == null || isEmailVerified)
 
     fun verifyEmail() {
         checkNotNull(email) { "无法验证邮箱： 邮箱未设置" }
-        if (emailVerified) return
+        if (isEmailVerified) return
 
-        emailVerified = true
+        isEmailVerified = true
         if (status == UserStatus.PENDING) {
             status = UserStatus.ACTIVE
         }
         addDomainEvent(EmailVerified(id, email = email!!))
     }
 
-    fun changePassword(newPasswordHash: PasswordHash) {
-        passwordHash = newPasswordHash
+    fun changePassword(newPasswordHash: HashedPassword) {
+        hashedPassword = newPasswordHash
+        addDomainEvent(PasswordChanged(id))
     }
 
     fun suspend() {

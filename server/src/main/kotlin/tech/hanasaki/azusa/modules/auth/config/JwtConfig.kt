@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.auth.config
 
 import io.ktor.server.config.*
-import tech.hanasaki.azusa.requireString
+import tech.hanasaki.azusa.shared.infrastructure.config.requireString
 
 data class JwtConfig(
     val issuer: String,

@@ -6,18 +6,18 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.adapter.`in`.web.response.respondOk
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.parseLimitParam
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.parsePageParam
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.requireUserId
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
-import tech.hanasaki.azusa.common.domain.model.CharacterId
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
 import tech.hanasaki.azusa.modules.character.api.dto.CreateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.SubscribeKnowledgeBaseRequest
 import tech.hanasaki.azusa.modules.character.api.dto.UpdateCharacterRequest
 import tech.hanasaki.azusa.modules.character.api.dto.toResponse
 import tech.hanasaki.azusa.modules.character.application.service.CharacterService
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
+import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
+import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
 
 fun Route.characterRoutes() {
     val characterService: CharacterService by inject()
@@ -27,16 +27,17 @@ fun Route.characterRoutes() {
             // 获取我的角色列表（分页）
             get {
                 val userId = call.requireUserId()
-                val page = parsePageParam(call.request.queryParameters["page"])
-                val limit = parseLimitParam(call.request.queryParameters["limit"])
+                val page = validatePage(call.request.queryParameters["page"])
+                val limit = validateLimit(call.request.queryParameters["limit"])
+
                 val result = characterService.listMyCharactersPaged(userId, page, limit)
                 call.respondOk(result.toResponse())
             }
 
             // 获取公开角色列表（分页）
             get("/public") {
-                val page = parsePageParam(call.request.queryParameters["page"])
-                val limit = parseLimitParam(call.request.queryParameters["limit"])
+                val page = validatePage(call.request.queryParameters["page"])
+                val limit = validateLimit(call.request.queryParameters["limit"])
                 val result = characterService.listPublicCharactersPaged(page, limit)
                 call.respondOk(result.toResponse())
             }
@@ -44,8 +45,8 @@ fun Route.characterRoutes() {
             // 搜索公开角色
             get("/search") {
                 val query = call.request.queryParameters["q"] ?: ""
-                val page = parsePageParam(call.request.queryParameters["page"])
-                val limit = parseLimitParam(call.request.queryParameters["limit"])
+                val page = validatePage(call.request.queryParameters["page"])
+                val limit = validateLimit(call.request.queryParameters["limit"])
                 val result = characterService.searchPublicCharacters(query, page, limit)
                 call.respondOk(result.toResponse())
             }

@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.theme.domain.model
 
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.common.domain.model.ThemeId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.vo.ThemeId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Instant
 
 data class Theme(

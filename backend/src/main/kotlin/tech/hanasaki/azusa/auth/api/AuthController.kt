@@ -10,8 +10,8 @@ import tech.hanasaki.azusa.auth.application.service.AuthService
 import tech.hanasaki.azusa.auth.application.service.OtpService
 import tech.hanasaki.azusa.auth.domain.model.Email
 import tech.hanasaki.azusa.auth.domain.model.OtpType
-import tech.hanasaki.azusa.common.ApiException
-import tech.hanasaki.azusa.common.UserId
+import tech.hanasaki.azusa.shared.ApiException
+import tech.hanasaki.azusa.shared.UserId
 import java.util.*
 
 @RestController

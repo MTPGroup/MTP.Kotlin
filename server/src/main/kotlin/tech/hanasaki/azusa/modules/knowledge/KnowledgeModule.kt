@@ -2,7 +2,6 @@ package tech.hanasaki.azusa.modules.knowledge
 
 import io.ktor.server.config.*
 import org.koin.dsl.module
-import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
@@ -18,6 +17,7 @@ import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.reposito
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository.ExposedKnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.persistence.repository.ExposedKnowledgeFileRepository
 import tech.hanasaki.azusa.modules.knowledge.infrastructure.vector.PgVectorStore
+import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 fun knowledgeModule(config: ApplicationConfig) = module {
     // Repositories
@@ -36,7 +36,7 @@ fun knowledgeModule(config: ApplicationConfig) = module {
             knowledgeBaseRepository = get(),
             fileRepository = get(),
             documentRepository = get(),
-            eventPublisher = get<EventPublisher>(),
+            eventPublisher = get<EventPublisherPort>(),
         )
     }
 
@@ -47,7 +47,7 @@ fun knowledgeModule(config: ApplicationConfig) = module {
             documentRepository = get(),
             documentParser = get(),
             embeddingService = get(),
-            eventPublisher = get<EventPublisher>(),
+            eventPublisher = get<EventPublisherPort>(),
         )
     }
 

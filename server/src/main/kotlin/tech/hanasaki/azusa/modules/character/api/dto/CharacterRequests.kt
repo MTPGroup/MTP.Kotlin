@@ -2,9 +2,9 @@ package tech.hanasaki.azusa.modules.character.api.dto
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.modules.character.application.command.CreateCharacterCommand
 import tech.hanasaki.azusa.modules.character.application.command.UpdateCharacterCommand
-import tech.hanasaki.azusa.common.domain.model.AvatarUrl
 import kotlin.uuid.Uuid
 
 @Serializable

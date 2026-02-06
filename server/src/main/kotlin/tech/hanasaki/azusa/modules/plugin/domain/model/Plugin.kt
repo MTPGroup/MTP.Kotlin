@@ -1,8 +1,8 @@
 package tech.hanasaki.azusa.modules.plugin.domain.model
 
-import tech.hanasaki.azusa.common.domain.model.AggregateRoot
-import tech.hanasaki.azusa.common.domain.model.PluginId
-import tech.hanasaki.azusa.common.domain.model.UserId
+import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginApproved
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginCreated
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginRejected

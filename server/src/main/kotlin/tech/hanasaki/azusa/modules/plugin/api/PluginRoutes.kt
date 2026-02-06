@@ -6,17 +6,17 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
-import tech.hanasaki.azusa.common.adapter.`in`.web.response.respondOk
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.parseLimitParam
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.parsePageParam
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.requireUserId
-import tech.hanasaki.azusa.common.adapter.`in`.web.route.uuidParam
-import tech.hanasaki.azusa.common.domain.model.PluginId
 import tech.hanasaki.azusa.modules.plugin.api.dto.CreatePluginRequest
 import tech.hanasaki.azusa.modules.plugin.api.dto.UpdatePluginRequest
 import tech.hanasaki.azusa.modules.plugin.api.dto.toDetailResponse
 import tech.hanasaki.azusa.modules.plugin.api.dto.toResponse
 import tech.hanasaki.azusa.modules.plugin.application.service.PluginService
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
+import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
+import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
 
 fun Route.pluginRoutes() {
     val pluginService: PluginService by inject()
@@ -24,8 +24,8 @@ fun Route.pluginRoutes() {
     route("/plugins") {
         // 获取已通过审核的插件列表（公开）
         get {
-            val page = parsePageParam(call.request.queryParameters["page"])
-            val limit = parseLimitParam(call.request.queryParameters["limit"])
+            val page = validatePage(call.request.queryParameters["page"])
+            val limit = validateLimit(call.request.queryParameters["limit"])
             val result = pluginService.listApprovedPlugins(page, limit)
             call.respondOk(result.toResponse())
         }
@@ -33,8 +33,8 @@ fun Route.pluginRoutes() {
         // 搜索插件（公开）
         get("/search") {
             val query = call.request.queryParameters["q"] ?: ""
-            val page = parsePageParam(call.request.queryParameters["page"])
-            val limit = parseLimitParam(call.request.queryParameters["limit"])
+            val page = validatePage(call.request.queryParameters["page"])
+            val limit = validateLimit(call.request.queryParameters["limit"])
             val result = pluginService.searchPlugins(query, page, limit)
             call.respondOk(result.toResponse())
         }
@@ -111,8 +111,8 @@ fun Route.pluginRoutes() {
             // 我创建的插件
             get {
                 val userId = call.requireUserId()
-                val page = parsePageParam(call.request.queryParameters["page"])
-                val limit = parseLimitParam(call.request.queryParameters["limit"])
+                val page = validatePage(call.request.queryParameters["page"])
+                val limit = validateLimit(call.request.queryParameters["limit"])
                 val result = pluginService.listMyPlugins(userId, page, limit)
                 call.respondOk(result.toResponse())
             }
@@ -124,8 +124,8 @@ fun Route.pluginRoutes() {
             // 待审核插件列表
             get("/pending") {
                 // TODO: 添加管理员权限检查
-                val page = parsePageParam(call.request.queryParameters["page"])
-                val limit = parseLimitParam(call.request.queryParameters["limit"])
+                val page = validatePage(call.request.queryParameters["page"])
+                val limit = validateLimit(call.request.queryParameters["limit"])
                 val result = pluginService.listPendingPlugins(page, limit)
                 call.respondOk(result.toResponse())
             }

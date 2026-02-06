@@ -1,24 +1,23 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
-import tech.hanasaki.azusa.common.domain.exception.AuthorizationException
-import tech.hanasaki.azusa.common.domain.exception.DomainException
-import tech.hanasaki.azusa.common.domain.exception.NotFoundException
-import tech.hanasaki.azusa.common.domain.model.KnowledgeBaseId
-import tech.hanasaki.azusa.common.domain.model.PageResult
-import tech.hanasaki.azusa.common.domain.model.UserId
-import tech.hanasaki.azusa.common.port.out.EventPublisher
 import tech.hanasaki.azusa.modules.knowledge.application.command.CreateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.application.command.UpdateKnowledgeBaseCommand
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
+import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
+import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import tech.hanasaki.azusa.shared.port.out.EventPublisherPort
 
 class KnowledgeBaseService(
     private val knowledgeBaseRepository: KnowledgeBaseRepository,
     private val fileRepository: KnowledgeFileRepository,
     private val documentRepository: KnowledgeDocumentRepository,
-    private val eventPublisher: EventPublisher,
+    private val eventPublisher: EventPublisherPort,
 ) {
 
     /**
@@ -58,7 +57,6 @@ class KnowledgeBaseService(
      * 创建知识库
      */
     suspend fun createKnowledgeBase(userId: UserId, cmd: CreateKnowledgeBaseCommand): KnowledgeBase {
-        validate(cmd.name)
         val kb = KnowledgeBase.create(
             name = cmd.name,
             description = cmd.description,
@@ -79,7 +77,6 @@ class KnowledgeBaseService(
         knowledgeBaseId: KnowledgeBaseId,
         cmd: UpdateKnowledgeBaseCommand,
     ): KnowledgeBase {
-        validate(cmd.name)
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
             ?: throw NotFoundException("Knowledge base not found")
         if (kb.authorId != userId) {
@@ -132,11 +129,6 @@ class KnowledgeBaseService(
         )
     }
 
-    private fun validate(name: String) {
-        if (name.isBlank()) {
-            throw DomainException("Name is required")
-        }
-    }
 }
 
 data class KnowledgeBaseStats(

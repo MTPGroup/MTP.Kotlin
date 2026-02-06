@@ -2,10 +2,10 @@ package tech.hanasaki.azusa.modules.setting.api.dto
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
 import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
-import tech.hanasaki.azusa.common.domain.model.LLMConfig
 import kotlin.uuid.Uuid
 
 
