@@ -9,9 +9,10 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import tech.hanasaki.azusa.shared.infrastructure.config.S3Config
+import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import java.net.URI
 
-class S3Storage(private val config: S3Config) {
+class S3Storage(private val config: S3Config) : FileStoragePort {
     private val client: S3Client = S3Client.builder()
         .endpointOverride(URI.create(config.endpoint))
         .credentialsProvider(
@@ -27,17 +28,17 @@ class S3Storage(private val config: S3Config) {
         )
         .build()
 
-    fun uploadAvatar(objectKey: String, contentType: String, bytes: ByteArray): String {
-        putObject(config.bucket, objectKey, contentType, bytes)
+    override fun uploadAvatar(objectKey: String, contentType: String, bytes: ByteArray): String {
+        putObject(config.avatarBucket, objectKey, contentType, bytes)
         return buildPublicUrl(objectKey)
     }
 
-    fun uploadKnowledgeFile(objectKey: String, contentType: String, bytes: ByteArray): String {
+    override fun uploadFile(objectKey: String, contentType: String, bytes: ByteArray): String {
         putObject(config.knowledgeBucket, objectKey, contentType, bytes)
         return objectKey
     }
 
-    fun deleteKnowledgeFile(objectKey: String): Unit {
+    override fun deleteFile(objectKey: String) {
         val request = DeleteObjectRequest.builder()
             .bucket(config.knowledgeBucket)
             .key(objectKey)
@@ -56,6 +57,6 @@ class S3Storage(private val config: S3Config) {
 
     private fun buildPublicUrl(objectKey: String): String {
         val base = config.publicBaseUrl.trimEnd('/')
-        return "$base/${config.bucket}/$objectKey"
+        return "$base/${config.avatarBucket}/$objectKey"
     }
 }

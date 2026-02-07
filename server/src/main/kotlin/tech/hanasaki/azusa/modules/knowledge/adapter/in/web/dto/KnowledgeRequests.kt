@@ -18,15 +18,6 @@ data class UpdateKnowledgeBaseRequest(
 )
 
 @Serializable
-data class UploadFileRequest(
-    val fileName: String,
-    val filePath: String,
-    val fileSize: Long? = null,
-    val fileType: String? = null,
-)
-
-
-@Serializable
 data class SearchKnowledgeRequest(
     val query: String,
     val knowledgeBaseIds: List<Uuid>? = null,

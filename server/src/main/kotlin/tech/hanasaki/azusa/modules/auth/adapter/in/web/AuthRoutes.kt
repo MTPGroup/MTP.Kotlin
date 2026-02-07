@@ -246,6 +246,7 @@ fun Route.authRoutes() {
             }
         }
 
+        // TODO: 添加更新/上传头像API
         authenticate("auth-jwt") {
             get("/me") {
                 val userId = call.requireUserId()

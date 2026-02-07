@@ -40,9 +40,9 @@ class KnowledgeBaseService(
     override suspend fun getKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBase =
         tx.readOnly {
             val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-                ?: throw NotFoundException("Knowledge base not found")
+                ?: throw NotFoundException("知识库不存在")
             if (!kb.isPublic && kb.authorId != userId) {
-                throw AuthorizationException("Access denied")
+                throw AuthorizationException("无权访问")
             }
             kb
         }
@@ -72,9 +72,9 @@ class KnowledgeBaseService(
         isPublic: Boolean,
     ): KnowledgeBase = tx.execute {
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
+            ?: throw NotFoundException("知识库不存在")
         if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+            throw AuthorizationException("无权访问")
         }
         kb.update(
             name = name,
@@ -88,9 +88,9 @@ class KnowledgeBaseService(
 
     override suspend fun deleteKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId) = tx.execute {
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
+            ?: throw NotFoundException("知识库不存在")
         if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+            throw AuthorizationException("无权访问")
         }
         kb.markDeleted()
         // 级联删除文档和文件
@@ -103,9 +103,9 @@ class KnowledgeBaseService(
     override suspend fun getKnowledgeBaseStats(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBaseStats =
         tx.readOnly {
             val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-                ?: throw NotFoundException("Knowledge base not found")
+                ?: throw NotFoundException("知识库不存在")
             if (kb.authorId != userId) {
-                throw AuthorizationException("Access denied")
+                throw AuthorizationException("无权访问")
             }
             val fileCount = fileRepository.findByKnowledgeBaseId(knowledgeBaseId).size
             val documentCount = documentRepository.countByKnowledgeBaseId(knowledgeBaseId)

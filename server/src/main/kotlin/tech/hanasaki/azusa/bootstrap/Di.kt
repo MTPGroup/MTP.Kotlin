@@ -16,6 +16,7 @@ import tech.hanasaki.azusa.modules.theme.themeModule
 import tech.hanasaki.azusa.shared.infrastructure.event.eventModule
 import tech.hanasaki.azusa.shared.infrastructure.persistence.databaseModule
 import tech.hanasaki.azusa.shared.infrastructure.security.securityModule
+import tech.hanasaki.azusa.shared.infrastructure.storage.storageModule
 
 fun Application.configureDi(config: ApplicationConfig) {
     install(Koin) {
@@ -26,6 +27,7 @@ fun Application.configureDi(config: ApplicationConfig) {
 fun appModules(config: ApplicationConfig): List<Module> {
     return listOf(
         databaseModule(config),
+        storageModule(config),
         securityModule(),
         eventModule(config),
         notificationModule(config),
@@ -36,6 +38,6 @@ fun appModules(config: ApplicationConfig): List<Module> {
         pluginModule(),
         agentModule(),
         chatModule(config),
-        knowledgeModule(config)
+        knowledgeModule()
     )
 }

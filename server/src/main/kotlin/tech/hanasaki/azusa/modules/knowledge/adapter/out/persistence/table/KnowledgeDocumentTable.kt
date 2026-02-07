@@ -6,7 +6,6 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.json.jsonb
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object KnowledgeDocumentTable : Table("knowledge_documents") {

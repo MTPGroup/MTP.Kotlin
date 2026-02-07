@@ -69,30 +69,33 @@ data class KnowledgeDocument(
         )
     }
 
-    /* override fun equals(other: Any?): Boolean {
-         if (this === other) return true
-         if (javaClass != other?.javaClass) return false
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-         other as KnowledgeDocument
+        other as KnowledgeDocument
 
-         if (id != other.id) return false
-         if (knowledgeBaseId != other.knowledgeBaseId) return false
-         if (fileId != other.fileId) return false
-         if (content != other.content) return false
-         if (embedding != null) {
-             if (other.embedding == null) return false
-             if (!embedding.contentEquals(other.embedding)) return false
-         } else if (other.embedding != null) return false
+        if (id != other.id) return false
+        if (knowledgeBaseId != other.knowledgeBaseId) return false
+        if (fileId != other.fileId) return false
+        if (content != other.content) return false
+        if (metadata != other.metadata) return false
+        if (!embedding.contentEquals(other.embedding)) return false
+        if (createdAt != other.createdAt) return false
+        if (updatedAt != other.updatedAt) return false
 
-         return true
-     }
+        return true
+    }
 
-     override fun hashCode(): Int {
-         var result = id.hashCode()
-         result = 31 * result + knowledgeBaseId.hashCode()
-         result = 31 * result + (fileId?.hashCode() ?: 0)
-         result = 31 * result + content.hashCode()
-         result = 31 * result + (embedding?.contentHashCode() ?: 0)
-         return result
-     }*/
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + knowledgeBaseId.hashCode()
+        result = 31 * result + (fileId?.hashCode() ?: 0)
+        result = 31 * result + content.hashCode()
+        result = 31 * result + metadata.hashCode()
+        result = 31 * result + (embedding?.contentHashCode() ?: 0)
+        result = 31 * result + createdAt.hashCode()
+        result = 31 * result + updatedAt.hashCode()
+        return result
+    }
 }

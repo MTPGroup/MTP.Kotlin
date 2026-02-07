@@ -14,6 +14,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import java.sql.Connection
 import java.sql.Timestamp
 import java.time.Instant
+import kotlin.uuid.toJavaUuid
 
 class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepositoryPort {
 
@@ -40,9 +41,9 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepositoryPort {
 
         val conn = TransactionManager.current().connection.connection as Connection
         conn.prepareStatement(sql).use { stmt ->
-            stmt.setObject(1, document.id.value)
-            stmt.setObject(2, document.knowledgeBaseId.value)
-            stmt.setObject(3, document.fileId?.value)
+            stmt.setObject(1, document.id.value.toJavaUuid())
+            stmt.setObject(2, document.knowledgeBaseId.value.toJavaUuid())
+            stmt.setObject(3, document.fileId?.value?.toJavaUuid())
             stmt.setString(4, document.content)
             stmt.setString(5, document.metadata.toString())
             stmt.setString(6, embeddingValue)
@@ -66,9 +67,9 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepositoryPort {
                 val embeddingValue = document.embedding?.let { arr ->
                     "[${arr.joinToString(",")}]"
                 }
-                stmt.setObject(1, document.id.value)
-                stmt.setObject(2, document.knowledgeBaseId.value)
-                stmt.setObject(3, document.fileId?.value)
+                stmt.setObject(1, document.id.value.toJavaUuid())
+                stmt.setObject(2, document.knowledgeBaseId.value.toJavaUuid())
+                stmt.setObject(3, document.fileId?.value?.toJavaUuid())
                 stmt.setString(4, document.content)
                 stmt.setString(5, document.metadata.toString())
                 stmt.setString(6, embeddingValue)

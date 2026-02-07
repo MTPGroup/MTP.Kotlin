@@ -14,7 +14,7 @@ data class DatabaseConfig(
 data class S3Config(
     val endpoint: String,
     val region: String,
-    val bucket: String,
+    val avatarBucket: String,
     val knowledgeBucket: String,
     val accessKey: String,
     val secretKey: String,
@@ -47,12 +47,11 @@ fun ApplicationConfig.readRedisConfig(): RedisConfig =
 
 
 fun ApplicationConfig.readS3Config(): S3Config {
-    val bucket = requireString("s3.bucket")
     return S3Config(
         endpoint = requireString("s3.endpoint"),
         region = requireString("s3.region"),
-        bucket = bucket,
-        knowledgeBucket = propertyOrNull("s3.knowledgeBucket")?.getString() ?: bucket,
+        avatarBucket = requireString("s3.avatarBucket"),
+        knowledgeBucket = requireString("s3.knowledgeBucket"),
         accessKey = requireString("s3.accessKey"),
         secretKey = requireString("s3.secretKey"),
         publicBaseUrl = requireString("s3.publicBaseUrl"),

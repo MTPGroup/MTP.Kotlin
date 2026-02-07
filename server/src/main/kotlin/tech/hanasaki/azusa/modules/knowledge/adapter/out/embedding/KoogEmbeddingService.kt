@@ -25,7 +25,8 @@ class KoogEmbeddingService(
 
     override suspend fun embed(text: String): FloatArray {
         val vector = embedder.embed(text)
-        return vector.values.map { it.toFloat() }.toFloatArray()
+        // TODO: 目前这样截取的方式不可取
+        return vector.values.map { it.toFloat() }.take(EMBEDDING_DIMENSION).toFloatArray()
     }
 
     override suspend fun embedBatch(texts: List<String>): List<FloatArray> {

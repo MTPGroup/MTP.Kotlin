@@ -3,7 +3,6 @@ package tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.table
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object KnowledgeBaseTable : Table("knowledge_bases") {

@@ -1,12 +1,16 @@
 package tech.hanasaki.azusa.modules.knowledge.adapter.`in`.web
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.openapi.*
+import io.ktor.openapi.ReferenceOr.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseUseCasePort
@@ -20,11 +24,15 @@ import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
+import tech.hanasaki.azusa.shared.port.out.FileStoragePort
+import kotlin.uuid.Uuid
 
+@OptIn(InternalAPI::class)
 fun Route.knowledgeRoutes() {
     val knowledgeBaseService: KnowledgeBaseUseCasePort by inject()
     val knowledgeFileService: KnowledgeFileUseCasePort by inject()
     val knowledgeSearchService: KnowledgeSearchUseCasePort by inject()
+    val fileStoragePort: FileStoragePort by inject()
 
     // 公开知识库（无需认证）
     route("/knowledge-bases") {
@@ -137,7 +145,7 @@ fun Route.knowledgeRoutes() {
                     request.description,
                     request.isPublic
                 )
-                call.respondOk(kb.toResponse(), "Knowledge base created")
+                call.respondOk(kb.toResponse(), "知识库创建成功")
             }.describe {
                 tag("知识库管理")
                 operationId = "createKnowledgeBase"
@@ -205,7 +213,7 @@ fun Route.knowledgeRoutes() {
                     request.description,
                     request.isPublic,
                 )
-                call.respondOk(kb.toResponse(), "Knowledge base updated")
+                call.respondOk(kb.toResponse(), "知识库更新成功")
             }.describe {
                 tag("知识库管理")
                 operationId = "updateKnowledgeBase"
@@ -338,33 +346,73 @@ fun Route.knowledgeRoutes() {
                 }
             }
 
-            // 上传文件到知识库
+            // 上传文件到知识库（multipart/form-data）
             post("/{knowledgeBaseId}/files") {
                 val userId = call.requireUserId()
                 val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-                val request = call.receive<UploadFileRequest>()
+
+                val multipart = call.receiveMultipart()
+                var fileName: String? = null
+                var contentType: String? = null
+                var fileBytes: ByteArray? = null
+
+                multipart.forEachPart { part ->
+                    when (part) {
+                        is PartData.FileItem -> {
+                            fileName = part.originalFileName
+                            contentType = part.contentType?.toString()
+                            fileBytes = part.provider().toInputStream().readBytes()
+                        }
+
+                        else -> {}
+                    }
+                    part.dispose()
+                }
+
+                val bytes = fileBytes ?: throw IllegalArgumentException("No file uploaded")
+                val name = fileName ?: "unknown"
+                val ext = name.substringAfterLast('.', "bin")
+                val objectKey = "knowledge/${knowledgeBaseId.value}/${Uuid.random()}.$ext"
+
+                fileStoragePort.uploadFile(objectKey, contentType ?: "application/octet-stream", bytes)
+
                 val file = knowledgeFileService.uploadFile(
                     userId = userId,
                     knowledgeBaseId = knowledgeBaseId,
-                    fileName = request.fileName,
-                    filePath = request.filePath,
-                    fileSize = request.fileSize,
-                    fileType = request.fileType,
+                    objectKey = objectKey,
+                    fileName = name,
+                    fileSize = bytes.size.toLong(),
+                    fileType = contentType,
                 )
-                call.respondOk(file.toResponse(), "File uploaded")
+                call.respondOk(file.toResponse(), "文件上传成功")
             }.describe {
                 tag("知识库文件管理")
                 operationId = "uploadKnowledgeFile"
                 summary = "上传文件"
-                description = "上传文件到指定知识库，文件将被解析并向量化"
+                description = "通过 multipart/form-data 上传文件到指定知识库，文件将被解析并向量化"
                 parameters {
                     path("knowledgeBaseId") {
                         description = "知识库ID"
                     }
                 }
                 requestBody {
-                    description = "文件信息"
-                    schema = jsonSchema<UploadFileRequest>()
+                    description = "要上传的文件（字段名为 'file'）"
+                    required = true
+                    ContentType.MultiPart.FormData {
+                        schema = JsonSchema(
+                            type = JsonType.OBJECT,
+                            properties = mapOf(
+                                "file" to Value(
+                                    JsonSchema(
+                                        type = JsonType.STRING,
+                                        format = "binary",
+                                        description = "文件内容（支持 PDF、DOCX、TXT 等格式）"
+                                    )
+                                )
+                            ),
+                            required = listOf("file")
+                        )
+                    }
                 }
                 responses {
                     HttpStatusCode.OK {
@@ -372,7 +420,7 @@ fun Route.knowledgeRoutes() {
                         schema = jsonSchema<ApiResponse<KnowledgeFileResponse>>()
                     }
                     HttpStatusCode.BadRequest {
-                        description = "输入参数无效"
+                        description = "输入参数无效或未上传文件"
                     }
                     HttpStatusCode.NotFound {
                         description = "知识库不存在"
@@ -462,7 +510,7 @@ fun Route.knowledgeRoutes() {
                 val userId = call.requireUserId()
                 val fileId = KnowledgeFileId(call.uuidParam("fileId"))
                 knowledgeFileService.retryFailedFile(userId, fileId)
-                call.respondOk("File retry queued")
+                call.respondOk("文件已加入重试队列")
             }.describe {
                 tag("知识库文件管理")
                 operationId = "retryKnowledgeFile"

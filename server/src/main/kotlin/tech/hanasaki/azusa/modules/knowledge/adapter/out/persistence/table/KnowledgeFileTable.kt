@@ -4,7 +4,6 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object KnowledgeFileTable : Table("knowledge_files") {

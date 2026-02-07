@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParser
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
@@ -18,6 +19,8 @@ import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
+private val logger = KotlinLogging.logger {}
+
 class KnowledgeFileService(
     private val knowledgeBaseRepository: KnowledgeBaseRepositoryPort,
     private val fileRepository: KnowledgeFileRepositoryPort,
@@ -31,20 +34,20 @@ class KnowledgeFileService(
     override suspend fun uploadFile(
         userId: UserId,
         knowledgeBaseId: KnowledgeBaseId,
+        objectKey: String,
         fileName: String,
-        filePath: String,
         fileSize: Long?,
         fileType: String?,
     ): KnowledgeFile = tx.execute {
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
+            ?: throw NotFoundException("知识库不存在")
         if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+            throw AuthorizationException("无权访问")
         }
 
         val file = KnowledgeFile.create(
             knowledgeBaseId = knowledgeBaseId,
-            filePath = filePath,
+            filePath = objectKey,
             fileName = fileName,
             fileSize = fileSize,
             fileType = fileType,
@@ -57,96 +60,93 @@ class KnowledgeFileService(
     override suspend fun listFiles(userId: UserId, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile> =
         tx.readOnly {
             val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-                ?: throw NotFoundException("Knowledge base not found")
+?: throw NotFoundException("知识库不存在")
             if (kb.authorId != userId) {
-                throw AuthorizationException("Access denied")
+throw AuthorizationException("无权访问")
             }
             fileRepository.findByKnowledgeBaseId(knowledgeBaseId)
         }
 
     override suspend fun getFile(userId: UserId, fileId: KnowledgeFileId): KnowledgeFile = tx.readOnly {
         val file = fileRepository.findById(fileId)
-            ?: throw NotFoundException("File not found")
+            ?: throw NotFoundException("文件不存在")
         val kb = knowledgeBaseRepository.findById(file.knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
+            ?: throw NotFoundException("知识库不存在")
         if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+            throw AuthorizationException("无权访问")
         }
         file
     }
 
     override suspend fun deleteFile(userId: UserId, fileId: KnowledgeFileId) = tx.execute {
         val file = fileRepository.findById(fileId)
-            ?: throw NotFoundException("File not found")
+            ?: throw NotFoundException("文件不存在")
         val kb = knowledgeBaseRepository.findById(file.knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
+            ?: throw NotFoundException("知识库不存在")
         if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+            throw AuthorizationException("无权访问")
         }
         // 删除关联的文档
         documentRepository.deleteByFileId(fileId)
         fileRepository.deleteById(fileId)
     }
 
-    /**
-     * 处理待处理的文件（由后台任务调用）
-     */
-    override suspend fun processPendingFiles(limit: Int): Int = tx.execute {
-        val pendingFiles = fileRepository.findByStatus(FileStatus.PENDING, limit)
-        var processedCount = 0
+    override suspend fun processFile(fileId: KnowledgeFileId) {
+        try {
+            val file = tx.execute {
+                val f = fileRepository.findById(fileId)
+?: throw NotFoundException("文件不存在")
+                f.markProcessing()
+                fileRepository.save(f)
+                f
+            }
 
-        for (file in pendingFiles) {
-            try {
-                processFile(file)
-                processedCount++
-            } catch (e: Exception) {
-                file.markFailed(e.message ?: "Unknown error")
+            // 解析文件内容为文档块
+            val chunks = documentParser.parse(file.filePath, file.fileType)
+
+            // 为每个块生成 embedding 并保存
+            val documents = chunks.map { chunk ->
+                val embedding = embeddingService.embed(chunk.content)
+                KnowledgeDocument.create(
+                    knowledgeBaseId = file.knowledgeBaseId,
+                    fileId = file.id,
+                    content = chunk.content,
+                    metadata = chunk.metadata,
+                    embedding = embedding,
+                )
+            }
+
+            tx.execute {
+                documentRepository.saveAll(documents)
+                file.markCompleted()
                 fileRepository.save(file)
                 file.publishAndClear(domainEventBus)
             }
+        } catch (e: Exception) {
+            logger.error(e) { "处理文件失败 $fileId" }
+            try {
+                tx.execute {
+                    val file = fileRepository.findById(fileId) ?: return@execute
+                    file.markFailed(e.message ?: "未知错误")
+                    fileRepository.save(file)
+                    file.publishAndClear(domainEventBus)
+                }
+            } catch (inner: Exception) {
+                logger.error(inner) { "标记文件 $fileId 为失败状态失败" }
+            }
         }
-        processedCount
-    }
-
-    /**
-     * 处理单个文件
-     */
-    private suspend fun processFile(file: KnowledgeFile) {
-        file.markProcessing()
-        fileRepository.save(file)
-
-        // 解析文件内容为文档块
-        val chunks = documentParser.parse(file.filePath, file.fileType)
-
-        // 为每个块生成 embedding 并保存
-        val documents = chunks.map { chunk ->
-            val embedding = embeddingService.embed(chunk.content)
-            KnowledgeDocument.create(
-                knowledgeBaseId = file.knowledgeBaseId,
-                fileId = file.id,
-                content = chunk.content,
-                metadata = chunk.metadata,
-                embedding = embedding,
-            )
-        }
-        documentRepository.saveAll(documents)
-
-        // 标记文件处理完成
-        file.markCompleted()
-        fileRepository.save(file)
-        file.publishAndClear(domainEventBus)
     }
 
     override suspend fun retryFailedFile(userId: UserId, fileId: KnowledgeFileId) = tx.execute {
         val file = fileRepository.findById(fileId)
-            ?: throw NotFoundException("File not found")
+            ?: throw NotFoundException("文件不存在")
         val kb = knowledgeBaseRepository.findById(file.knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
+            ?: throw NotFoundException("知识库不存在")
         if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+            throw AuthorizationException("无权访问")
         }
         if (file.status != FileStatus.FAILED) {
-            throw IllegalStateException("Only failed files can be retried")
+            throw IllegalStateException("只有失败的文件才能重试")
         }
 
         // 删除之前可能部分处理的文档

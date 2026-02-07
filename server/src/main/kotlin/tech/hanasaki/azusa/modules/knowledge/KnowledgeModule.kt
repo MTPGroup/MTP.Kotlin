@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.knowledge
 
-import io.ktor.server.config.*
 import org.koin.dsl.module
+import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.FileUploadedHandler
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.KoogEmbeddingService
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.PlaceholderDocumentParser
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeBaseRepository
@@ -17,11 +17,13 @@ import tech.hanasaki.azusa.modules.knowledge.application.port.out.VectorStore
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
+import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploaded
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeBaseRepositoryPort
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeDocumentRepositoryPort
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeFileRepositoryPort
+import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
 
-fun knowledgeModule(config: ApplicationConfig) = module {
+fun knowledgeModule() = module {
     single<KnowledgeBaseRepositoryPort> { ExposedKnowledgeBaseRepository() }
     single<KnowledgeFileRepositoryPort> { ExposedKnowledgeFileRepository() }
     single<KnowledgeDocumentRepositoryPort> { ExposedKnowledgeDocumentRepository() }
@@ -59,5 +61,9 @@ fun knowledgeModule(config: ApplicationConfig) = module {
             vectorStore = get(),
             tx = get(),
         )
+    }
+
+    onDomainEvent<FileUploaded>("knowledgeBase.file.uploaded") {
+        FileUploadedHandler(get())
     }
 }

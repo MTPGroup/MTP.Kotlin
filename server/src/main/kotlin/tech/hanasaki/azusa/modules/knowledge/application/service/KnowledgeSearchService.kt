@@ -32,9 +32,9 @@ class KnowledgeSearchService(
         // 验证用户对所有知识库的访问权限
         for (kbId in knowledgeBaseIds) {
             val kb = knowledgeBaseRepository.findById(kbId)
-                ?: throw NotFoundException("Knowledge base not found: ${kbId.value}")
+                ?: throw NotFoundException("知识库不存在: ${kbId.value}")
             if (!kb.isPublic && kb.authorId != userId) {
-                throw AuthorizationException("Access denied to knowledge base: ${kbId.value}")
+                throw AuthorizationException("无权访问知识库: ${kbId.value}")
             }
         }
 
