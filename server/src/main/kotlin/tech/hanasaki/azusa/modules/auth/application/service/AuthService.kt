@@ -69,7 +69,7 @@ class AuthService(
             }
         }
 
-        val tokens = tokenService.generate(user.id, user.email!!)
+        val tokens = tokenService.generate(user.id, user.email!!, user.role)
 
         val refreshToken = RefreshToken(
             userId = user.id,
@@ -165,7 +165,7 @@ class AuthService(
             throw AuthenticationException("账号不可用")
         }
 
-        val tokens = tokenService.generate(user.id, user.email!!)
+        val tokens = tokenService.generate(user.id, user.email!!, user.role)
 
         val newRefreshToken = RefreshToken(
             userId = user.id,

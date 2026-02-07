@@ -19,6 +19,14 @@ fun ApplicationCall.requireUserId(): UserId {
         ?: throw AuthorizationException()
 }
 
+fun ApplicationCall.requireAdmin() {
+    val principal = principal<JWTPrincipal>() ?: throw AuthorizationException()
+    val role = principal.payload.getClaim("role")?.asString() ?: "USER"
+    if (role != "ADMIN") {
+        throw AuthorizationException("需要管理员权限")
+    }
+}
+
 fun ApplicationCall.uuidParam(name: String): Uuid {
     val value = parameters[name] ?: throw ValidationException()
     return runCatching { Uuid.parse(value) }.getOrElse {

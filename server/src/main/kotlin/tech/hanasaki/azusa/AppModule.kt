@@ -25,7 +25,7 @@ fun appModules(config: ApplicationConfig): List<Module> {
         themeModule(config),
         characterModule(),
         chatModule(config),
-        pluginModule(config),
+        pluginModule(),
         knowledgeModule(config)
     )
 }

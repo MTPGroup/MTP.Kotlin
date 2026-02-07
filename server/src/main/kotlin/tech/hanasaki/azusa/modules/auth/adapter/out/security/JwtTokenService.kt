@@ -6,6 +6,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import tech.hanasaki.azusa.modules.auth.application.dto.TokenPair
 import tech.hanasaki.azusa.modules.auth.application.port.out.TokenServicePort
 import tech.hanasaki.azusa.modules.auth.config.JwtConfig
+import tech.hanasaki.azusa.modules.auth.domain.model.UserRole
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
@@ -25,6 +26,7 @@ class JwtTokenService(
     override fun generate(
         userId: UserId,
         email: Email,
+        role: UserRole,
     ): TokenPair {
         val now = Clock.System.now()
 
@@ -34,6 +36,7 @@ class JwtTokenService(
         val accessToken = createAccessToken(
             userId = userId,
             email = email,
+            role = role,
             issuedAt = now,
             expiresAt = accessExpiresAt,
         )
@@ -78,6 +81,7 @@ class JwtTokenService(
     private fun createAccessToken(
         userId: UserId,
         email: Email,
+        role: UserRole,
         issuedAt: Instant,
         expiresAt: Instant,
     ): String {
@@ -86,6 +90,7 @@ class JwtTokenService(
             .withAudience(config.audience)
             .withSubject(userId.value.toString())
             .withClaim("email", email.value)
+            .withClaim("role", role.name)
             .withIssuedAt(Date.from(issuedAt.toJavaInstant()))
             .withExpiresAt(Date.from(expiresAt.toJavaInstant()))
             .sign(algorithm)

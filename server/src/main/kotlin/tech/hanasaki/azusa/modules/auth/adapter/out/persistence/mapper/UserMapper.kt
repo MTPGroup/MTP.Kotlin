@@ -27,6 +27,7 @@ object UserMapper {
             hashedPassword = HashedPassword(row[UserTable.passwordHash]),
             profile = userProfile,
             status = row[UserTable.status],
+            role = row[UserTable.role],
             email = Email(row[UserTable.email]),
             emailVerified = row[UserTable.emailVerified],
             bannedUntil = row[UserTable.bannedUntil]
@@ -38,6 +39,7 @@ object UserMapper {
         target[UserTable.email] = user.email!!.value
         target[UserTable.passwordHash] = user.hashedPassword.value
         target[UserTable.status] = user.status
+        target[UserTable.role] = user.role
         target[UserTable.emailVerified] = user.isEmailVerified
         target[UserTable.bannedUntil] = user.bannedUntil
     }

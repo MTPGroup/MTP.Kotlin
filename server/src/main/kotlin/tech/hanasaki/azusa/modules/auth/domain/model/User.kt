@@ -54,6 +54,7 @@ class User private constructor(
     hashedPassword: HashedPassword,
     profile: UserProfile,
     status: UserStatus,
+    role: UserRole,
     email: Email?,
     emailVerified: Boolean,
     bannedUntil: Instant?,
@@ -71,6 +72,7 @@ class User private constructor(
                 id = id,
                 hashedPassword = hashedPassword,
                 status = UserStatus.PENDING,
+                role = UserRole.USER,
                 email = email,
                 emailVerified = false,
                 bannedUntil = null,
@@ -85,6 +87,7 @@ class User private constructor(
             hashedPassword: HashedPassword,
             profile: UserProfile,
             status: UserStatus,
+            role: UserRole,
             email: Email?,
             emailVerified: Boolean,
             bannedUntil: Instant?,
@@ -93,6 +96,7 @@ class User private constructor(
             hashedPassword = hashedPassword,
             profile = profile,
             status = status,
+            role = role,
             email = email,
             emailVerified = emailVerified,
             bannedUntil = bannedUntil
@@ -106,6 +110,9 @@ class User private constructor(
         private set
 
     var status: UserStatus = status
+        private set
+
+    var role: UserRole = role
         private set
 
     var email: Email? = email
