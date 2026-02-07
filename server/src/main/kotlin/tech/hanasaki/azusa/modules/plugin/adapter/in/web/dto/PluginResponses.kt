@@ -1,21 +1,20 @@
-package tech.hanasaki.azusa.modules.plugin.api.dto
+package tech.hanasaki.azusa.modules.plugin.adapter.`in`.web.dto
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import kotlin.uuid.Uuid
 
 
 @Serializable
 data class PluginResponse(
-    @Contextual val id: Uuid,
+    val id: Uuid,
     val name: String,
     val description: String,
     val version: String,
     val schema: PluginSchemaResponse,
-    @Contextual val authorId: Uuid,
+    val authorId: Uuid,
     val status: String,
     val likeCount: Int,
     val createdAt: String,
@@ -24,13 +23,13 @@ data class PluginResponse(
 
 @Serializable
 data class PluginDetailResponse(
-    @Contextual val id: Uuid,
+    val id: Uuid,
     val name: String,
     val description: String,
     val version: String,
     val schema: PluginSchemaResponse,
     val code: String,
-    @Contextual val authorId: Uuid,
+    val authorId: Uuid,
     val status: String,
     val likeCount: Int,
     val createdAt: String,
@@ -100,5 +99,3 @@ fun PageResult<Plugin>.toResponse(): PagedPluginResponse = PagedPluginResponse(
     hasNext = hasNext,
     hasPrevious = hasPrevious,
 )
-
-

@@ -1,11 +1,10 @@
-package tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table
+package tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.table
 
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.datetime
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object PluginLikeTable : Table("plugin_likes") {

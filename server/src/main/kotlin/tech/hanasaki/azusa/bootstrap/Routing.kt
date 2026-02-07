@@ -9,7 +9,7 @@ import io.ktor.server.routing.openapi.*
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.characterRoutes
 import tech.hanasaki.azusa.modules.knowledge.api.knowledgeRoutes
-import tech.hanasaki.azusa.modules.plugin.api.pluginRoutes
+import tech.hanasaki.azusa.modules.plugin.adapter.`in`.web.pluginRoutes
 import tech.hanasaki.azusa.modules.setting.adapter.`in`.web.settingRoutes
 import tech.hanasaki.azusa.modules.theme.api.themeRoutes
 

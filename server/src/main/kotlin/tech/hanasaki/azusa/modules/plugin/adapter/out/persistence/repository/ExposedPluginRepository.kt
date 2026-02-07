@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.repository
+package tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.repository
 
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -10,11 +10,11 @@ import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
-import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginRepository
-import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.mapper.PluginMapper
-import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginTable
+import tech.hanasaki.azusa.modules.plugin.domain.port.PluginRepositoryPort
+import tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.mapper.PluginMapper
+import tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.table.PluginTable
 
-class ExposedPluginRepository : PluginRepository {
+class ExposedPluginRepository : PluginRepositoryPort {
     override suspend fun findById(id: PluginId): Plugin? =
         PluginTable.selectAll()
             .where { PluginTable.id eq id.value }

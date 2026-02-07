@@ -1,9 +1,9 @@
-package tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.mapper
+package tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.mapper
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
-import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginTable
+import tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.table.PluginTable
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 

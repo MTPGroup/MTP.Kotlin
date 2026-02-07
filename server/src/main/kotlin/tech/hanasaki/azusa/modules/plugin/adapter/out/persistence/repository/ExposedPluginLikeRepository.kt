@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.repository
+package tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.repository
 
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
@@ -7,10 +7,10 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.plugin.domain.repository.PluginLikeRepository
-import tech.hanasaki.azusa.modules.plugin.infrastructure.persistence.table.PluginLikeTable
+import tech.hanasaki.azusa.modules.plugin.domain.port.PluginLikeRepositoryPort
+import tech.hanasaki.azusa.modules.plugin.adapter.out.persistence.table.PluginLikeTable
 
-class ExposedPluginLikeRepository : PluginLikeRepository {
+class ExposedPluginLikeRepository : PluginLikeRepositoryPort {
 
     override suspend fun exists(userId: UserId, pluginId: PluginId): Boolean =
         PluginLikeTable.selectAll()

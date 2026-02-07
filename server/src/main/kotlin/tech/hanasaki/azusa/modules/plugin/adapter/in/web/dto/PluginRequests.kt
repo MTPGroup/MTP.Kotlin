@@ -1,9 +1,7 @@
-package tech.hanasaki.azusa.modules.plugin.api.dto
+package tech.hanasaki.azusa.modules.plugin.adapter.`in`.web.dto
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import tech.hanasaki.azusa.modules.plugin.application.command.CreatePluginCommand
-import tech.hanasaki.azusa.modules.plugin.application.command.UpdatePluginCommand
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSchema
 
 @Serializable
@@ -13,15 +11,7 @@ data class CreatePluginRequest(
     val version: String,
     val schema: PluginSchemaDto,
     val code: String,
-) {
-    fun toCommand(): CreatePluginCommand = CreatePluginCommand(
-        name = name,
-        description = description,
-        version = version,
-        schema = schema.toDomain(),
-        code = code,
-    )
-}
+)
 
 @Serializable
 data class UpdatePluginRequest(
@@ -30,15 +20,7 @@ data class UpdatePluginRequest(
     val version: String,
     val schema: PluginSchemaDto,
     val code: String,
-) {
-    fun toCommand(): UpdatePluginCommand = UpdatePluginCommand(
-        name = name,
-        description = description,
-        version = version,
-        schema = schema.toDomain(),
-        code = code,
-    )
-}
+)
 
 @Serializable
 data class PluginSchemaDto(
