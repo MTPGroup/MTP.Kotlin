@@ -1,11 +1,21 @@
 package tech.hanasaki.azusa.shared.domain.model.vo
 
-import tech.hanasaki.azusa.modules.setting.domain.model.LLMConfigId
-import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
+@JvmInline
+@Serializable
+value class LLMConfigId(val value: Uuid)
+
+@Serializable
+enum class LLMProvider {
+    OPENAI,
+    AZURE,
+    CUSTOM
+}
+
 data class LLMConfig(
-    val id: LLMConfigId = LLMConfigId(Uuid.Companion.random()),
+    val id: LLMConfigId = LLMConfigId(Uuid.random()),
     val provider: LLMProvider,
     val baseUrl: String,
     val apiKey: String,

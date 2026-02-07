@@ -1,8 +1,7 @@
-package tech.hanasaki.azusa.modules.setting.infrastructure.persistence.table
+package tech.hanasaki.azusa.modules.setting.adapter.out.persistence.table
 
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object SettingsTable : Table("settings") {

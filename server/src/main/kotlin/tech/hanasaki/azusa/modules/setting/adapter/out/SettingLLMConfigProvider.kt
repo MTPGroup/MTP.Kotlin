@@ -1,12 +1,12 @@
-package tech.hanasaki.azusa.modules.setting.infrastructure.adapter
+package tech.hanasaki.azusa.modules.setting.adapter.out
 
+import tech.hanasaki.azusa.modules.setting.domain.port.SettingRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.LLMConfigProvider
-import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
 
 class SettingLLMConfigProvider(
-    private val settingRepository: SettingRepository,
+    private val settingRepository: SettingRepositoryPort,
 ) : LLMConfigProvider {
     override suspend fun getActiveConfig(userId: UserId): LLMConfig? {
         val setting = settingRepository.findByUserId(userId)

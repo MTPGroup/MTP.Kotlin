@@ -26,6 +26,7 @@ import tech.hanasaki.azusa.modules.auth.domain.port.RefreshTokenRepositoryPort
 import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.shared.domain.event.PasswordChangedIntegrationEvent
+import tech.hanasaki.azusa.shared.domain.event.UserRegisteredIntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.registerIntegrationEvent
 
@@ -67,12 +68,13 @@ fun authModule(config: ApplicationConfig) = module {
     }
 
     // 注册集成事件序列化器
+    registerIntegrationEvent(UserRegisteredIntegrationEvent.serializer())
     registerIntegrationEvent(OtpGeneratedIntegrationEvent.serializer())
     registerIntegrationEvent(PasswordChangedIntegrationEvent.serializer())
 
     // 注册领域事件处理器
     onDomainEvent<UserRegistered>("auth.user.registered") {
-        UserRegisteredHandler(get())
+        UserRegisteredHandler(get(), get())
     }
     onDomainEvent<PasswordChanged>("auth.password.changed") {
         PasswordChangedHandler(get())

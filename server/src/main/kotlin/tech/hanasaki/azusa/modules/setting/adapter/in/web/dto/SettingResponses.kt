@@ -1,11 +1,11 @@
-package tech.hanasaki.azusa.modules.setting.api.dto
+package tech.hanasaki.azusa.modules.setting.adapter.`in`.web.dto
 
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
 import tech.hanasaki.azusa.modules.setting.domain.model.AppTheme
-import tech.hanasaki.azusa.modules.setting.domain.model.LLMProvider
 import tech.hanasaki.azusa.modules.setting.domain.model.Setting
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMProvider
 import kotlin.uuid.Uuid
 
 
@@ -23,11 +23,11 @@ data class LLMConfigResponse(
 
 @Serializable
 data class SettingResponse(
-    @Contextual val uid: Uuid,
+    val uid: Uuid,
     val theme: AppTheme,
     val llmConfigs: Set<LLMConfigResponse>,
-    @Contextual val activeThemeId: Uuid?,
-    @Contextual val activeLlmConfigId: Uuid?,
+    val activeThemeId: Uuid?,
+    val activeLlmConfigId: Uuid?,
     val createdAt: String,
     val updatedAt: String,
 )

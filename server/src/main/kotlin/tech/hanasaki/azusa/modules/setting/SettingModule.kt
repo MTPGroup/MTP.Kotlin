@@ -1,17 +1,22 @@
 package tech.hanasaki.azusa.modules.setting
 
-import io.ktor.server.config.*
-import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
-import tech.hanasaki.azusa.shared.port.out.LLMConfigProvider
+import tech.hanasaki.azusa.modules.setting.adapter.`in`.event.UserRegisteredHandler
+import tech.hanasaki.azusa.modules.setting.adapter.out.SettingLLMConfigProvider
+import tech.hanasaki.azusa.modules.setting.adapter.out.persistence.repository.ExposedSettingRepository
+import tech.hanasaki.azusa.modules.setting.application.port.`in`.SettingUseCasePort
 import tech.hanasaki.azusa.modules.setting.application.service.SettingService
-import tech.hanasaki.azusa.modules.setting.domain.repository.SettingRepository
-import tech.hanasaki.azusa.modules.setting.infrastructure.adapter.SettingLLMConfigProvider
-import tech.hanasaki.azusa.modules.setting.infrastructure.persistence.repository.ExposedSettingRepository
+import tech.hanasaki.azusa.modules.setting.domain.port.SettingRepositoryPort
+import tech.hanasaki.azusa.shared.infrastructure.event.onIntegrationEvent
+import tech.hanasaki.azusa.shared.port.out.LLMConfigProvider
 
-fun settingModule(config: ApplicationConfig) = module {
-    single<SettingRepository> { ExposedSettingRepository() }
+fun settingModule() = module {
+    single<SettingRepositoryPort> { ExposedSettingRepository() }
     single<LLMConfigProvider> { SettingLLMConfigProvider(get()) }
 
-    factoryOf(::SettingService)
+    single<SettingUseCasePort> { SettingService(get(), get()) }
+
+    onIntegrationEvent("auth.user.registered") {
+        UserRegisteredHandler(get())
+    }
 }

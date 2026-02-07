@@ -21,7 +21,7 @@ fun appModules(config: ApplicationConfig): List<Module> {
         eventModule(config),
         notificationModule(config),
         authModule(config),
-        settingModule(config),
+        settingModule(),
         themeModule(config),
         characterModule(),
         chatModule(config),

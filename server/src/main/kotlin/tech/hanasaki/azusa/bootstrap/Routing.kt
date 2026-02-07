@@ -10,7 +10,7 @@ import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.characterRoutes
 import tech.hanasaki.azusa.modules.knowledge.api.knowledgeRoutes
 import tech.hanasaki.azusa.modules.plugin.api.pluginRoutes
-import tech.hanasaki.azusa.modules.setting.api.settingRoutes
+import tech.hanasaki.azusa.modules.setting.adapter.`in`.web.settingRoutes
 import tech.hanasaki.azusa.modules.theme.api.themeRoutes
 
 fun Application.configureRouting() {
