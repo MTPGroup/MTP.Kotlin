@@ -13,7 +13,7 @@ import kotlin.uuid.Uuid
 /**
  * 知识文件实体
  */
-class KnowledgeFile(
+class KnowledgeFile private constructor(
     val id: KnowledgeFileId,
     val knowledgeBaseId: KnowledgeBaseId,
     val filePath: String,

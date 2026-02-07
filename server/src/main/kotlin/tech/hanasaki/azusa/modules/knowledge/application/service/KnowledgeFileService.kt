@@ -1,13 +1,14 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParser
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
-import tech.hanasaki.azusa.modules.knowledge.domain.port.DocumentParser
-import tech.hanasaki.azusa.modules.knowledge.domain.port.EmbeddingService
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeBaseRepositoryPort
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeDocumentRepositoryPort
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeFileRepositoryPort
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
@@ -15,27 +16,26 @@ import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
+import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
 class KnowledgeFileService(
-    private val knowledgeBaseRepository: KnowledgeBaseRepository,
-    private val fileRepository: KnowledgeFileRepository,
-    private val documentRepository: KnowledgeDocumentRepository,
+    private val knowledgeBaseRepository: KnowledgeBaseRepositoryPort,
+    private val fileRepository: KnowledgeFileRepositoryPort,
+    private val documentRepository: KnowledgeDocumentRepositoryPort,
     private val documentParser: DocumentParser,
-    private val embeddingService: EmbeddingService,
+    private val embeddingService: EmbeddingServicePort,
     private val domainEventBus: DomainEventBusPort,
-) {
+    private val tx: TransactionalPort,
+) : KnowledgeFileUseCasePort {
 
-    /**
-     * 上传文件到知识库
-     */
-    suspend fun uploadFile(
+    override suspend fun uploadFile(
         userId: UserId,
         knowledgeBaseId: KnowledgeBaseId,
         fileName: String,
         filePath: String,
         fileSize: Long?,
         fileType: String?,
-    ): KnowledgeFile {
+    ): KnowledgeFile = tx.execute {
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
             ?: throw NotFoundException("Knowledge base not found")
         if (kb.authorId != userId) {
@@ -51,25 +51,20 @@ class KnowledgeFileService(
         )
         fileRepository.save(file)
         file.publishAndClear(domainEventBus)
-        return file
+        file
     }
 
-    /**
-     * 获取知识库的文件列表
-     */
-    suspend fun listFiles(userId: UserId, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile> {
-        val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
-        if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+    override suspend fun listFiles(userId: UserId, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile> =
+        tx.readOnly {
+            val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
+                ?: throw NotFoundException("Knowledge base not found")
+            if (kb.authorId != userId) {
+                throw AuthorizationException("Access denied")
+            }
+            fileRepository.findByKnowledgeBaseId(knowledgeBaseId)
         }
-        return fileRepository.findByKnowledgeBaseId(knowledgeBaseId)
-    }
 
-    /**
-     * 获取文件详情
-     */
-    suspend fun getFile(userId: UserId, fileId: KnowledgeFileId): KnowledgeFile {
+    override suspend fun getFile(userId: UserId, fileId: KnowledgeFileId): KnowledgeFile = tx.readOnly {
         val file = fileRepository.findById(fileId)
             ?: throw NotFoundException("File not found")
         val kb = knowledgeBaseRepository.findById(file.knowledgeBaseId)
@@ -77,13 +72,10 @@ class KnowledgeFileService(
         if (kb.authorId != userId) {
             throw AuthorizationException("Access denied")
         }
-        return file
+        file
     }
 
-    /**
-     * 删除文件
-     */
-    suspend fun deleteFile(userId: UserId, fileId: KnowledgeFileId) {
+    override suspend fun deleteFile(userId: UserId, fileId: KnowledgeFileId) = tx.execute {
         val file = fileRepository.findById(fileId)
             ?: throw NotFoundException("File not found")
         val kb = knowledgeBaseRepository.findById(file.knowledgeBaseId)
@@ -99,7 +91,7 @@ class KnowledgeFileService(
     /**
      * 处理待处理的文件（由后台任务调用）
      */
-    suspend fun processPendingFiles(limit: Int = 10): Int {
+    override suspend fun processPendingFiles(limit: Int): Int = tx.execute {
         val pendingFiles = fileRepository.findByStatus(FileStatus.PENDING, limit)
         var processedCount = 0
 
@@ -113,7 +105,7 @@ class KnowledgeFileService(
                 file.publishAndClear(domainEventBus)
             }
         }
-        return processedCount
+        processedCount
     }
 
     /**
@@ -145,10 +137,7 @@ class KnowledgeFileService(
         file.publishAndClear(domainEventBus)
     }
 
-    /**
-     * 重新处理失败的文件
-     */
-    suspend fun retryFailedFile(userId: UserId, fileId: KnowledgeFileId) {
+    override suspend fun retryFailedFile(userId: UserId, fileId: KnowledgeFileId) = tx.execute {
         val file = fileRepository.findById(fileId)
             ?: throw NotFoundException("File not found")
         val kb = knowledgeBaseRepository.findById(file.knowledgeBaseId)

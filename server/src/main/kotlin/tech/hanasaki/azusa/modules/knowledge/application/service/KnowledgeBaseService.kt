@@ -1,11 +1,11 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
-import tech.hanasaki.azusa.modules.knowledge.application.command.CreateKnowledgeBaseCommand
-import tech.hanasaki.azusa.modules.knowledge.application.command.UpdateKnowledgeBaseCommand
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseUseCasePort
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.dto.KnowledgeBaseStats
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeDocumentRepository
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeFileRepository
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeBaseRepositoryPort
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeDocumentRepositoryPort
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeFileRepositoryPort
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
@@ -13,89 +13,80 @@ import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
+import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
 class KnowledgeBaseService(
-    private val knowledgeBaseRepository: KnowledgeBaseRepository,
-    private val fileRepository: KnowledgeFileRepository,
-    private val documentRepository: KnowledgeDocumentRepository,
+    private val knowledgeBaseRepository: KnowledgeBaseRepositoryPort,
+    private val fileRepository: KnowledgeFileRepositoryPort,
+    private val documentRepository: KnowledgeDocumentRepositoryPort,
     private val domainEventBus: DomainEventBusPort,
-) {
+    private val tx: TransactionalPort,
+) : KnowledgeBaseUseCasePort {
 
-    /**
-     * 获取公开的知识库列表
-     */
-    suspend fun listPublicKnowledgeBases(page: Int, limit: Int): PageResult<KnowledgeBase> {
-        return knowledgeBaseRepository.findPublicPaged(page, limit)
+    override suspend fun listPublicKnowledgeBases(page: Int, limit: Int): PageResult<KnowledgeBase> = tx.readOnly {
+        knowledgeBaseRepository.findPublicPaged(page, limit)
     }
 
-    /**
-     * 搜索公开的知识库
-     */
-    suspend fun searchKnowledgeBases(query: String, page: Int, limit: Int): PageResult<KnowledgeBase> {
-        return knowledgeBaseRepository.searchPublic(query, page, limit)
-    }
-
-    /**
-     * 获取用户的知识库列表
-     */
-    suspend fun listMyKnowledgeBases(userId: UserId, page: Int, limit: Int): PageResult<KnowledgeBase> {
-        return knowledgeBaseRepository.findByAuthorIdPaged(userId, page, limit)
-    }
-
-    /**
-     * 获取知识库详情
-     */
-    suspend fun getKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBase {
-        val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
-        if (!kb.isPublic && kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+    override suspend fun searchKnowledgeBases(query: String, page: Int, limit: Int): PageResult<KnowledgeBase> =
+        tx.readOnly {
+            knowledgeBaseRepository.searchPublic(query, page, limit)
         }
-        return kb
-    }
 
-    /**
-     * 创建知识库
-     */
-    suspend fun createKnowledgeBase(userId: UserId, cmd: CreateKnowledgeBaseCommand): KnowledgeBase {
+    override suspend fun listMyKnowledgeBases(userId: UserId, page: Int, limit: Int): PageResult<KnowledgeBase> =
+        tx.readOnly {
+            knowledgeBaseRepository.findByAuthorIdPaged(userId, page, limit)
+        }
+
+    override suspend fun getKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBase =
+        tx.readOnly {
+            val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
+                ?: throw NotFoundException("Knowledge base not found")
+            if (!kb.isPublic && kb.authorId != userId) {
+                throw AuthorizationException("Access denied")
+            }
+            kb
+        }
+
+    override suspend fun createKnowledgeBase(
+        userId: UserId,
+        name: String,
+        description: String?,
+        isPublic: Boolean,
+    ): KnowledgeBase = tx.execute {
         val kb = KnowledgeBase.create(
-            name = cmd.name,
-            description = cmd.description,
+            name = name,
+            description = description,
             authorId = userId,
-            isPublic = cmd.isPublic,
+            isPublic = isPublic,
         )
         knowledgeBaseRepository.save(kb)
         kb.publishAndClear(domainEventBus)
-        return kb
+        kb
     }
 
-    /**
-     * 更新知识库
-     */
-    suspend fun updateKnowledgeBase(
+    override suspend fun updateKnowledgeBase(
         userId: UserId,
         knowledgeBaseId: KnowledgeBaseId,
-        cmd: UpdateKnowledgeBaseCommand,
-    ): KnowledgeBase {
+        name: String,
+        description: String?,
+        isPublic: Boolean,
+    ): KnowledgeBase = tx.execute {
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
             ?: throw NotFoundException("Knowledge base not found")
         if (kb.authorId != userId) {
             throw AuthorizationException("Access denied")
         }
         kb.update(
-            name = cmd.name,
-            description = cmd.description,
-            isPublic = cmd.isPublic,
+            name = name,
+            description = description,
+            isPublic = isPublic,
         )
         knowledgeBaseRepository.save(kb)
         kb.publishAndClear(domainEventBus)
-        return kb
+        kb
     }
 
-    /**
-     * 删除知识库
-     */
-    suspend fun deleteKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId) {
+    override suspend fun deleteKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId) = tx.execute {
         val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
             ?: throw NotFoundException("Knowledge base not found")
         if (kb.authorId != userId) {
@@ -109,28 +100,20 @@ class KnowledgeBaseService(
         kb.publishAndClear(domainEventBus)
     }
 
-    /**
-     * 获取知识库统计信息
-     */
-    suspend fun getKnowledgeBaseStats(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBaseStats {
-        val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-            ?: throw NotFoundException("Knowledge base not found")
-        if (kb.authorId != userId) {
-            throw AuthorizationException("Access denied")
+    override suspend fun getKnowledgeBaseStats(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBaseStats =
+        tx.readOnly {
+            val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
+                ?: throw NotFoundException("Knowledge base not found")
+            if (kb.authorId != userId) {
+                throw AuthorizationException("Access denied")
+            }
+            val fileCount = fileRepository.findByKnowledgeBaseId(knowledgeBaseId).size
+            val documentCount = documentRepository.countByKnowledgeBaseId(knowledgeBaseId)
+            KnowledgeBaseStats(
+                knowledgeBaseId = knowledgeBaseId,
+                fileCount = fileCount,
+                documentCount = documentCount,
+            )
         }
-        val fileCount = fileRepository.findByKnowledgeBaseId(knowledgeBaseId).size
-        val documentCount = documentRepository.countByKnowledgeBaseId(knowledgeBaseId)
-        return KnowledgeBaseStats(
-            knowledgeBaseId = knowledgeBaseId,
-            fileCount = fileCount,
-            documentCount = documentCount,
-        )
-    }
-
 }
 
-data class KnowledgeBaseStats(
-    val knowledgeBaseId: KnowledgeBaseId,
-    val fileCount: Int,
-    val documentCount: Long,
-)

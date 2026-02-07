@@ -1,10 +1,10 @@
 package tech.hanasaki.azusa.modules.knowledge.domain.model
 
+import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseCreated
+import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeleted
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseCreated
-import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeleted
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -12,7 +12,7 @@ import kotlin.uuid.Uuid
 /**
  * 知识库聚合根
  */
-data class KnowledgeBase(
+class KnowledgeBase private constructor(
     val id: KnowledgeBaseId,
     var name: String,
     var description: String?,
@@ -53,7 +53,7 @@ data class KnowledgeBase(
         }
 
         /**
-         * 从持久化层重建（不触发事件）
+         * 从持久化层重建
          */
         fun reconstitute(
             id: KnowledgeBaseId,

@@ -13,7 +13,6 @@ sealed class KnowledgeBaseEvent : DomainEvent {
 
     override val aggregateId: String get() = knowledgeBaseId.toString()
     override val aggregateType: String get() = "KnowledgeBase"
-    override val occurredOn: Instant get() = Clock.System.now()
 }
 
 data class KnowledgeBaseCreated(
@@ -22,6 +21,7 @@ data class KnowledgeBaseCreated(
     val name: String,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "knowledgeBase.created",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : KnowledgeBaseEvent()
 
 data class KnowledgeBaseDeleted(
@@ -29,6 +29,7 @@ data class KnowledgeBaseDeleted(
     val authorId: UserId,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "knowledgeBase.deleted",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : KnowledgeBaseEvent()
 
 data class FileUploaded(
@@ -37,6 +38,7 @@ data class FileUploaded(
     val fileName: String,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "knowledgeBase.file.uploaded",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : KnowledgeBaseEvent()
 
 data class FileProcessed(
@@ -44,6 +46,7 @@ data class FileProcessed(
     override val knowledgeBaseId: KnowledgeBaseId,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "knowledgeBase.file.processed",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : KnowledgeBaseEvent()
 
 data class FileProcessingFailed(
@@ -52,4 +55,5 @@ data class FileProcessingFailed(
     val errorMessage: String,
     override val eventId: Uuid = Uuid.random(),
     override val eventType: String = "knowledgeBase.file.processingFailed",
+    override val occurredOn: Instant = Clock.System.now(),
 ) : KnowledgeBaseEvent()

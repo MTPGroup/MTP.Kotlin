@@ -1,32 +1,32 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.SearchResult
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.VectorStore
+import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeBaseRepositoryPort
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.knowledge.domain.port.EmbeddingService
-import tech.hanasaki.azusa.modules.knowledge.domain.port.SearchResult
-import tech.hanasaki.azusa.modules.knowledge.domain.port.VectorStore
-import tech.hanasaki.azusa.modules.knowledge.domain.repository.KnowledgeBaseRepository
+import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
 class KnowledgeSearchService(
-    private val knowledgeBaseRepository: KnowledgeBaseRepository,
-    private val embeddingService: EmbeddingService,
+    private val knowledgeBaseRepository: KnowledgeBaseRepositoryPort,
+    private val embeddingService: EmbeddingServicePort,
     private val vectorStore: VectorStore,
-) {
+    private val tx: TransactionalPort,
+) : KnowledgeSearchUseCasePort {
 
-    /**
-     * 搜索知识库
-     */
-    suspend fun search(
+    override suspend fun search(
         userId: UserId,
         knowledgeBaseIds: List<KnowledgeBaseId>,
         query: String,
-        threshold: Float = 0.7f,
-        limit: Int = 10,
-    ): List<SearchResult> {
+        threshold: Float,
+        limit: Int,
+    ): List<SearchResult> = tx.readOnly {
         if (knowledgeBaseIds.isEmpty()) {
-            return emptyList()
+            return@readOnly emptyList()
         }
 
         // 验证用户对所有知识库的访问权限
@@ -42,7 +42,7 @@ class KnowledgeSearchService(
         val queryEmbedding = embeddingService.embed(query)
 
         // 执行向量搜索
-        return vectorStore.search(
+        vectorStore.search(
             queryEmbedding = queryEmbedding,
             knowledgeBaseIds = knowledgeBaseIds,
             threshold = threshold,
@@ -50,42 +50,34 @@ class KnowledgeSearchService(
         )
     }
 
-    /**
-     * 搜索单个知识库
-     */
-    suspend fun searchKnowledgeBase(
+    override suspend fun searchKnowledgeBase(
         userId: UserId,
         knowledgeBaseId: KnowledgeBaseId,
         query: String,
-        threshold: Float = 0.7f,
-        limit: Int = 10,
-    ): List<SearchResult> {
-        return search(
-            userId = userId,
-            knowledgeBaseIds = listOf(knowledgeBaseId),
-            query = query,
-            threshold = threshold,
-            limit = limit,
-        )
-    }
+        threshold: Float,
+        limit: Int,
+    ): List<SearchResult> = search(
+        userId = userId,
+        knowledgeBaseIds = listOf(knowledgeBaseId),
+        query = query,
+        threshold = threshold,
+        limit = limit,
+    )
 
-    /**
-     * 搜索用户的所有知识库
-     */
-    suspend fun searchMyKnowledgeBases(
+    override suspend fun searchMyKnowledgeBases(
         userId: UserId,
         query: String,
-        threshold: Float = 0.7f,
-        limit: Int = 10,
-    ): List<SearchResult> {
+        threshold: Float,
+        limit: Int,
+    ): List<SearchResult> = tx.readOnly {
         val myKnowledgeBases = knowledgeBaseRepository.findByAuthorId(userId)
         if (myKnowledgeBases.isEmpty()) {
-            return emptyList()
+            return@readOnly emptyList()
         }
 
         val queryEmbedding = embeddingService.embed(query)
 
-        return vectorStore.search(
+        vectorStore.search(
             queryEmbedding = queryEmbedding,
             knowledgeBaseIds = myKnowledgeBases.map { it.id },
             threshold = threshold,
@@ -93,22 +85,19 @@ class KnowledgeSearchService(
         )
     }
 
-    /**
-     * 搜索公开知识库
-     */
-    suspend fun searchPublicKnowledgeBases(
+    override suspend fun searchPublicKnowledgeBases(
         query: String,
-        threshold: Float = 0.7f,
-        limit: Int = 10,
-    ): List<SearchResult> {
+        threshold: Float,
+        limit: Int,
+    ): List<SearchResult> = tx.readOnly {
         val publicKnowledgeBases = knowledgeBaseRepository.findPublic()
         if (publicKnowledgeBases.isEmpty()) {
-            return emptyList()
+            return@readOnly emptyList()
         }
 
         val queryEmbedding = embeddingService.embed(query)
 
-        return vectorStore.search(
+        vectorStore.search(
             queryEmbedding = queryEmbedding,
             knowledgeBaseIds = publicKnowledgeBases.map { it.id },
             threshold = threshold,
