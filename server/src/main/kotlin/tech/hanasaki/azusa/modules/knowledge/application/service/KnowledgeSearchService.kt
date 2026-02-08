@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.SearchResult
@@ -17,6 +18,7 @@ class KnowledgeSearchService(
     private val vectorStore: VectorStore,
     private val tx: TransactionalPort,
 ) : KnowledgeSearchUseCasePort {
+    private val logger = KotlinLogging.logger { }
 
     override suspend fun search(
         userId: UserId,
@@ -26,6 +28,7 @@ class KnowledgeSearchService(
         limit: Int,
     ): List<SearchResult> = tx.readOnly {
         if (knowledgeBaseIds.isEmpty()) {
+            logger.warn { "知识库ID为空" }
             return@readOnly emptyList()
         }
 

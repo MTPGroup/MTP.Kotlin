@@ -17,16 +17,15 @@ class KoogEmbeddingService(
         private const val EMBEDDING_DIMENSION = 1024
         private val QWEN3_EMBEDDING = LLModel(
             provider = LLMProvider.Ollama,
-            id = "qwen3-embedding",
+            id = "bge-m3",
             capabilities = listOf(LLMCapability.Embed),
-            contextLength = 40_960
+            contextLength = 8_192
         )
     }
 
     override suspend fun embed(text: String): FloatArray {
         val vector = embedder.embed(text)
-        // TODO: 目前这样截取的方式不可取
-        return vector.values.map { it.toFloat() }.take(EMBEDDING_DIMENSION).toFloatArray()
+        return vector.values.map { it.toFloat() }.toFloatArray()
     }
 
     override suspend fun embedBatch(texts: List<String>): List<FloatArray> {

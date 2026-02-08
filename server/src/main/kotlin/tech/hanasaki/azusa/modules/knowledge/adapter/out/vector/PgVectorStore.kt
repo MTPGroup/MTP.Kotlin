@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.knowledge.adapter.out.vector
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
@@ -17,6 +18,7 @@ import kotlin.uuid.Uuid
 class PgVectorStore : VectorStore {
 
     private val json = Json { ignoreUnknownKeys = true }
+    private val logger = KotlinLogging.logger { }
 
     override suspend fun search(
         queryEmbedding: FloatArray,
@@ -25,11 +27,14 @@ class PgVectorStore : VectorStore {
         limit: Int,
     ): List<SearchResult> {
         if (knowledgeBaseIds.isEmpty()) {
+            logger.warn { "知识库ID为空" }
             return emptyList()
         }
 
+        logger.debug { "开始搜索知识库" }
+
         val embeddingStr = "[${queryEmbedding.joinToString(",")}]"
-        val kbIdsArray = knowledgeBaseIds.map { it.value }.toTypedArray()
+        val kbIdsArray = knowledgeBaseIds.map { it.value.toString() }.toTypedArray()
 
         val results = mutableListOf<SearchResult>()
 
@@ -64,6 +69,12 @@ class PgVectorStore : VectorStore {
                 }
             }
         }
+
+        logger.debug { "Query embedding: $embeddingStr" }
+        logger.debug { "KB IDs: ${kbIdsArray.contentToString()}" }
+        logger.debug { "Threshold: $threshold, Limit: $limit" }
+        logger.debug { "Result count: ${results.size}" }
+        logger.debug { "搜索结果为: $results" }
 
         return results
     }
