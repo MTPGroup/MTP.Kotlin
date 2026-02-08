@@ -7,6 +7,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import tech.hanasaki.azusa.shared.infrastructure.config.S3Config
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
@@ -39,6 +40,14 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
             .key(objectKey)
             .build()
         client.deleteObject(request)
+    }
+
+    override fun download(objectKey: String): ByteArray {
+        val request = GetObjectRequest.builder()
+            .bucket(resolveBucket(objectKey))
+            .key(objectKey)
+            .build()
+        return client.getObject(request).readAllBytes()
     }
 
     override fun publicUrl(objectKey: String): String {

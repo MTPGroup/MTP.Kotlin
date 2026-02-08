@@ -3,7 +3,7 @@ package tech.hanasaki.azusa.modules.knowledge
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.FileUploadedHandler
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.KoogEmbeddingService
-import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.PlaceholderDocumentParser
+import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.S3DocumentParser
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeFileRepository
@@ -29,7 +29,7 @@ fun knowledgeModule() = module {
     single<KnowledgeDocumentRepositoryPort> { ExposedKnowledgeDocumentRepository() }
 
     single<EmbeddingServicePort> { KoogEmbeddingService(get()) }
-    single<DocumentParser> { PlaceholderDocumentParser() }
+    single<DocumentParser> { S3DocumentParser(get()) }
     single<VectorStore> { PgVectorStore() }
 
     single<KnowledgeBaseUseCasePort> {
