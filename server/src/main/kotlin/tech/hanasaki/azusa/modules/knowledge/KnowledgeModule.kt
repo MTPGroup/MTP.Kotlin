@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.knowledge
 
-import io.ktor.server.application.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

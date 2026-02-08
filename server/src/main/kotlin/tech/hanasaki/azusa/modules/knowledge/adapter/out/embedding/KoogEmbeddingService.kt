@@ -14,7 +14,6 @@ class KoogEmbeddingService(
 
 
     companion object {
-        private const val EMBEDDING_DIMENSION = 1024
         private val QWEN3_EMBEDDING = LLModel(
             provider = LLMProvider.Ollama,
             id = "bge-m3",
