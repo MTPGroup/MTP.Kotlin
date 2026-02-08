@@ -78,6 +78,16 @@ interface AuthUseCasePort {
     suspend fun updateAvatar(userId: UserId, avatarUrl: AvatarUrl): UserProfileDto
 
     /**
+     * 授予管理员权限
+     */
+    suspend fun grantAdmin(operatorId: UserId, targetUserId: UserId)
+
+    /**
+     * 撤销管理员权限
+     */
+    suspend fun revokeAdmin(operatorId: UserId, targetUserId: UserId)
+
+    /**
      * 密码变更后处理：销毁所有 refresh token，发送通知
      */
     suspend fun onPasswordChanged(userId: UserId, email: String?)

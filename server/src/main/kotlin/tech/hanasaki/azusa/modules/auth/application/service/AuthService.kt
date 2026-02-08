@@ -187,6 +187,22 @@ class AuthService(
         user.toUserProfileDto()
     }
 
+    override suspend fun grantAdmin(operatorId: UserId, targetUserId: UserId) = tx.execute {
+        val operator = userRepository.findById(operatorId) ?: throw NotFoundException("操作用户不存在")
+        if (operator.role != UserRole.ADMIN) throw AuthorizationException("需要管理员权限")
+        val target = userRepository.findById(targetUserId) ?: throw NotFoundException("目标用户不存在")
+        target.changeRole(UserRole.ADMIN)
+        userRepository.save(target)
+    }
+
+    override suspend fun revokeAdmin(operatorId: UserId, targetUserId: UserId) = tx.execute {
+        val operator = userRepository.findById(operatorId) ?: throw NotFoundException("操作用户不存在")
+        if (operator.role != UserRole.ADMIN) throw AuthorizationException("需要管理员权限")
+        val target = userRepository.findById(targetUserId) ?: throw NotFoundException("目标用户不存在")
+        target.changeRole(UserRole.USER)
+        userRepository.save(target)
+    }
+
     override suspend fun onPasswordChanged(userId: UserId, email: String?) = tx.execute {
         refreshTokenRepository.revokeAllForUser(userId)
         outboxScheduler.schedule(

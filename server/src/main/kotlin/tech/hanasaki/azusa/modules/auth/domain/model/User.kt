@@ -164,6 +164,10 @@ class User private constructor(
         profile = profile.copy(avatar = avatar, updatedAt = Clock.System.now())
     }
 
+    fun changeRole(newRole: UserRole) {
+        role = newRole
+    }
+
     fun isBanned(now: Instant = Clock.System.now()): Boolean =
         status == UserStatus.BANNED || (bannedUntil?.let { now < it } ?: false)
 }

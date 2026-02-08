@@ -22,9 +22,12 @@ import tech.hanasaki.azusa.modules.auth.domain.model.Username
 import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
+import tech.hanasaki.azusa.shared.infrastructure.web.route.requireAdmin
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
+import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateEmail
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePassword
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateUsername
@@ -397,6 +400,62 @@ fun Route.authRoutes() {
                     }
                     HttpStatusCode.Unauthorized {
                         description = "未登录"
+                    }
+                }
+            }
+
+            post("/admin/users/{userId}/grant-admin") {
+                call.requireAdmin()
+                val operatorId = call.requireUserId()
+                val targetUserId = UserId(call.uuidParam("userId"))
+                authUseCase.grantAdmin(operatorId, targetUserId)
+                call.respondOk(SuccessResponse(), "已授予管理员权限")
+            }.describe {
+                tag("管理员")
+                operationId = "grantAdmin"
+                summary = "授予管理员权限"
+                description = "管理员授予指定用户管理员权限"
+                responses {
+                    HttpStatusCode.OK {
+                        description = "授权成功"
+                        schema = jsonSchema<ApiResponse<SuccessResponse>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "需要管理员权限"
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "目标用户不存在"
+                    }
+                }
+            }
+
+            post("/admin/users/{userId}/revoke-admin") {
+                call.requireAdmin()
+                val operatorId = call.requireUserId()
+                val targetUserId = UserId(call.uuidParam("userId"))
+                authUseCase.revokeAdmin(operatorId, targetUserId)
+                call.respondOk(SuccessResponse(), "已撤销管理员权限")
+            }.describe {
+                tag("管理员")
+                operationId = "revokeAdmin"
+                summary = "撤销管理员权限"
+                description = "管理员撤销指定用户的管理员权限"
+                responses {
+                    HttpStatusCode.OK {
+                        description = "撤销成功"
+                        schema = jsonSchema<ApiResponse<SuccessResponse>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "需要管理员权限"
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "目标用户不存在"
                     }
                 }
             }
