@@ -20,6 +20,12 @@ interface KnowledgeFileRepositoryPort {
      */
     suspend fun findByStatus(status: FileStatus, limit: Int = 10): List<KnowledgeFile>
 
+    suspend fun findByStatusAndRetryLessThan(
+        status: FileStatus,
+        maxRetries: Int,
+        limit: Int = 10
+    ): List<KnowledgeFile>
+
     /**
      * 删除知识库的所有文件
      */

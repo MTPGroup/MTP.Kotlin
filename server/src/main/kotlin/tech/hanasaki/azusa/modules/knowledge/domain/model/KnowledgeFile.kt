@@ -22,6 +22,7 @@ class KnowledgeFile private constructor(
     val fileType: String?,
     var status: FileStatus,
     var errorMessage: String?,
+    var retryCount: Int,
     val createdAt: Instant,
     var updatedAt: Instant,
 ) : AggregateRoot() {
@@ -46,6 +47,7 @@ class KnowledgeFile private constructor(
                 fileType = fileType,
                 status = FileStatus.PENDING,
                 errorMessage = null,
+                retryCount = 0,
                 createdAt = now,
                 updatedAt = now,
             )
@@ -71,6 +73,7 @@ class KnowledgeFile private constructor(
             fileType: String?,
             status: FileStatus,
             errorMessage: String?,
+            retryCount: Int,
             createdAt: Instant,
             updatedAt: Instant,
         ): KnowledgeFile = KnowledgeFile(
@@ -82,6 +85,7 @@ class KnowledgeFile private constructor(
             fileType = fileType,
             status = status,
             errorMessage = errorMessage,
+            retryCount = retryCount,
             createdAt = createdAt,
             updatedAt = updatedAt,
         )
@@ -132,6 +136,11 @@ class KnowledgeFile private constructor(
     fun resetToPending() {
         status = FileStatus.PENDING
         errorMessage = null
+        updatedAt = Clock.System.now()
+    }
+
+    fun incrementRetry() {
+        retryCount++
         updatedAt = Clock.System.now()
     }
 }

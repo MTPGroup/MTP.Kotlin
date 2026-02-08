@@ -1,5 +1,9 @@
 package tech.hanasaki.azusa.modules.knowledge
 
+import io.ktor.server.application.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.FileUploadedHandler
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.KoogEmbeddingService
@@ -17,6 +21,7 @@ import tech.hanasaki.azusa.modules.knowledge.application.port.out.VectorStore
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
+import tech.hanasaki.azusa.modules.knowledge.application.service.PendingFileProcessor
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploaded
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeBaseRepositoryPort
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeDocumentRepositoryPort
@@ -65,5 +70,21 @@ fun knowledgeModule() = module {
 
     onDomainEvent<FileUploaded>("knowledgeBase.file.uploaded") {
         FileUploadedHandler(get())
+    }
+
+    single {
+        PendingFileProcessor(
+            fileService = get(),
+            fileRepository = get(),
+            tx = get(),
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            config = PendingFileProcessor.Config(
+                enabled = true,
+                intervalMs = 30_000,
+                maxConcurrency = 5,
+                maxRetries = 3,
+                batchSize = 10,
+            ),
+        )
     }
 }

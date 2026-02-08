@@ -1,8 +1,6 @@
 package tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository
 
-import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -26,6 +24,7 @@ class ExposedKnowledgeFileRepository : KnowledgeFileRepositoryPort {
         val updatedRows = KnowledgeFileTable.update({ KnowledgeFileTable.id eq file.id.value }) {
             it[status] = file.status
             it[errorMessage] = file.errorMessage
+            it[retryCount] = file.retryCount
             it[updatedAt] = file.updatedAt
         }
         if (updatedRows == 0) {
@@ -38,6 +37,7 @@ class ExposedKnowledgeFileRepository : KnowledgeFileRepositoryPort {
                 it[fileType] = file.fileType
                 it[status] = file.status
                 it[errorMessage] = file.errorMessage
+                it[retryCount] = file.retryCount
                 it[createdAt] = file.createdAt
                 it[updatedAt] = file.updatedAt
             }
@@ -61,6 +61,20 @@ class ExposedKnowledgeFileRepository : KnowledgeFileRepositoryPort {
             .limit(limit)
             .map(::toDomain)
 
+    override suspend fun findByStatusAndRetryLessThan(
+        status: FileStatus,
+        maxRetries: Int,
+        limit: Int,
+    ): List<KnowledgeFile> =
+        KnowledgeFileTable.selectAll()
+            .where {
+                (KnowledgeFileTable.status eq status) and
+                        (KnowledgeFileTable.retryCount less maxRetries)
+            }
+            .orderBy(KnowledgeFileTable.createdAt, SortOrder.ASC)
+            .limit(limit)
+            .map(::toDomain)
+
     override suspend fun deleteByKnowledgeBaseId(knowledgeBaseId: KnowledgeBaseId) {
         KnowledgeFileTable.deleteWhere { KnowledgeFileTable.knowledgeBaseId eq knowledgeBaseId.value }
     }
@@ -74,6 +88,7 @@ class ExposedKnowledgeFileRepository : KnowledgeFileRepositoryPort {
         fileType = row[KnowledgeFileTable.fileType],
         status = row[KnowledgeFileTable.status],
         errorMessage = row[KnowledgeFileTable.errorMessage],
+        retryCount = row[KnowledgeFileTable.retryCount],
         createdAt = row[KnowledgeFileTable.createdAt],
         updatedAt = row[KnowledgeFileTable.updatedAt],
     )

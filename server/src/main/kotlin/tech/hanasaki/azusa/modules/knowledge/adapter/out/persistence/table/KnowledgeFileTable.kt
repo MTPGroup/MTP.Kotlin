@@ -15,6 +15,7 @@ object KnowledgeFileTable : Table("knowledge_files") {
     val fileType = text("file_type").nullable()
     val status = enumerationByName<FileStatus>("status", 20)
     val errorMessage = text("error_message").nullable()
+    val retryCount = integer("retry_count").default(0)
     val createdAt = timestamp("created_at").default(Clock.System.now())
     val updatedAt = timestamp("updated_at").default(Clock.System.now())
 

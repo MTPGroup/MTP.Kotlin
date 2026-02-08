@@ -18,6 +18,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
+import kotlinx.coroutines.delay
 
 private val logger = KotlinLogging.logger {}
 
@@ -91,6 +92,25 @@ throw AuthorizationException("无权访问")
         fileRepository.deleteById(fileId)
     }
 
+    private suspend fun embedWithRetry(text: String, maxRetries: Int = 3): FloatArray {
+        var lastException: Exception? = null
+        
+        repeat(maxRetries) { attempt ->
+            try {
+                return embeddingService.embed(text)
+            } catch (e: Exception) {
+                lastException = e
+                if (attempt < maxRetries - 1) {
+                    val delayMs = 1000L.shl(attempt)
+                    logger.warn { "Embedding 失败（${attempt + 1}/$maxRetries），${delayMs}ms 后重试: ${e.message}" }
+                    delay(delayMs)
+                }
+            }
+        }
+        
+        throw lastException ?: Exception("Embedding 失败，已重试 $maxRetries 次")
+    }
+
     override suspend fun processFile(fileId: KnowledgeFileId) {
         try {
             val file = tx.execute {
@@ -106,7 +126,7 @@ throw AuthorizationException("无权访问")
 
             // 为每个块生成 embedding 并保存
             val documents = chunks.map { chunk ->
-                val embedding = embeddingService.embed(chunk.content)
+                val embedding = embedWithRetry(chunk.content)
                 KnowledgeDocument.create(
                     knowledgeBaseId = file.knowledgeBaseId,
                     fileId = file.id,
