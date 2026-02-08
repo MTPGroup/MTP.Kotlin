@@ -4,6 +4,7 @@ import tech.hanasaki.azusa.modules.auth.application.dto.AuthenticatedUser
 import tech.hanasaki.azusa.modules.auth.application.dto.UserProfileDto
 import tech.hanasaki.azusa.modules.auth.domain.model.PlainPassword
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
@@ -70,6 +71,11 @@ interface AuthUseCasePort {
      * 使用 RefreshToken 刷新 AccessToken
      */
     suspend fun refreshToken(refreshToken: String): AuthenticatedUser
+
+    /**
+     * 更新头像
+     */
+    suspend fun updateAvatar(userId: UserId, avatarUrl: AvatarUrl): UserProfileDto
 
     /**
      * 密码变更后处理：销毁所有 refresh token，发送通知

@@ -28,23 +28,26 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
         )
         .build()
 
-    override fun uploadAvatar(objectKey: String, contentType: String, bytes: ByteArray): String {
-        putObject(config.avatarBucket, objectKey, contentType, bytes)
-        return buildPublicUrl(objectKey)
-    }
-
-    override fun uploadFile(objectKey: String, contentType: String, bytes: ByteArray): String {
-        putObject(config.knowledgeBucket, objectKey, contentType, bytes)
+    override fun upload(objectKey: String, contentType: String, bytes: ByteArray): String {
+        putObject(resolveBucket(objectKey), objectKey, contentType, bytes)
         return objectKey
     }
 
-    override fun deleteFile(objectKey: String) {
+    override fun delete(objectKey: String) {
         val request = DeleteObjectRequest.builder()
-            .bucket(config.knowledgeBucket)
+            .bucket(resolveBucket(objectKey))
             .key(objectKey)
             .build()
         client.deleteObject(request)
     }
+
+    override fun publicUrl(objectKey: String): String {
+        val base = config.publicBaseUrl.trimEnd('/')
+        return "$base/${resolveBucket(objectKey)}/$objectKey"
+    }
+
+    private fun resolveBucket(objectKey: String): String =
+        if (objectKey.startsWith("avatars/")) config.avatarBucket else config.knowledgeBucket
 
     private fun putObject(bucket: String, key: String, contentType: String, bytes: ByteArray) {
         val request = PutObjectRequest.builder()
@@ -53,10 +56,5 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
             .contentType(contentType)
             .build()
         client.putObject(request, RequestBody.fromBytes(bytes))
-    }
-
-    private fun buildPublicUrl(objectKey: String): String {
-        val base = config.publicBaseUrl.trimEnd('/')
-        return "$base/${config.avatarBucket}/$objectKey"
     }
 }

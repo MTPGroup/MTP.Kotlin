@@ -160,6 +160,10 @@ class User private constructor(
         bannedUntil = null
     }
 
+    fun updateAvatar(avatar: AvatarUrl?) {
+        profile = profile.copy(avatar = avatar, updatedAt = Clock.System.now())
+    }
+
     fun isBanned(now: Instant = Clock.System.now()): Boolean =
         status == UserStatus.BANNED || (bannedUntil?.let { now < it } ?: false)
 }

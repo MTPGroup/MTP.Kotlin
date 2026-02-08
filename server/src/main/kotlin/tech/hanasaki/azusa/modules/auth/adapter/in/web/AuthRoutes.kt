@@ -1,12 +1,15 @@
 package tech.hanasaki.azusa.modules.auth.adapter.`in`.web
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.openapi.*
+import io.ktor.openapi.ReferenceOr.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.mapper.toLoginResponse
@@ -16,6 +19,8 @@ import tech.hanasaki.azusa.modules.auth.application.port.`in`.OtpUseCasePort
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
 import tech.hanasaki.azusa.modules.auth.domain.model.PlainPassword
 import tech.hanasaki.azusa.modules.auth.domain.model.Username
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
@@ -23,10 +28,13 @@ import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateEmail
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePassword
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateUsername
+import tech.hanasaki.azusa.shared.port.out.FileStoragePort
+import kotlin.uuid.Uuid
 
 fun Route.authRoutes() {
     val authUseCase: AuthUseCasePort by inject()
     val otpService: OtpUseCasePort by inject()
+    val fileStoragePort: FileStoragePort by inject()
 
     route("/auth") {
         post("/sign-up/email") {
@@ -246,7 +254,6 @@ fun Route.authRoutes() {
             }
         }
 
-        // TODO: 添加更新/上传头像API
         authenticate("auth-jwt") {
             get("/me") {
                 val userId = call.requireUserId()
@@ -261,6 +268,78 @@ fun Route.authRoutes() {
                     HttpStatusCode.OK {
                         description = "获取成功"
                         schema = jsonSchema<ApiResponse<UserProfile>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
+
+            put("/me/avatar") {
+                val userId = call.requireUserId()
+
+                val multipart = call.receiveMultipart()
+                var contentType: String? = null
+                var fileBytes: ByteArray? = null
+                var fileName: String? = null
+
+                multipart.forEachPart { part ->
+                    when (part) {
+                        is PartData.FileItem -> {
+                            fileName = part.originalFileName
+                            contentType = part.contentType?.toString()
+                            fileBytes = part.provider().toInputStream().readBytes()
+                        }
+
+                        else -> {}
+                    }
+                    part.dispose()
+                }
+
+                val bytes = fileBytes ?: throw ValidationException("未上传文件")
+                val mime = contentType ?: "application/octet-stream"
+                val allowedTypes = setOf("image/jpeg", "image/png", "image/gif", "image/webp")
+                if (mime !in allowedTypes) {
+                    throw ValidationException("不支持的图片格式，仅支持 JPEG、PNG、GIF、WebP")
+                }
+                val ext = (fileName ?: "avatar").substringAfterLast('.', "png")
+                val objectKey = "avatars/${userId.value}/${Uuid.random()}.$ext"
+
+                fileStoragePort.upload(objectKey, mime, bytes)
+                val avatarUrl = AvatarUrl(fileStoragePort.publicUrl(objectKey))
+                val profile = authUseCase.updateAvatar(userId, avatarUrl)
+                call.respondOk(profile.toUserProfile(), "头像上传成功")
+            }.describe {
+                tag("认证管理")
+                operationId = "uploadAvatar"
+                summary = "上传头像"
+                description = "上传用户头像，支持 multipart/form-data"
+                requestBody {
+                    description = "头像文件"
+                    required = true
+                    ContentType.MultiPart.FormData {
+                        schema = JsonSchema(
+                            type = JsonType.OBJECT,
+                            properties = mapOf(
+                                "file" to Value(
+                                    JsonSchema(
+                                        type = JsonType.STRING,
+                                        format = "binary",
+                                        description = "头像图片文件"
+                                    )
+                                )
+                            ),
+                            required = listOf("file")
+                        )
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "上传成功"
+                        schema = jsonSchema<ApiResponse<UserProfile>>()
+                    }
+                    HttpStatusCode.BadRequest {
+                        description = "未上传文件或文件格式无效"
                     }
                     HttpStatusCode.Unauthorized {
                         description = "未登录或令牌无效"

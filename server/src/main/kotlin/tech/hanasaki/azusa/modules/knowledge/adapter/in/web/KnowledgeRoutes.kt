@@ -374,7 +374,7 @@ fun Route.knowledgeRoutes() {
                 val ext = name.substringAfterLast('.', "bin")
                 val objectKey = "knowledge/${knowledgeBaseId.value}/${Uuid.random()}.$ext"
 
-                fileStoragePort.uploadFile(objectKey, contentType ?: "application/octet-stream", bytes)
+                fileStoragePort.upload(objectKey, contentType ?: "application/octet-stream", bytes)
 
                 val file = knowledgeFileService.uploadFile(
                     userId = userId,

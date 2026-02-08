@@ -12,6 +12,7 @@ import tech.hanasaki.azusa.modules.auth.domain.port.UserRepositoryPort
 import tech.hanasaki.azusa.shared.domain.event.PasswordChangedIntegrationEvent
 import tech.hanasaki.azusa.shared.domain.exception.*
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
+import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.Email
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
@@ -177,6 +178,13 @@ class AuthService(
         userRepository.save(user)
 
         return@execute AuthenticatedUser(user.toUserProfileDto(), tokens)
+    }
+
+    override suspend fun updateAvatar(userId: UserId, avatarUrl: AvatarUrl): UserProfileDto = tx.execute {
+        val user = userRepository.findById(userId) ?: throw NotFoundException("用户不存在")
+        user.updateAvatar(avatarUrl)
+        userRepository.save(user)
+        user.toUserProfileDto()
     }
 
     override suspend fun onPasswordChanged(userId: UserId, email: String?) = tx.execute {
