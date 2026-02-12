@@ -11,6 +11,7 @@ import tech.hanasaki.azusa.modules.auth.adapter.`in`.web.authRoutes
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.characterRoutes
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.web.knowledgeRoutes
 import tech.hanasaki.azusa.modules.knowledge.application.service.PendingFileProcessor
+import tech.hanasaki.azusa.modules.chat.adapter.`in`.web.chatRoutes
 import tech.hanasaki.azusa.modules.plugin.adapter.`in`.web.pluginRoutes
 import tech.hanasaki.azusa.modules.setting.adapter.`in`.web.settingRoutes
 import tech.hanasaki.azusa.modules.theme.api.themeRoutes
@@ -33,5 +34,6 @@ fun Application.configureRouting() {
         characterRoutes()
         pluginRoutes()
         knowledgeRoutes()
+        chatRoutes()
     }
 }

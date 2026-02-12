@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
@@ -7,10 +8,14 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
+@JvmInline
+@Serializable
+value class ChatPluginSubscriptionId(val value: Uuid)
+
 /**
  * ChatPluginSubscription 实体 - 表示对话级别的插件订阅
  */
-data class ChatPluginSubscription(
+class ChatPluginSubscription private constructor(
     val id: ChatPluginSubscriptionId,
     val chatId: ChatId,
     val pluginId: PluginId,

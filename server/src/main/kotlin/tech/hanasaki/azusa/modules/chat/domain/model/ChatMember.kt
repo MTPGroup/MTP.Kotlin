@@ -1,9 +1,15 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
+import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
+
+@JvmInline
+@Serializable
+value class ChatMemberId(val value: Uuid)
 
 /**
  * 成员类型枚举

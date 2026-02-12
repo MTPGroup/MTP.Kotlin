@@ -1,10 +1,14 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+
+@JvmInline
+@Serializable
+value class MessageId(val value: Uuid)
 
 /**
  * Message 实体 - 表示聊天中的一条消息
@@ -91,7 +95,7 @@ data class Message(
 /**
  * 用于从持久化层重建的工厂方法
  */
-fun Message.Companion.reconstitute(
+fun Message.reconstitute(
     id: MessageId,
     chatId: ChatId,
     senderType: SenderType,

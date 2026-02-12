@@ -4,7 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import org.koin.core.module.Module
 import org.koin.ktor.plugin.Koin
-import tech.hanasaki.azusa.modules.agent.agentModule
+import tech.hanasaki.azusa.shared.infrastructure.llm.llmModule
 import tech.hanasaki.azusa.modules.auth.authModule
 import tech.hanasaki.azusa.modules.character.characterModule
 import tech.hanasaki.azusa.modules.chat.chatModule
@@ -36,7 +36,7 @@ fun appModules(config: ApplicationConfig): List<Module> {
         themeModule(config),
         characterModule(),
         pluginModule(),
-        agentModule(),
+        llmModule(),
         chatModule(config),
         knowledgeModule()
     )

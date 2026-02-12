@@ -1,14 +1,19 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
+import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
+@JvmInline
+@Serializable
+value class ChatConfigId(val value: Uuid)
+
 /**
- * ChatConfig 实体 - 表示聊天配置（LLM 参数等）
+ * ChatConfig 实体
  */
-data class ChatConfig(
+class ChatConfig private constructor(
     val id: ChatConfigId,
     val chatId: ChatId,
     var temperature: Double?,

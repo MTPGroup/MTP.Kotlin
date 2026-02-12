@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,17 +17,20 @@ enum class SenderType {
 @Serializable
 sealed class MessageContent {
     @Serializable
+    @SerialName("text")
     data class Text(
         val content: String,
     ) : MessageContent()
 
     @Serializable
+    @SerialName("image")
     data class Image(
         val url: String,
         val alt: String? = null,
     ) : MessageContent()
 
     @Serializable
+    @SerialName("file")
     data class File(
         val url: String,
         val fileName: String,
@@ -34,6 +38,7 @@ sealed class MessageContent {
     ) : MessageContent()
 
     @Serializable
+    @SerialName("code")
     data class Code(
         val code: String,
         val language: String? = null,

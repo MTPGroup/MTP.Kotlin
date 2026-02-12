@@ -1,17 +1,22 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
+import kotlinx.serialization.Serializable
+import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreated
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
-import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreated
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
+@JvmInline
+@Serializable
+value class ChatId(val value: Uuid)
+
 /**
- * Chat 聚合根 - 表示聊天会话（支持单聊和群聊）
+ * Chat 聚合根 （支持单聊和群聊）
  */
-data class Chat(
+class Chat private constructor(
     val id: ChatId,
     val ownerId: UserId,
     var name: String?,
@@ -23,7 +28,7 @@ data class Chat(
 
     companion object {
         /**
-         * 创建私聊（一对一对话）
+         * 创建私聊
          */
         fun createPrivateChat(
             ownerId: UserId,
@@ -75,7 +80,7 @@ data class Chat(
         }
 
         /**
-         * 从持久化层重建聊天（不触发事件）
+         * 从持久化层重建聊天
          */
         fun reconstitute(
             id: ChatId,

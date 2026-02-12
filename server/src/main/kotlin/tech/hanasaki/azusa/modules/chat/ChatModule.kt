@@ -2,21 +2,70 @@ package tech.hanasaki.azusa.modules.chat
 
 import io.ktor.server.config.*
 import org.koin.dsl.module
-import tech.hanasaki.azusa.modules.chat.domain.repository.ChatConfigRepository
-import tech.hanasaki.azusa.modules.chat.domain.repository.ChatMemberRepository
-import tech.hanasaki.azusa.modules.chat.domain.repository.ChatPluginSubscriptionRepository
-import tech.hanasaki.azusa.modules.chat.domain.repository.ChatRepository
-import tech.hanasaki.azusa.modules.chat.domain.repository.MessageRepository
-import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.repository.ExposedChatConfigRepository
-import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.repository.ExposedChatMemberRepository
-import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.repository.ExposedChatPluginSubscriptionRepository
-import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.repository.ExposedChatRepository
-import tech.hanasaki.azusa.modules.chat.infrastructure.persistence.repository.ExposedMessageRepository
+import tech.hanasaki.azusa.modules.chat.adapter.`in`.event.ChatCreatedHandler
+import tech.hanasaki.azusa.modules.chat.adapter.out.knowledge.KnowledgeSearcherAdapter
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.*
+import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
+import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatConfigUseCasePort
+import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
+import tech.hanasaki.azusa.modules.chat.application.port.out.knowledge.KnowledgeSearcher
+import tech.hanasaki.azusa.modules.chat.application.port.out.plugin.PluginToolFactory
+import tech.hanasaki.azusa.modules.chat.application.service.AgentOrchestrationService
+import tech.hanasaki.azusa.modules.chat.application.service.ChatConfigService
+import tech.hanasaki.azusa.modules.chat.application.service.ChatService
+import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreated
+import tech.hanasaki.azusa.modules.chat.domain.port.*
+import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
 
 fun chatModule(config: ApplicationConfig) = module {
-    single<ChatMemberRepository> { ExposedChatMemberRepository() }
-    single<ChatConfigRepository> { ExposedChatConfigRepository() }
-    single<ChatPluginSubscriptionRepository> { ExposedChatPluginSubscriptionRepository() }
-    single<ChatRepository> { ExposedChatRepository(get()) }
-    single<MessageRepository> { ExposedMessageRepository() }
+    single<ChatMemberRepositoryPort> { ExposedChatMemberRepository() }
+    single<ChatConfigRepositoryPort> { ExposedChatConfigRepository() }
+    single<ChatPluginSubscriptionRepositoryPort> { ExposedChatPluginSubscriptionRepository() }
+    single<ChatRepositoryPort> { ExposedChatRepository(get()) }
+    single<MessageRepositoryPort> { ExposedMessageRepository() }
+
+    single<ChatUseCasePort> {
+        ChatService(
+            chatRepository = get(),
+            messageRepository = get(),
+            chatMemberRepository = get(),
+            chatConfigRepository = get(),
+            chatPluginSubscriptionRepository = get(),
+            domainEventBus = get(),
+            tx = get(),
+        )
+    }
+    single<ChatConfigUseCasePort> {
+        ChatConfigService(
+            chatConfigRepository = get(),
+            chatPluginSubscriptionRepository = get(),
+            chatRepository = get(),
+            pluginRepository = get(),
+            tx = get(),
+        )
+    }
+
+    // Agent 编排
+    single<KnowledgeSearcher> { KnowledgeSearcherAdapter(get()) }
+    single { PluginToolFactory(get()) }
+    single<AgentUseCasePort> {
+        AgentOrchestrationService(
+            chatRepository = get(),
+            messageRepository = get(),
+            chatConfigRepository = get(),
+            chatPluginSubscriptionRepository = get(),
+            characterRepository = get(),
+            knowledgeSubscriptionRepository = get(),
+            pluginRepository = get(),
+            knowledgeSearcher = get(),
+            pluginToolFactory = get(),
+            promptExecutor = get(),
+            llmConfigProvider = get(),
+            transactional = get(),
+        )
+    }
+
+    onDomainEvent<ChatCreated>("chat.created") {
+        ChatCreatedHandler(get())
+    }
 }
