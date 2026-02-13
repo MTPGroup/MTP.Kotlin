@@ -8,6 +8,7 @@ import ai.koog.prompt.llm.LLModel
 import kotlinx.serialization.json.*
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSchema
 import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMProvider
 import ai.koog.prompt.llm.LLMProvider as KoogLLMProvider
 
 /**
@@ -55,12 +56,19 @@ fun PluginSchema.toToolDescriptor(): ToolDescriptor {
  * LLMConfig → Koog LLModel
  */
 fun LLMConfig.toLLModel(): LLModel = LLModel(
-    provider = KoogLLMProvider.Ollama,
+    provider = when (provider) {
+        LLMProvider.OPENAI -> KoogLLMProvider.OpenAI
+        LLMProvider.ALIBABA -> KoogLLMProvider.Alibaba
+        LLMProvider.DEEPSEEK -> KoogLLMProvider.DeepSeek
+        LLMProvider.GOOGLE -> KoogLLMProvider.Google
+        LLMProvider.ANTHROPIC -> KoogLLMProvider.Anthropic
+        LLMProvider.CUSTOM -> KoogLLMProvider.Ollama
+    },
     id = model,
     capabilities = listOf(
         LLMCapability.Completion,
         LLMCapability.Temperature,
         LLMCapability.Tools,
     ),
-    contextLength = 262_144,
+    contextLength = 32_768,
 )

@@ -10,7 +10,10 @@ value class LLMConfigId(val value: Uuid)
 @Serializable
 enum class LLMProvider {
     OPENAI,
-    AZURE,
+    ALIBABA,
+    DEEPSEEK,
+    GOOGLE,
+    ANTHROPIC,
     CUSTOM
 }
 

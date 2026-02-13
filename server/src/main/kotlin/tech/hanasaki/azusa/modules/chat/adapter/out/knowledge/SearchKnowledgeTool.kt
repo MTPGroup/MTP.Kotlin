@@ -25,8 +25,10 @@ class SearchKnowledgeTool(
     )
 
     override suspend fun execute(args: Args): String {
+        logger.debug { "---------------------开始检索---------------------" }
         val results = knowledgeSearcher.search(userId, knowledgeBaseIds, args.query)
-        logger.debug { "检索知识库结果为：$results" }
+//        logger.debug { "检索知识库结果为：${results.take(20)}..." }
+        logger.debug { "---------------------结束检索---------------------" }
         return results.joinToString("\n\n") { "【${it.source ?: "知识库"}】${it.content}" }
     }
 }

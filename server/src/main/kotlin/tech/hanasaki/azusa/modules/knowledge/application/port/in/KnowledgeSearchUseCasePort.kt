@@ -9,7 +9,7 @@ interface KnowledgeSearchUseCasePort {
         userId: UserId,
         knowledgeBaseIds: List<KnowledgeBaseId>,
         query: String,
-        threshold: Float = 0.7f,
+        threshold: Float = 0.3f,
         limit: Int = 10,
     ): List<SearchResult>
 

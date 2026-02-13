@@ -28,6 +28,7 @@ kotlin {
 
 dependencies {
     implementation(platform(serverLibs.koin.bom))
+    implementation(platform(serverLibs.langchain4j.bom))
     implementation(serverLibs.bundles.koin)
     implementation(serverLibs.bundles.ktor)
     implementation(serverLibs.bundles.kotlinx)
@@ -35,6 +36,7 @@ dependencies {
     implementation(serverLibs.bundles.database)
     implementation(serverLibs.bundles.service)
     implementation(serverLibs.bundles.logging)
+    implementation(serverLibs.bundles.agent)
 
     testImplementation(platform(serverLibs.testcontainers.bom))
     testImplementation(kotlin("test-junit5"))

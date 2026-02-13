@@ -74,7 +74,7 @@ class PgVectorStore : VectorStore {
         logger.debug { "KB IDs: ${kbIdsArray.contentToString()}" }
         logger.debug { "Threshold: $threshold, Limit: $limit" }
         logger.debug { "Result count: ${results.size}" }
-        logger.debug { "搜索结果为: $results" }
+//        logger.debug { "搜索结果为: ${results.take(20)}..." }
 
         return results
     }
