@@ -17,10 +17,6 @@ pluginManagement {
 
 dependencyResolutionManagement {
     versionCatalogs {
-        create("backendLibs") {
-            from(files("gradle/backend-libs.versions.toml"))
-        }
-
         create("serverLibs") {
             from(files("gradle/server-libs.versions.toml"))
         }
@@ -44,4 +40,3 @@ plugins {
 
 include(":composeApp")
 include(":server")
-include(":backend")
