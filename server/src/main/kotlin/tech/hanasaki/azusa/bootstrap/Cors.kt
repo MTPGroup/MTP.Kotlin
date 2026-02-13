@@ -12,9 +12,21 @@ fun Application.configureCors() {
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Delete)
+
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Accept)
+        allowHeader(HttpHeaders.Origin)
+        allowHeader(HttpHeaders.AccessControlRequestHeaders)
+        allowHeader(HttpHeaders.AccessControlRequestMethod)
+
+        exposeHeader(HttpHeaders.ContentType)
+        exposeHeader(HttpHeaders.Authorization)
+        exposeHeader("X-Request-ID")
+
         allowCredentials = true
+        maxAgeInSeconds = 3600
+
         anyHost()
     }
 }

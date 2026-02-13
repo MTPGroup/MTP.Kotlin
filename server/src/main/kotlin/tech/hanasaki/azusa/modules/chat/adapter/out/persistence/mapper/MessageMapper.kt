@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.chat.adapter.out.persistence.mapper
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
@@ -9,6 +8,7 @@ import tech.hanasaki.azusa.modules.chat.domain.model.SenderType
 import tech.hanasaki.azusa.modules.chat.adapter.out.serializer.MessageContentSerializer
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.MessageTable
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
+import tech.hanasaki.azusa.modules.chat.domain.model.MessageId
 
 object MessageMapper {
     fun toDomain(row: ResultRow): Message {
@@ -18,10 +18,17 @@ object MessageMapper {
         val metadata = row[MessageTable.metadata]
         val metadataObj = if (metadata == JsonObject(emptyMap())) null else metadata
 
+        val senderType = SenderType.valueOf(row[MessageTable.senderType].uppercase())
+        val senderId = when (senderType) {
+            SenderType.USER -> row[MessageTable.senderProfileId]!!
+            SenderType.CHARACTER -> row[MessageTable.senderCharacterId]!!
+        }
+
         return Message.reconstitute(
-            id = tech.hanasaki.azusa.modules.chat.domain.model.MessageId(row[MessageTable.id]),
+            id = MessageId(row[MessageTable.id]),
             chatId = ChatId(row[MessageTable.chatId]),
-            senderType = SenderType.valueOf(row[MessageTable.senderType]),
+            senderType = senderType,
+            senderId = senderId,
             content = content,
             metadata = metadataObj,
             createdAt = row[MessageTable.createdAt],
@@ -30,13 +37,17 @@ object MessageMapper {
 
     fun toEntity(domain: Message, target: UpdateBuilder<*>) {
         target[MessageTable.chatId] = domain.chatId.value
-        target[MessageTable.senderType] = domain.senderType.name
-        target[MessageTable.senderProfileId] = if (domain.senderType == SenderType.USER) {
-            target[MessageTable.senderCharacterId] = null
-            null
-        } else {
-            target[MessageTable.senderProfileId] = null
-            null
+        target[MessageTable.senderType] = domain.senderType.name.lowercase()
+
+        when (domain.senderType) {
+            SenderType.USER -> {
+                target[MessageTable.senderProfileId] = domain.senderId
+                target[MessageTable.senderCharacterId] = null
+            }
+            SenderType.CHARACTER -> {
+                target[MessageTable.senderProfileId] = null
+                target[MessageTable.senderCharacterId] = domain.senderId
+            }
         }
 
         val contentJson = MessageContentSerializer.serialize(domain.content)

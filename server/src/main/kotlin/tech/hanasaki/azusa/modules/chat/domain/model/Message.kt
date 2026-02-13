@@ -17,6 +17,7 @@ data class Message(
     val id: MessageId,
     val chatId: ChatId,
     val senderType: SenderType,
+    val senderId: Uuid,
     val content: List<MessageContent>,
     val metadata: JsonObject?,
     val createdAt: Instant,
@@ -28,6 +29,7 @@ data class Message(
         fun create(
             chatId: ChatId,
             senderType: SenderType,
+            senderId: Uuid,
             content: List<MessageContent>,
             metadata: JsonObject? = null,
         ): Message {
@@ -35,6 +37,7 @@ data class Message(
                 id = MessageId(Uuid.random()),
                 chatId = chatId,
                 senderType = senderType,
+                senderId = senderId,
                 content = content,
                 metadata = metadata,
                 createdAt = Clock.System.now(),
@@ -47,12 +50,14 @@ data class Message(
         fun createText(
             chatId: ChatId,
             senderType: SenderType,
+            senderId: Uuid,
             text: String,
             metadata: JsonObject? = null,
         ): Message {
             return create(
                 chatId = chatId,
                 senderType = senderType,
+                senderId = senderId,
                 content = listOf(MessageContent.Text(text)),
                 metadata = metadata,
             )
@@ -65,6 +70,7 @@ data class Message(
             id: MessageId,
             chatId: ChatId,
             senderType: SenderType,
+            senderId: Uuid,
             content: List<MessageContent>,
             metadata: JsonObject?,
             createdAt: Instant,
@@ -72,6 +78,7 @@ data class Message(
             id = id,
             chatId = chatId,
             senderType = senderType,
+            senderId = senderId,
             content = content,
             metadata = metadata,
             createdAt = createdAt,
@@ -91,22 +98,3 @@ data class Message(
      */
     fun isTextOnly(): Boolean = content.all { it is MessageContent.Text }
 }
-
-/**
- * 用于从持久化层重建的工厂方法
- */
-fun Message.reconstitute(
-    id: MessageId,
-    chatId: ChatId,
-    senderType: SenderType,
-    content: List<MessageContent>,
-    metadata: JsonObject?,
-    createdAt: Instant,
-): Message = Message(
-    id = id,
-    chatId = chatId,
-    senderType = senderType,
-    content = content,
-    metadata = metadata,
-    createdAt = createdAt,
-)

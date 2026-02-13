@@ -1,5 +1,6 @@
 package tech.hanasaki.azusa.modules.chat.adapter.`in`.web
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.openapi.*
 import io.ktor.server.auth.*
@@ -7,6 +8,13 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
+import io.ktor.util.cio.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.chat.adapter.`in`.web.dto.*
@@ -28,6 +36,7 @@ fun Route.chatRoutes() {
     val chatService: ChatUseCasePort by inject()
     val chatConfigService: ChatConfigUseCasePort by inject()
     val agentService: AgentUseCasePort by inject()
+    val logger = KotlinLogging.logger { }
 
     authenticate("auth-jwt") {
         route("/chats") {
@@ -251,23 +260,70 @@ fun Route.chatRoutes() {
 
                 call.response.header(HttpHeaders.CacheControl, "no-cache")
                 call.response.header(HttpHeaders.Connection, "keep-alive")
-                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
-                    agentService.processMessage(userId, chatId, content).collect { event ->
-                        val (type, data) = when (event) {
-                            is AgentStreamEvent.Delta -> "delta" to event.text
-                            is AgentStreamEvent.ToolCallStart -> "tool_call_start" to Json.encodeToString(
-                                ToolCallStartData.serializer(),
-                                ToolCallStartData(event.name, event.arguments),
-                            )
-                            is AgentStreamEvent.ToolCallResult -> "tool_call_result" to Json.encodeToString(
-                                ToolCallResultData.serializer(),
-                                ToolCallResultData(event.name, event.result),
-                            )
-                            is AgentStreamEvent.Done -> "done" to event.fullContent
-                            is AgentStreamEvent.Error -> "error" to event.message
+                call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
+                    val channel = this
+                    // 立即发送 SSE comment，确认连接建立
+                    channel.writeStringUtf8(": connected\n\n")
+                    channel.flush()
+
+                    coroutineScope {
+                        // 心跳：每 5 秒发送 SSE comment，防止客户端/代理超时断开
+                        val heartbeatJob = launch {
+                            while (isActive) {
+                                delay(5_000)
+                                try {
+                                    channel.writeStringUtf8(": heartbeat\n\n")
+                                    channel.flush()
+                                } catch (_: Exception) {
+                                    break
+                                }
+                            }
                         }
-                        write("event: $type\ndata: $data\n\n")
-                        flush()
+
+                        try {
+                            agentService.processMessage(userId, chatId, content)
+                                .catch { e ->
+                                    when (e) {
+                                        is ChannelWriteException, is ClosedWriteChannelException -> {
+                                            logger.debug { "SSE 客户端断开: chatId=$chatId" }
+                                        }
+
+                                        else -> throw e
+                                    }
+                                }
+                                .collect { event ->
+                                    val (type, data) = when (event) {
+                                        is AgentStreamEvent.Delta -> "delta" to event.text
+                                        is AgentStreamEvent.ToolCallStart -> "tool_call_start" to Json.encodeToString(
+                                            ToolCallStartData.serializer(),
+                                            ToolCallStartData(event.name, event.arguments),
+                                        )
+
+                                        is AgentStreamEvent.ToolCallResult -> "tool_call_result" to Json.encodeToString(
+                                            ToolCallResultData.serializer(),
+                                            ToolCallResultData(event.name, event.result),
+                                        )
+
+                                        is AgentStreamEvent.Done -> "done" to event.fullContent
+                                        is AgentStreamEvent.Error -> "error" to event.message
+                                    }
+                                    try {
+                                        val sseEvent = "event: $type\ndata: $data\n\n"
+                                        channel.writeStringUtf8(sseEvent)
+                                        channel.flush()
+                                    } catch (e: Exception) {
+                                        when (e) {
+                                            is ChannelWriteException, is ClosedWriteChannelException -> {
+                                                logger.debug { "SSE 客户端断开，停止发送: chatId=$chatId" }
+                                            }
+
+                                            else -> throw e
+                                        }
+                                    }
+                                }
+                        } finally {
+                            heartbeatJob.cancel()
+                        }
                     }
                 }
             }.describe {

@@ -61,7 +61,7 @@ fun chatModule(config: ApplicationConfig) = module {
             pluginToolFactory = get(),
             promptExecutor = get(),
             llmConfigProvider = get(),
-            transactional = get(),
+            tx = get(),
         )
     }
 
