@@ -1,9 +1,10 @@
 package tech.hanasaki.azusa.modules.knowledge.application.service
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
-import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParser
-import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentIngestorPort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParserPort
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeDocument
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeFile
@@ -18,16 +19,15 @@ import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.DomainEventBusPort
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
-import kotlinx.coroutines.delay
 
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger { }
 
 class KnowledgeFileService(
     private val knowledgeBaseRepository: KnowledgeBaseRepositoryPort,
     private val fileRepository: KnowledgeFileRepositoryPort,
     private val documentRepository: KnowledgeDocumentRepositoryPort,
-    private val documentParser: DocumentParser,
-    private val embeddingService: EmbeddingServicePort,
+    private val documentParser: DocumentParserPort,
+    private val documentIngestor: DocumentIngestorPort,
     private val domainEventBus: DomainEventBusPort,
     private val tx: TransactionalPort,
 ) : KnowledgeFileUseCasePort {
@@ -61,9 +61,9 @@ class KnowledgeFileService(
     override suspend fun listFiles(userId: UserId, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile> =
         tx.readOnly {
             val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
-?: throw NotFoundException("知识库不存在")
+                ?: throw NotFoundException("知识库不存在")
             if (kb.authorId != userId) {
-throw AuthorizationException("无权访问")
+                throw AuthorizationException("无权访问")
             }
             fileRepository.findByKnowledgeBaseId(knowledgeBaseId)
         }
@@ -92,47 +92,39 @@ throw AuthorizationException("无权访问")
         fileRepository.deleteById(fileId)
     }
 
-    private suspend fun embedWithRetry(text: String, maxRetries: Int = 3): FloatArray {
-        var lastException: Exception? = null
-        
-        repeat(maxRetries) { attempt ->
-            try {
-                return embeddingService.embed(text)
-            } catch (e: Exception) {
-                lastException = e
-                if (attempt < maxRetries - 1) {
-                    val delayMs = 1000L.shl(attempt)
-                    logger.warn { "Embedding 失败（${attempt + 1}/$maxRetries），${delayMs}ms 后重试: ${e.message}" }
-                    delay(delayMs)
-                }
-            }
-        }
-        
-        throw lastException ?: Exception("Embedding 失败，已重试 $maxRetries 次")
-    }
-
     override suspend fun processFile(fileId: KnowledgeFileId) {
         try {
             val file = tx.execute {
                 val f = fileRepository.findById(fileId)
-?: throw NotFoundException("文件不存在")
+                    ?: throw NotFoundException("文件不存在")
                 f.markProcessing()
                 fileRepository.save(f)
                 f
             }
 
-            // 解析文件内容为文档块
+            // 解析文件内容为文本块
             val chunks = documentParser.parse(file.filePath, file.fileType)
 
-            // 为每个块生成 embedding 并保存
+            // 合并所有块的内容
+            val fullContent = chunks.joinToString("\n\n") { it.content }
+
+            // 使用 LangChain4j Ingestor 自动完成: 分割 -> Embedding -> 存储
+            documentIngestor.ingest(
+                content = fullContent,
+                knowledgeBaseId = file.knowledgeBaseId,
+                fileId = file.id,
+                filePath = file.filePath,
+                extraMetadata = chunks.firstOrNull()?.metadata ?: JsonObject(emptyMap())
+            )
+
+            // 同时保存原始文档记录到领域模型（保持元数据一致性）
             val documents = chunks.map { chunk ->
-                val embedding = embedWithRetry(chunk.content)
                 KnowledgeDocument.create(
                     knowledgeBaseId = file.knowledgeBaseId,
                     fileId = file.id,
                     content = chunk.content,
                     metadata = chunk.metadata,
-                    embedding = embedding,
+                    embedding = FloatArray(0), // Ingestor 会自动生成并存储，这里占位
                 )
             }
 

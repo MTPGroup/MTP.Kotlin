@@ -1,20 +1,25 @@
 package tech.hanasaki.azusa.modules.knowledge
 
+import dev.langchain4j.data.segment.TextSegment
+import dev.langchain4j.model.embedding.EmbeddingModel
+import dev.langchain4j.store.embedding.EmbeddingStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.FileUploadedHandler
-import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.KoogEmbeddingService
-import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.S3DocumentParser
+import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.Lc4jEmbeddingService
+import tech.hanasaki.azusa.modules.knowledge.adapter.out.ingestor.Lc4jDocumentIngestorAdapter
+import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.Lc4jDocumentParser
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeFileRepository
-import tech.hanasaki.azusa.modules.knowledge.adapter.out.vector.PgVectorStore
+import tech.hanasaki.azusa.modules.knowledge.adapter.out.vector.Lc4jVectorStore
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
-import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParser
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentIngestorPort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParserPort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.VectorStore
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
@@ -32,9 +37,22 @@ fun knowledgeModule() = module {
     single<KnowledgeFileRepositoryPort> { ExposedKnowledgeFileRepository() }
     single<KnowledgeDocumentRepositoryPort> { ExposedKnowledgeDocumentRepository() }
 
-    single<EmbeddingServicePort> { KoogEmbeddingService(get()) }
-    single<DocumentParser> { S3DocumentParser(get()) }
-    single<VectorStore> { PgVectorStore() }
+    single<EmbeddingServicePort> { Lc4jEmbeddingService(get<EmbeddingModel>()) }
+
+    single<DocumentParserPort> { Lc4jDocumentParser(get()) }
+
+    single<VectorStore> {
+        Lc4jVectorStore(get<EmbeddingStore<TextSegment>>())
+    }
+
+    single<DocumentIngestorPort> {
+        Lc4jDocumentIngestorAdapter(
+            embeddingModel = get<EmbeddingModel>(),
+            embeddingStore = get<EmbeddingStore<TextSegment>>(),
+            maxSegmentSize = 500,
+            maxOverlapSize = 50,
+        )
+    }
 
     single<KnowledgeBaseUseCasePort> {
         KnowledgeBaseService(
@@ -52,7 +70,7 @@ fun knowledgeModule() = module {
             fileRepository = get(),
             documentRepository = get(),
             documentParser = get(),
-            embeddingService = get(),
+            documentIngestor = get(),
             domainEventBus = get(),
             tx = get(),
         )

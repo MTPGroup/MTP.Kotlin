@@ -10,6 +10,15 @@ data class DatabaseConfig(
     val maxPoolSize: Int,
 )
 
+fun ApplicationConfig.readDatabaseConfig(): DatabaseConfig {
+    return DatabaseConfig(
+        driver = requireString("database.driver"),
+        url = requireString("database.url"),
+        user = requireString("database.user"),
+        password = requireString("database.password"),
+        maxPoolSize = requireString("database.maxPoolSize").toInt(),
+    )
+}
 
 data class S3Config(
     val endpoint: String,
@@ -21,30 +30,6 @@ data class S3Config(
     val publicBaseUrl: String,
     val forcePathStyle: Boolean,
 )
-
-data class RedisConfig(
-    val host: String,
-    val port: Int,
-    val password: String,
-)
-
-fun ApplicationConfig.readDatabaseConfig(): DatabaseConfig {
-    return DatabaseConfig(
-        driver = requireString("database.driver"),
-        url = requireString("database.url"),
-        user = requireString("database.user"),
-        password = requireString("database.password"),
-        maxPoolSize = requireString("database.maxPoolSize").toInt(),
-    )
-}
-
-fun ApplicationConfig.readRedisConfig(): RedisConfig =
-    RedisConfig(
-        host = requireString("redis.host"),
-        port = requireString("redis.port").toInt(),
-        password = requireString("redis.password"),
-    )
-
 
 fun ApplicationConfig.readS3Config(): S3Config {
     return S3Config(
@@ -58,6 +43,20 @@ fun ApplicationConfig.readS3Config(): S3Config {
         forcePathStyle = requireString("s3.forcePathStyle").toBoolean(),
     )
 }
+
+data class RedisConfig(
+    val host: String,
+    val port: Int,
+    val password: String,
+)
+
+
+fun ApplicationConfig.readRedisConfig(): RedisConfig =
+    RedisConfig(
+        host = requireString("redis.host"),
+        port = requireString("redis.port").toInt(),
+        password = requireString("redis.password"),
+    )
 
 fun ApplicationConfig.requireString(path: String): String {
     return property(path).getString()

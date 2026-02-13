@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonObject
 /**
  * 文档解析器端口
  */
-interface DocumentParser {
+interface DocumentParserPort {
     /**
      * 支持的文件类型
      */

@@ -25,19 +25,32 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepositoryPort {
             .singleOrNull()
 
     override suspend fun save(document: KnowledgeDocument) {
-        val embeddingValue = document.embedding?.let { arr ->
+        val hasEmbedding = document.embedding != null && document.embedding.isNotEmpty()
+        val embeddingValue = document.embedding?.takeIf { it.isNotEmpty() }?.let { arr ->
             "[${arr.joinToString(",")}]"
         }
 
-        val sql = """
-            INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?::jsonb, ?::extensions.vector(1024), ?, ?)
-            ON CONFLICT (id) DO UPDATE SET
-                content = EXCLUDED.content,
-                metadata = EXCLUDED.metadata,
-                embedding = EXCLUDED.embedding,
-                updated_at = EXCLUDED.updated_at
-        """.trimIndent()
+        val sql = if (hasEmbedding) {
+            """
+                INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?::jsonb, ?::extensions.vector(1024), ?, ?)
+                ON CONFLICT (id) DO UPDATE SET
+                    content = EXCLUDED.content,
+                    metadata = EXCLUDED.metadata,
+                    embedding = EXCLUDED.embedding,
+                    updated_at = EXCLUDED.updated_at
+            """.trimIndent()
+        } else {
+            """
+                INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?::jsonb, NULL, ?, ?)
+                ON CONFLICT (id) DO UPDATE SET
+                    content = EXCLUDED.content,
+                    metadata = EXCLUDED.metadata,
+                    embedding = NULL,
+                    updated_at = EXCLUDED.updated_at
+            """.trimIndent()
+        }
 
         val conn = TransactionManager.current().connection.connection as Connection
         conn.prepareStatement(sql).use { stmt ->
@@ -46,9 +59,14 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepositoryPort {
             stmt.setObject(3, document.fileId?.value?.toJavaUuid())
             stmt.setString(4, document.content)
             stmt.setString(5, document.metadata.toString())
-            stmt.setString(6, embeddingValue)
-            stmt.setTimestamp(7, Timestamp.from(Instant.ofEpochSecond(document.createdAt.epochSeconds)))
-            stmt.setTimestamp(8, Timestamp.from(Instant.ofEpochSecond(document.updatedAt.epochSeconds)))
+            if (hasEmbedding) {
+                stmt.setString(6, embeddingValue)
+                stmt.setTimestamp(7, Timestamp.from(Instant.ofEpochSecond(document.createdAt.epochSeconds)))
+                stmt.setTimestamp(8, Timestamp.from(Instant.ofEpochSecond(document.updatedAt.epochSeconds)))
+            } else {
+                stmt.setTimestamp(6, Timestamp.from(Instant.ofEpochSecond(document.createdAt.epochSeconds)))
+                stmt.setTimestamp(7, Timestamp.from(Instant.ofEpochSecond(document.updatedAt.epochSeconds)))
+            }
             stmt.executeUpdate()
         }
     }
@@ -56,28 +74,42 @@ class ExposedKnowledgeDocumentRepository : KnowledgeDocumentRepositoryPort {
     override suspend fun saveAll(documents: List<KnowledgeDocument>) {
         if (documents.isEmpty()) return
 
-        val sql = """
-            INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?::jsonb, ?::extensions.vector(1024), ?, ?)
-        """.trimIndent()
-
         val conn = TransactionManager.current().connection.connection as Connection
-        conn.prepareStatement(sql).use { stmt ->
-            documents.forEach { document ->
-                val embeddingValue = document.embedding?.let { arr ->
-                    "[${arr.joinToString(",")}]"
-                }
+
+        documents.forEach { document ->
+            val hasEmbedding = document.embedding != null && document.embedding.isNotEmpty()
+            val embeddingValue = document.embedding?.takeIf { it.isNotEmpty() }?.let { arr ->
+                "[${arr.joinToString(",")}]"
+            }
+
+            val sql = if (hasEmbedding) {
+                """
+                    INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?::jsonb, ?::extensions.vector(1024), ?, ?)
+                """.trimIndent()
+            } else {
+                """
+                    INSERT INTO knowledge_documents (id, knowledge_base_id, file_id, content, metadata, embedding, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?::jsonb, NULL, ?, ?)
+                """.trimIndent()
+            }
+
+            conn.prepareStatement(sql).use { stmt ->
                 stmt.setObject(1, document.id.value.toJavaUuid())
                 stmt.setObject(2, document.knowledgeBaseId.value.toJavaUuid())
                 stmt.setObject(3, document.fileId?.value?.toJavaUuid())
                 stmt.setString(4, document.content)
                 stmt.setString(5, document.metadata.toString())
-                stmt.setString(6, embeddingValue)
-                stmt.setTimestamp(7, Timestamp.from(Instant.ofEpochSecond(document.createdAt.epochSeconds)))
-                stmt.setTimestamp(8, Timestamp.from(Instant.ofEpochSecond(document.updatedAt.epochSeconds)))
-                stmt.addBatch()
+                if (hasEmbedding) {
+                    stmt.setString(6, embeddingValue)
+                    stmt.setTimestamp(7, Timestamp.from(Instant.ofEpochSecond(document.createdAt.epochSeconds)))
+                    stmt.setTimestamp(8, Timestamp.from(Instant.ofEpochSecond(document.updatedAt.epochSeconds)))
+                } else {
+                    stmt.setTimestamp(6, Timestamp.from(Instant.ofEpochSecond(document.createdAt.epochSeconds)))
+                    stmt.setTimestamp(7, Timestamp.from(Instant.ofEpochSecond(document.updatedAt.epochSeconds)))
+                }
+                stmt.executeUpdate()
             }
-            stmt.executeBatch()
         }
     }
 

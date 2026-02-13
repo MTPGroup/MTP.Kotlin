@@ -41,6 +41,10 @@ dependencies {
     testImplementation(platform(serverLibs.testcontainers.bom))
     testImplementation(kotlin("test-junit5"))
     testImplementation(serverLibs.bundles.test)
+
+    configurations.all {
+        exclude(group = "org.apache.logging.log4j", module = "log4j-core")
+    }
 }
 
 tasks.test {

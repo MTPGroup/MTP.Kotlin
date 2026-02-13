@@ -14,13 +14,12 @@ testcontainers-redis = "2.2.4"
 aws-sdk = "2.41.20"
 lettuce = "7.2.1.RELEASE"
 kotlin-logging = "7.0.14"
-logback = "1.5.27"
+logback = "1.5.29"
+log4j = "2.25.3"
 koog = "0.6.1"
-pdfbox = "3.0.6"
-poi = "5.5.1"
+langchain4j = "1.11.0"
 
 [libraries]
-
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-ktor = { module = "io.insert-koin:koin-ktor" }
@@ -42,6 +41,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 
 kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+log4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlinx" }
@@ -61,9 +61,15 @@ aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
 angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "angus-mail" }
 lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
 koog = { module = "ai.koog:koog-agents", version.ref = "koog" }
-pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
-poi-scratchpad = { module = "org.apache.poi:poi-scratchpad", version.ref = "poi" }
+
+langchain4j-bom = { module = "dev.langchain4j:langchain4j-bom", version.ref = "langchain4j" }
+langchain4j-kotlin = { module = "dev.langchain4j:langchain4j-kotlin" }
+langchain4j-openai = { module = "dev.langchain4j:langchain4j-open-ai" }
+langchain4j-ollama = { module = "dev.langchain4j:langchain4j-ollama" }
+langchain4j-pgvector = { module = "dev.langchain4j:langchain4j-pgvector" }
+langchain4j-document-parser-apache-tika = { module = "dev.langchain4j:langchain4j-document-parser-apache-tika" }
+langchain4j-document-parser-markdown = { module = "dev.langchain4j:langchain4j-document-parser-markdown" }
+langchain4j-document-parser-yaml = { module = "dev.langchain4j:langchain4j-document-parser-yaml" }
 
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
 testcontainers = { module = "org.testcontainers:testcontainers" }
@@ -112,6 +118,15 @@ database = [
     "postgresql"
 ]
 
+agent = [
+    "langchain4j-kotlin",
+    "langchain4j-ollama",
+    "langchain4j-pgvector",
+    "langchain4j-document-parser-apache-tika",
+    "langchain4j-document-parser-markdown",
+    "langchain4j-document-parser-yaml",
+]
+
 service = [
     "bcrypt",
     "angus-mail",
@@ -119,14 +134,12 @@ service = [
     "lettuce",
     "koog",
     "ktor-client-cio",
-    "pdfbox",
-    "poi-ooxml",
-    "poi-scratchpad",
 ]
 
 logging = [
     "kotlin-logging",
     "logback",
+    "log4j",
 ]
 
 test = [

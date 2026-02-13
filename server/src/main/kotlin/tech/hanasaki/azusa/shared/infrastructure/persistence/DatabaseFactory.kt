@@ -14,7 +14,7 @@ object DatabaseFactory {
             username = config.user
             password = config.password
             maximumPoolSize = config.maxPoolSize
-            isAutoCommit = false
+            isAutoCommit = true
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         }
 
