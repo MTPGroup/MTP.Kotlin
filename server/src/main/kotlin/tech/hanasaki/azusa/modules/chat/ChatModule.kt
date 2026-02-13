@@ -8,6 +8,7 @@ import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.*
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatConfigUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
+import tech.hanasaki.azusa.modules.chat.application.port.out.agent.AgentContextLoader
 import tech.hanasaki.azusa.modules.chat.application.port.out.knowledge.KnowledgeSearcher
 import tech.hanasaki.azusa.modules.chat.application.port.out.plugin.PluginToolFactory
 import tech.hanasaki.azusa.modules.chat.application.service.AgentOrchestrationService
@@ -48,8 +49,8 @@ fun chatModule(config: ApplicationConfig) = module {
     // Agent 编排
     single<KnowledgeSearcher> { KnowledgeSearcherAdapter(get()) }
     single { PluginToolFactory(get()) }
-    single<AgentUseCasePort> {
-        AgentOrchestrationService(
+    single {
+        AgentContextLoader(
             chatRepository = get(),
             messageRepository = get(),
             chatConfigRepository = get(),
@@ -59,8 +60,16 @@ fun chatModule(config: ApplicationConfig) = module {
             pluginRepository = get(),
             knowledgeSearcher = get(),
             pluginToolFactory = get(),
-            promptExecutor = get(),
             llmConfigProvider = get(),
+            tx = get(),
+        )
+    }
+    single<AgentUseCasePort> {
+        AgentOrchestrationService(
+            contextLoader = get(),
+            chatRepository = get(),
+            messageRepository = get(),
+            promptExecutor = get(),
             tx = get(),
         )
     }
