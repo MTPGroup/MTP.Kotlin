@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.FileUploadedHandler
+import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.KnowledgeBaseDeletedHandler
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.Lc4jEmbeddingService
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.ingestor.Lc4jDocumentIngestorAdapter
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.Lc4jDocumentParser
@@ -27,6 +28,7 @@ import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileSe
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
 import tech.hanasaki.azusa.modules.knowledge.application.service.PendingFileProcessor
 import tech.hanasaki.azusa.modules.knowledge.domain.events.FileUploaded
+import tech.hanasaki.azusa.modules.knowledge.domain.events.KnowledgeBaseDeleted
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeBaseRepositoryPort
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeDocumentRepositoryPort
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeFileRepositoryPort
@@ -87,6 +89,9 @@ fun knowledgeModule() = module {
 
     onDomainEvent<FileUploaded>("knowledgeBase.file.uploaded") {
         FileUploadedHandler(get())
+    }
+    onDomainEvent<KnowledgeBaseDeleted>("knowledgeBase.deleted") {
+        KnowledgeBaseDeletedHandler(get())
     }
 
     single {

@@ -145,7 +145,7 @@ fun Route.knowledgeRoutes() {
                     request.description,
                     request.isPublic
                 )
-                call.respondOk(kb.toResponse(), "知识库创建成功")
+                call.respondOk(kb.toResponse(), "知识库创建成功", HttpStatusCode.Created)
             }.describe {
                 tag("知识库管理")
                 operationId = "createKnowledgeBase"
@@ -156,7 +156,7 @@ fun Route.knowledgeRoutes() {
                     schema = jsonSchema<CreateKnowledgeBaseRequest>()
                 }
                 responses {
-                    HttpStatusCode.OK {
+                    HttpStatusCode.Created {
                         description = "创建成功"
                         schema = jsonSchema<ApiResponse<KnowledgeBaseResponse>>()
                     }
