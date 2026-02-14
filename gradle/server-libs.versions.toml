@@ -16,7 +16,6 @@ lettuce = "7.2.1.RELEASE"
 kotlin-logging = "7.0.14"
 logback = "1.5.29"
 log4j = "2.25.3"
-koog = "0.6.1"
 langchain4j = "1.11.0"
 
 [libraries]
@@ -60,7 +59,6 @@ bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
 angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "angus-mail" }
 lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
-koog = { module = "ai.koog:koog-agents", version.ref = "koog" }
 
 langchain4j-bom = { module = "dev.langchain4j:langchain4j-bom", version.ref = "langchain4j" }
 langchain4j-kotlin = { module = "dev.langchain4j:langchain4j-kotlin" }
@@ -120,6 +118,7 @@ database = [
 
 agent = [
     "langchain4j-kotlin",
+    "langchain4j-openai",
     "langchain4j-ollama",
     "langchain4j-pgvector",
     "langchain4j-document-parser-apache-tika",
@@ -132,7 +131,6 @@ service = [
     "angus-mail",
     "aws-sdk-s3",
     "lettuce",
-    "koog",
     "ktor-client-cio",
 ]
 

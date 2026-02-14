@@ -1,4 +1,4 @@
-package tech.hanasaki.azusa.modules.chat.application.port.out.knowledge
+package tech.hanasaki.azusa.modules.chat.application.port.out
 
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
@@ -6,7 +6,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.UserId
  * 知识库搜索器端口接口
  * 用于检索 RAG（Retrieval-Augmented Generation）知识库
  */
-interface KnowledgeSearcher {
+interface KnowledgeSearcherPort {
     /**
      * 搜索知识库
      *

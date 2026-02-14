@@ -1,7 +1,7 @@
 package tech.hanasaki.azusa.modules.chat.adapter.out.knowledge
 
-import tech.hanasaki.azusa.modules.chat.application.port.out.knowledge.KnowledgeSearcher
-import tech.hanasaki.azusa.modules.chat.application.port.out.knowledge.SearchResult
+import tech.hanasaki.azusa.modules.chat.application.port.out.KnowledgeSearcherPort
+import tech.hanasaki.azusa.modules.chat.application.port.out.SearchResult
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
@@ -9,7 +9,7 @@ import kotlin.uuid.Uuid
 
 class KnowledgeSearcherAdapter(
     private val knowledgeSearchService: KnowledgeSearchUseCasePort,
-) : KnowledgeSearcher {
+) : KnowledgeSearcherPort {
 
     override suspend fun search(
         userId: UserId,

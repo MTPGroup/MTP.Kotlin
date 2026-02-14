@@ -3,14 +3,16 @@ package tech.hanasaki.azusa.modules.chat
 import io.ktor.server.config.*
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.chat.adapter.`in`.event.ChatCreatedHandler
+import tech.hanasaki.azusa.modules.chat.adapter.out.agent.AgentContextLoader
 import tech.hanasaki.azusa.modules.chat.adapter.out.knowledge.KnowledgeSearcherAdapter
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.*
+import tech.hanasaki.azusa.modules.chat.adapter.out.plugin.PluginToolFactory
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatConfigUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
-import tech.hanasaki.azusa.modules.chat.application.port.out.agent.AgentContextLoader
-import tech.hanasaki.azusa.modules.chat.application.port.out.knowledge.KnowledgeSearcher
-import tech.hanasaki.azusa.modules.chat.application.port.out.plugin.PluginToolFactory
+import tech.hanasaki.azusa.modules.chat.application.port.out.AgentContextLoaderPort
+import tech.hanasaki.azusa.modules.chat.application.port.out.KnowledgeSearcherPort
+import tech.hanasaki.azusa.modules.chat.application.port.out.PluginToolFactoryPort
 import tech.hanasaki.azusa.modules.chat.application.service.AgentOrchestrationService
 import tech.hanasaki.azusa.modules.chat.application.service.ChatConfigService
 import tech.hanasaki.azusa.modules.chat.application.service.ChatService
@@ -47,9 +49,9 @@ fun chatModule(config: ApplicationConfig) = module {
     }
 
     // Agent 编排
-    single<KnowledgeSearcher> { KnowledgeSearcherAdapter(get()) }
-    single { PluginToolFactory(get()) }
-    single {
+    single<KnowledgeSearcherPort> { KnowledgeSearcherAdapter(get()) }
+    single<PluginToolFactoryPort> { PluginToolFactory(get()) }
+    single<AgentContextLoaderPort> {
         AgentContextLoader(
             chatRepository = get(),
             messageRepository = get(),
@@ -69,7 +71,7 @@ fun chatModule(config: ApplicationConfig) = module {
             contextLoader = get(),
             chatRepository = get(),
             messageRepository = get(),
-            promptExecutor = get(),
+            chatModelFactory = get(),
             tx = get(),
         )
     }

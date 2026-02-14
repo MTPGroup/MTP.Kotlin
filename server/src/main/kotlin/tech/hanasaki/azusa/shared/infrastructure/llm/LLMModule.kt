@@ -1,10 +1,5 @@
 package tech.hanasaki.azusa.shared.infrastructure.llm
 
-import ai.koog.prompt.executor.clients.deepseek.DeepSeekLLMClient
-import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
-import ai.koog.prompt.executor.model.PromptExecutor
-import ai.koog.prompt.executor.ollama.client.OllamaClient
-import ai.koog.prompt.llm.LLMProvider
 import com.zaxxer.hikari.HikariDataSource
 import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.model.embedding.EmbeddingModel
@@ -16,16 +11,10 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import org.koin.dsl.module
+import tech.hanasaki.azusa.modules.chat.adapter.out.llm.ChatModelFactory
 
 fun llmModule() = module {
-    single<OllamaClient> { OllamaClient() }
-    single<DeepSeekLLMClient> { DeepSeekLLMClient("sk-ef5a723504f147efaadaa78c0828ee73") }
-    single<PromptExecutor> {
-        MultiLLMPromptExecutor(
-            LLMProvider.Ollama to get<OllamaClient>(),
-            LLMProvider.DeepSeek to get<DeepSeekLLMClient>(),
-        )
-    }
+    single { ChatModelFactory() }
     single<HttpClient> {
         HttpClient(CIO) {
             install(HttpTimeout) {
@@ -45,12 +34,11 @@ fun llmModule() = module {
         val datasource = get<HikariDataSource>()
         val embeddingModel = get<EmbeddingModel>()
         val logger = KotlinLogging.logger { }
-        logger.error { "向量维度: ${embeddingModel.dimension()}" }
 
         PgVectorEmbeddingStore.datasourceBuilder()
             .datasource(datasource)
             .table("langchain_embeddings")
-            .dimension(embeddingModel.dimension())
+            .dimension(1024)
             .createTable(false)
             .build()
     }

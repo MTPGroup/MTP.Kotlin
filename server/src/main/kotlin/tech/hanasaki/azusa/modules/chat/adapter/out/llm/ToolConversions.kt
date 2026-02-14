@@ -1,74 +1,40 @@
 package tech.hanasaki.azusa.modules.chat.adapter.out.llm
 
-import ai.koog.agents.core.tools.ToolDescriptor
-import ai.koog.agents.core.tools.ToolParameterDescriptor
-import ai.koog.agents.core.tools.ToolParameterType
-import ai.koog.prompt.llm.LLMCapability
-import ai.koog.prompt.llm.LLModel
+import dev.langchain4j.agent.tool.ToolSpecification
+import dev.langchain4j.model.chat.request.json.*
 import kotlinx.serialization.json.*
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSchema
-import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
-import tech.hanasaki.azusa.shared.domain.model.vo.LLMProvider
-import ai.koog.prompt.llm.LLMProvider as KoogLLMProvider
 
 /**
- * PluginSchema (domain) → ToolDescriptor (Koog)
+ * PluginSchema (domain) -> ToolSpecification (LangChain4j)
  */
-fun PluginSchema.toToolDescriptor(): ToolDescriptor {
+fun PluginSchema.toToolSpecification(): ToolSpecification {
     val properties = parameters["properties"]?.jsonObject ?: JsonObject(emptyMap())
     val requiredNames = parameters["required"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
 
-    val requiredParams = mutableListOf<ToolParameterDescriptor>()
-    val optionalParams = mutableListOf<ToolParameterDescriptor>()
+    val schemaBuilder = JsonObjectSchema.builder()
 
     for ((paramName, paramSchema) in properties) {
         val schema = paramSchema.jsonObject
         val desc = schema["description"]?.jsonPrimitive?.contentOrNull ?: ""
-        val type = when (schema["type"]?.jsonPrimitive?.contentOrNull) {
-            "integer", "number" -> ToolParameterType.Integer
-            "boolean" -> ToolParameterType.Boolean
-            "array" -> ToolParameterType.List(ToolParameterType.String)
-            else -> ToolParameterType.String
+        val jsonSchema: JsonSchemaElement = when (schema["type"]?.jsonPrimitive?.contentOrNull) {
+            "integer" -> JsonIntegerSchema.builder().description(desc).build()
+            "number" -> JsonNumberSchema.builder().description(desc).build()
+            "boolean" -> JsonBooleanSchema.builder().description(desc).build()
+            "array" -> JsonArraySchema.builder()
+                .description(desc)
+                .items(JsonStringSchema.builder().build())
+                .build()
+            else -> JsonStringSchema.builder().description(desc).build()
         }
-
-        val descriptor = ToolParameterDescriptor(
-            name = paramName,
-            description = desc,
-            type = type,
-        )
-
-        if (paramName in requiredNames) {
-            requiredParams.add(descriptor)
-        } else {
-            optionalParams.add(descriptor)
-        }
+        schemaBuilder.addProperty(paramName, jsonSchema)
     }
 
-    return ToolDescriptor(
-        name = name,
-        description = description,
-        requiredParameters = requiredParams,
-        optionalParameters = optionalParams,
-    )
-}
+    schemaBuilder.required(requiredNames)
 
-/**
- * LLMConfig → Koog LLModel
- */
-fun LLMConfig.toLLModel(): LLModel = LLModel(
-    provider = when (provider) {
-        LLMProvider.OPENAI -> KoogLLMProvider.OpenAI
-        LLMProvider.ALIBABA -> KoogLLMProvider.Alibaba
-        LLMProvider.DEEPSEEK -> KoogLLMProvider.DeepSeek
-        LLMProvider.GOOGLE -> KoogLLMProvider.Google
-        LLMProvider.ANTHROPIC -> KoogLLMProvider.Anthropic
-        LLMProvider.CUSTOM -> KoogLLMProvider.Ollama
-    },
-    id = model,
-    capabilities = listOf(
-        LLMCapability.Completion,
-        LLMCapability.Temperature,
-        LLMCapability.Tools,
-    ),
-    contextLength = 32_768,
-)
+    return ToolSpecification.builder()
+        .name(name)
+        .description(description)
+        .parameters(schemaBuilder.build())
+        .build()
+}
