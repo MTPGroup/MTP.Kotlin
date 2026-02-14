@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreated
 import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -24,6 +25,8 @@ class Chat private constructor(
     val createdAt: Instant,
     var updatedAt: Instant,
     var members: List<ChatMember>,
+    var config: ChatConfig?,
+    var pluginSubscriptions: List<ChatPluginSubscription>,
 ) : AggregateRoot() {
 
     companion object {
@@ -44,6 +47,8 @@ class Chat private constructor(
                 createdAt = now,
                 updatedAt = now,
                 members = emptyList(),
+                config = ChatConfig.create(),
+                pluginSubscriptions = emptyList(),
             )
             chat.addMember(
                 ChatMember(
@@ -90,6 +95,8 @@ class Chat private constructor(
             createdAt: Instant,
             updatedAt: Instant,
             members: List<ChatMember>,
+            config: ChatConfig? = null,
+            pluginSubscriptions: List<ChatPluginSubscription> = emptyList(),
         ): Chat = Chat(
             id = id,
             ownerId = ownerId,
@@ -98,8 +105,55 @@ class Chat private constructor(
             createdAt = createdAt,
             updatedAt = updatedAt,
             members = members,
+            config = config,
+            pluginSubscriptions = pluginSubscriptions,
         )
     }
+
+    /**
+     * 更新聊天配置
+     */
+    fun updateConfig(
+        temperature: Double?,
+        maxTokens: Int?,
+        topP: Double?,
+        systemPrompt: String?,
+    ): ChatConfig {
+        val existing = this.config
+        if (existing != null) {
+            existing.updateLLMParams(temperature, maxTokens, topP)
+            existing.updateSystemPrompt(systemPrompt)
+            return existing
+        }
+        val newConfig = ChatConfig.create(
+            temperature = temperature,
+            maxTokens = maxTokens,
+            topP = topP,
+            systemPrompt = systemPrompt,
+        )
+        this.config = newConfig
+        return newConfig
+    }
+
+    /**
+     * 添加或切换插件订阅
+     */
+    fun togglePlugin(pluginId: PluginId, enabled: Boolean): ChatPluginSubscription {
+        val existing = pluginSubscriptions.find { it.pluginId == pluginId }
+        if (existing != null) {
+            if (enabled) existing.enable() else existing.disable()
+            return existing
+        }
+        val subscription = ChatPluginSubscription.create(pluginId = pluginId, enabled = enabled)
+        pluginSubscriptions = pluginSubscriptions + subscription
+        return subscription
+    }
+
+    /**
+     * 查找插件订阅
+     */
+    fun findPluginSubscription(pluginId: PluginId): ChatPluginSubscription? =
+        pluginSubscriptions.find { it.pluginId == pluginId }
 
     /**
      * 更新最后一条消息

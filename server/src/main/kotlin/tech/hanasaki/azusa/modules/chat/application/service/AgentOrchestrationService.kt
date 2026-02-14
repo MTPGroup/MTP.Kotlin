@@ -99,7 +99,7 @@ class AgentOrchestrationService(
                     .maxMessages(100)
                     .build()
 
-                val systemPrompt = buildSystemPrompt(ctx.originPrompt, ctx.chatConfig?.systemPrompt)
+                val systemPrompt = buildSystemPrompt(ctx.originPrompt, ctx.chat.config?.systemPrompt)
                 if (systemPrompt.isNotBlank()) {
                     chatMemory.add(SystemMessage.from(systemPrompt))
                 }

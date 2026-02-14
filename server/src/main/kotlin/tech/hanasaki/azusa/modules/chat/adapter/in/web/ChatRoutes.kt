@@ -20,7 +20,6 @@ import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.chat.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentStreamEvent
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
-import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatConfigUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.model.MessageId
@@ -35,7 +34,6 @@ import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
 
 fun Route.chatRoutes() {
     val chatService: ChatUseCasePort by inject()
-    val chatConfigService: ChatConfigUseCasePort by inject()
     val agentService: AgentUseCasePort by inject()
     val logger = KotlinLogging.logger { }
 
@@ -398,7 +396,7 @@ fun Route.chatRoutes() {
             get("/{chatId}/config") {
                 val userId = call.requireUserId()
                 val chatId = ChatId(call.uuidParam("chatId"))
-                val config = chatConfigService.getConfig(userId, chatId)
+                val config = chatService.getConfig(userId, chatId)
                 call.respondOk(config?.toResponse())
             }.describe {
                 tag("会话配置")
@@ -432,7 +430,7 @@ fun Route.chatRoutes() {
                 val userId = call.requireUserId()
                 val chatId = ChatId(call.uuidParam("chatId"))
                 val request = call.receive<UpdateChatConfigRequest>()
-                val config = chatConfigService.updateConfig(
+                val config = chatService.updateConfig(
                     userId = userId,
                     chatId = chatId,
                     temperature = request.temperature,
@@ -476,7 +474,7 @@ fun Route.chatRoutes() {
             get("/{chatId}/plugins") {
                 val userId = call.requireUserId()
                 val chatId = ChatId(call.uuidParam("chatId"))
-                val subscriptions = chatConfigService.getPluginSubscriptions(userId, chatId)
+                val subscriptions = chatService.getPluginSubscriptions(userId, chatId)
                 call.respondOk(subscriptions.map { it.toResponse() })
             }.describe {
                 tag("插件订阅")
@@ -511,7 +509,7 @@ fun Route.chatRoutes() {
                 val chatId = ChatId(call.uuidParam("chatId"))
                 val pluginId = PluginId(call.uuidParam("pluginId"))
                 val request = call.receive<TogglePluginRequest>()
-                val subscription = chatConfigService.togglePlugin(userId, chatId, pluginId, request.enabled)
+                val subscription = chatService.togglePlugin(userId, chatId, pluginId, request.enabled)
                 call.respondOk(subscription.toResponse())
             }.describe {
                 tag("插件订阅")
@@ -553,7 +551,7 @@ fun Route.chatRoutes() {
                 val chatId = ChatId(call.uuidParam("chatId"))
                 val pluginId = PluginId(call.uuidParam("pluginId"))
                 val request = call.receive<UpdatePluginConfigRequest>()
-                val subscription = chatConfigService.updatePluginConfig(userId, chatId, pluginId, request.config)
+                val subscription = chatService.updatePluginConfig(userId, chatId, pluginId, request.config)
                 call.respondOk(subscription.toResponse(), "插件配置更新成功")
             }.describe {
                 tag("插件订阅")

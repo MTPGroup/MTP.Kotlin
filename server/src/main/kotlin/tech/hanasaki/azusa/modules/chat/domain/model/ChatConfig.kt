@@ -1,34 +1,21 @@
 package tech.hanasaki.azusa.modules.chat.domain.model
 
-import kotlinx.serialization.Serializable
-import tech.hanasaki.azusa.shared.domain.model.base.AggregateRoot
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlin.uuid.Uuid
-
-@JvmInline
-@Serializable
-value class ChatConfigId(val value: Uuid)
 
 /**
- * ChatConfig 实体
+ * ChatConfig 值对象 — 嵌入 Chat 聚合根
  */
-class ChatConfig private constructor(
-    val id: ChatConfigId,
-    val chatId: ChatId,
+data class ChatConfig(
     var temperature: Double?,
     var maxTokens: Int?,
     var topP: Double?,
     var systemPrompt: String?,
     val createdAt: Instant,
     var updatedAt: Instant,
-) : AggregateRoot() {
+) {
     companion object {
-        /**
-         * 创建聊天配置
-         */
         fun create(
-            chatId: ChatId,
             temperature: Double? = null,
             maxTokens: Int? = null,
             topP: Double? = null,
@@ -36,8 +23,6 @@ class ChatConfig private constructor(
         ): ChatConfig {
             val now = Clock.System.now()
             return ChatConfig(
-                id = ChatConfigId(Uuid.random()),
-                chatId = chatId,
                 temperature = temperature,
                 maxTokens = maxTokens,
                 topP = topP,
@@ -47,12 +32,7 @@ class ChatConfig private constructor(
             )
         }
 
-        /**
-         * 从持久化层重建配置
-         */
         fun reconstitute(
-            id: ChatConfigId,
-            chatId: ChatId,
             temperature: Double?,
             maxTokens: Int?,
             topP: Double?,
@@ -60,8 +40,6 @@ class ChatConfig private constructor(
             createdAt: Instant,
             updatedAt: Instant,
         ): ChatConfig = ChatConfig(
-            id = id,
-            chatId = chatId,
             temperature = temperature,
             maxTokens = maxTokens,
             topP = topP,
@@ -71,26 +49,6 @@ class ChatConfig private constructor(
         )
     }
 
-    /**
-     * 获取或创建聊天配置
-     */
-    fun getOrCreate(chatId: ChatId): ChatConfig {
-        val now = Clock.System.now()
-        return ChatConfig(
-            id = ChatConfigId(Uuid.random()),
-            chatId = chatId,
-            temperature = null,
-            maxTokens = null,
-            topP = null,
-            systemPrompt = null,
-            createdAt = now,
-            updatedAt = now,
-        )
-    }
-
-    /**
-     * 更新 LLM 参数
-     */
     fun updateLLMParams(
         temperature: Double? = null,
         maxTokens: Int? = null,
@@ -102,9 +60,6 @@ class ChatConfig private constructor(
         this.updatedAt = Clock.System.now()
     }
 
-    /**
-     * 更新系统提示词
-     */
     fun updateSystemPrompt(systemPrompt: String?) {
         this.systemPrompt = systemPrompt
         this.updatedAt = Clock.System.now()

@@ -1,29 +1,25 @@
 package tech.hanasaki.azusa.modules.chat
 
-import io.ktor.server.config.*
 import org.koin.dsl.module
-import tech.hanasaki.azusa.modules.chat.adapter.`in`.event.ChatCreatedHandler
 import tech.hanasaki.azusa.modules.chat.adapter.out.agent.AgentContextLoader
 import tech.hanasaki.azusa.modules.chat.adapter.out.knowledge.KnowledgeSearcherAdapter
-import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.*
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.ExposedChatMemberRepository
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.ExposedChatRepository
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository.ExposedMessageRepository
 import tech.hanasaki.azusa.modules.chat.adapter.out.plugin.PluginToolFactory
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
-import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatConfigUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.out.AgentContextLoaderPort
 import tech.hanasaki.azusa.modules.chat.application.port.out.KnowledgeSearcherPort
 import tech.hanasaki.azusa.modules.chat.application.port.out.PluginToolFactoryPort
 import tech.hanasaki.azusa.modules.chat.application.service.AgentOrchestrationService
-import tech.hanasaki.azusa.modules.chat.application.service.ChatConfigService
 import tech.hanasaki.azusa.modules.chat.application.service.ChatService
-import tech.hanasaki.azusa.modules.chat.domain.events.ChatCreated
-import tech.hanasaki.azusa.modules.chat.domain.port.*
-import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
+import tech.hanasaki.azusa.modules.chat.domain.port.ChatMemberRepositoryPort
+import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
+import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
 
-fun chatModule(config: ApplicationConfig) = module {
+fun chatModule() = module {
     single<ChatMemberRepositoryPort> { ExposedChatMemberRepository() }
-    single<ChatConfigRepositoryPort> { ExposedChatConfigRepository() }
-    single<ChatPluginSubscriptionRepositoryPort> { ExposedChatPluginSubscriptionRepository() }
     single<ChatRepositoryPort> { ExposedChatRepository(get()) }
     single<MessageRepositoryPort> { ExposedMessageRepository() }
 
@@ -32,18 +28,8 @@ fun chatModule(config: ApplicationConfig) = module {
             chatRepository = get(),
             messageRepository = get(),
             chatMemberRepository = get(),
-            chatConfigRepository = get(),
-            chatPluginSubscriptionRepository = get(),
-            domainEventBus = get(),
-            tx = get(),
-        )
-    }
-    single<ChatConfigUseCasePort> {
-        ChatConfigService(
-            chatConfigRepository = get(),
-            chatPluginSubscriptionRepository = get(),
-            chatRepository = get(),
             pluginRepository = get(),
+            domainEventBus = get(),
             tx = get(),
         )
     }
@@ -55,8 +41,6 @@ fun chatModule(config: ApplicationConfig) = module {
         AgentContextLoader(
             chatRepository = get(),
             messageRepository = get(),
-            chatConfigRepository = get(),
-            chatPluginSubscriptionRepository = get(),
             characterRepository = get(),
             knowledgeSubscriptionRepository = get(),
             pluginRepository = get(),
@@ -74,9 +58,5 @@ fun chatModule(config: ApplicationConfig) = module {
             chatModelFactory = get(),
             tx = get(),
         )
-    }
-
-    onDomainEvent<ChatCreated>("chat.created") {
-        ChatCreatedHandler(get())
     }
 }

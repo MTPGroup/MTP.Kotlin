@@ -1,12 +1,7 @@
-package tech.hanasaki.azusa.modules.chat.adapter.out.serializer
+package tech.hanasaki.azusa.modules.chat.adapter.out.message
 
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import tech.hanasaki.azusa.modules.chat.domain.model.MessageContent
 
 /**

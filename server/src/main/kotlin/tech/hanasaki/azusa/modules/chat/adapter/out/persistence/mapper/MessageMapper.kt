@@ -3,12 +3,12 @@ package tech.hanasaki.azusa.modules.chat.adapter.out.persistence.mapper
 import kotlinx.serialization.json.JsonObject
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
-import tech.hanasaki.azusa.modules.chat.domain.model.Message
-import tech.hanasaki.azusa.modules.chat.domain.model.SenderType
-import tech.hanasaki.azusa.modules.chat.adapter.out.serializer.MessageContentSerializer
+import tech.hanasaki.azusa.modules.chat.adapter.out.message.MessageContentSerializer
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.MessageTable
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
+import tech.hanasaki.azusa.modules.chat.domain.model.Message
 import tech.hanasaki.azusa.modules.chat.domain.model.MessageId
+import tech.hanasaki.azusa.modules.chat.domain.model.SenderType
 
 object MessageMapper {
     fun toDomain(row: ResultRow): Message {
@@ -44,6 +44,7 @@ object MessageMapper {
                 target[MessageTable.senderProfileId] = domain.senderId
                 target[MessageTable.senderCharacterId] = null
             }
+
             SenderType.CHARACTER -> {
                 target[MessageTable.senderProfileId] = null
                 target[MessageTable.senderCharacterId] = domain.senderId

@@ -13,8 +13,6 @@ import tech.hanasaki.azusa.modules.chat.application.port.out.PluginToolFactoryPo
 import tech.hanasaki.azusa.modules.chat.application.service.applyLLMOverrides
 import tech.hanasaki.azusa.modules.chat.application.service.trimHistoryByTokenBudget
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
-import tech.hanasaki.azusa.modules.chat.domain.port.ChatConfigRepositoryPort
-import tech.hanasaki.azusa.modules.chat.domain.port.ChatPluginSubscriptionRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
 import tech.hanasaki.azusa.modules.plugin.domain.port.PluginRepositoryPort
@@ -30,8 +28,6 @@ import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 class AgentContextLoader(
     private val chatRepository: ChatRepositoryPort,
     private val messageRepository: MessageRepositoryPort,
-    private val chatConfigRepository: ChatConfigRepositoryPort,
-    private val chatPluginSubscriptionRepository: ChatPluginSubscriptionRepositoryPort,
     private val characterRepository: CharacterRepositoryPort,
     private val knowledgeSubscriptionRepository: KnowledgeSubscriptionRepositoryPort,
     private val pluginRepository: PluginRepositoryPort,
@@ -72,18 +68,12 @@ class AgentContextLoader(
         }
         val originPrompt = character.originPrompt ?: ""
 
-        val chatConfig = tx.readOnly {
-            chatConfigRepository.findByChatId(chatId)
-        }
-
         val knowledgeSubscriptions = tx.readOnly {
             knowledgeSubscriptionRepository.findByCharacterId(characterId)
         }
         val knowledgeBaseIds = knowledgeSubscriptions.map { it.knowledgeBaseId.value.toString() }
 
-        val enabledPlugins = tx.readOnly {
-            chatPluginSubscriptionRepository.findEnabledByChatId(chatId)
-        }
+        val enabledPlugins = chat.pluginSubscriptions.filter { it.enabled }
 
         val pluginToolMap = mutableMapOf<ToolSpecification, ToolExecutor>()
         tx.readOnly {
@@ -107,12 +97,11 @@ class AgentContextLoader(
         val llmConfig = tx.readOnly {
             llmConfigProvider.getActiveConfig(userId)
         } ?: DEFAULT_LLM_CONFIG
-        val effectiveConfig = applyLLMOverrides(llmConfig, chatConfig)
+        val effectiveConfig = applyLLMOverrides(llmConfig, chat.config)
 
         return AgentContext(
             chat = chat,
             originPrompt = originPrompt,
-            chatConfig = chatConfig,
             knowledgeBaseIds = knowledgeBaseIds,
             pluginTools = pluginToolMap,
             toolObjects = toolObjects,
