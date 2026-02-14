@@ -47,6 +47,11 @@ class ExposedMessageRepository : MessageRepositoryPort {
         .orderBy(MessageTable.createdAt, SortOrder.ASC)
         .map(MessageMapper::toDomain)
 
+    override suspend fun findById(id: MessageId): Message? = MessageTable.selectAll()
+        .where { MessageTable.id eq id.value }
+        .singleOrNull()
+        ?.let(MessageMapper::toDomain)
+
     override suspend fun deleteById(id: MessageId) {
         MessageTable.deleteWhere { MessageTable.id eq id.value }
     }

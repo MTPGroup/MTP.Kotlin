@@ -25,6 +25,11 @@ interface MessageRepositoryPort {
     suspend fun findByChatId(chatId: ChatId): List<Message>
 
     /**
+     * 根据消息 ID 获取消息
+     */
+    suspend fun findById(id: MessageId): Message?
+
+    /**
      * 根据消息 ID 删除消息
      */
     suspend fun deleteById(id: MessageId)
