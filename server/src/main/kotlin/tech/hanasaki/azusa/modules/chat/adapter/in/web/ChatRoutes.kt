@@ -338,7 +338,7 @@ fun Route.chatRoutes() {
                     }
                 }
                 requestBody {
-                    description = "消息内容，支持多模态（文本、图片、文件、代码）"
+                    description = "消息内容，支持多模态（文本、图片、文件、代码、音频、视频、PDF）"
                     schema = jsonSchema<SendMessageRequest>()
                 }
                 responses {
@@ -357,7 +357,7 @@ fun Route.chatRoutes() {
                 }
             }
 
-            delete("/{chatId}/{messageId}") {
+            delete("/{chatId}/messages/{messageId}") {
                 val userId = call.requireUserId()
                 val chatId = ChatId(call.uuidParam("chatId"))
                 val messageId = MessageId(call.uuidParam("messageId"))
