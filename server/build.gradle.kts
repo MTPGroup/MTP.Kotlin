@@ -50,3 +50,12 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks {
+    shadowJar {
+        mergeServiceFiles {
+            include("META-INF/services/**")
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+    }
+}
