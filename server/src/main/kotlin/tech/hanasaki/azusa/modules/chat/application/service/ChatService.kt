@@ -72,8 +72,11 @@ class ChatService(
         userId: UserId,
         chatId: ChatId,
         messageId: MessageId,
-    ) {
-        TODO("Not yet implemented")
+    ) = tx.execute {
+        val chat = chatRepository.findById(chatId) ?: throw NotFoundException()
+        requireOwner(chat, userId)
+        // TODO: 需要同时发布消息删除事件，会话检测是否需要更新最后一条消息
+        messageRepository.deleteById(messageId)
     }
 
     private fun requireOwner(chat: Chat, userId: UserId) {

@@ -23,6 +23,7 @@ import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatConfigUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
+import tech.hanasaki.azusa.modules.chat.domain.model.MessageId
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
@@ -327,7 +328,7 @@ fun Route.chatRoutes() {
                     }
                 }
             }.describe {
-                tag("消息")
+                tag("会话消息")
                 operationId = "sendMessage"
                 summary = "发送消息"
                 description = "向指定会话发送消息并获取 AI 回复，响应为 SSE (Server-Sent Events) 流式格式。" +
@@ -345,6 +346,41 @@ fun Route.chatRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "SSE 流式响应"
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "会话不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "权限不足"
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
+
+            delete("/{chatId}/{messageId}") {
+                val userId = call.requireUserId()
+                val chatId = ChatId(call.uuidParam("chatId"))
+                val messageId = MessageId(call.uuidParam("messageId"))
+                chatService.deleteMessage(userId, chatId, messageId)
+                call.respond(HttpStatusCode.NoContent)
+            }.describe {
+                tag("会话消息")
+                operationId = "deleteMessage"
+                summary = "删除会话消息"
+                description = "删除指定会话中的指定消息"
+                parameters {
+                    path("chatId") {
+                        description = "会话ID (UUID)"
+                    }
+                    path("messageId") {
+                        description = "消息ID (UUID)"
+                    }
+                }
+                responses {
+                    HttpStatusCode.NoContent {
+                        description = "删除消息成功"
                     }
                     HttpStatusCode.NotFound {
                         description = "会话不存在"
