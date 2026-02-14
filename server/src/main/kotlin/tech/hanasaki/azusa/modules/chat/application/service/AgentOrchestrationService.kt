@@ -8,10 +8,14 @@ import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.service.AiServices
 import dev.langchain4j.service.TokenStream
 import dev.langchain4j.service.tool.ToolExecution
+import dev.langchain4j.service.tool.ToolProviderResult
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.modules.chat.adapter.out.llm.ChatModelFactory
@@ -26,8 +30,8 @@ import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.resumeWithException
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 
@@ -40,7 +44,8 @@ class AgentOrchestrationService(
 ) : AgentUseCasePort {
     private val logger = KotlinLogging.logger { }
 
-    private val activeChats = ConcurrentHashMap.newKeySet<ChatId>()
+    private val chatMutex = Mutex()
+    private val activeChatIds = mutableSetOf<ChatId>()
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -48,12 +53,16 @@ class AgentOrchestrationService(
         fun chat(message: String): TokenStream
     }
 
-    override fun processMessage(
+    override suspend fun processMessage(
         userId: UserId,
         chatId: ChatId,
         userMessage: List<MessageContent>,
     ): Flow<AgentStreamEvent> {
-        if (!activeChats.add(chatId)) {
+        val isAccepted = chatMutex.withLock {
+            !activeChatIds.contains(chatId)
+        }
+
+        if (!isAccepted) {
             logger.warn { "会话 $chatId 正在处理中，拒绝重复请求" }
             return flowOf(AgentStreamEvent.Error("该会话正在处理中，请等待完成"))
         }
@@ -63,10 +72,10 @@ class AgentOrchestrationService(
             logger.info { "[$requestId] 开始处理消息请求: userId=$userId, chatId=$chatId, messageCount=${userMessage.size}" }
 
             try {
-                // Load context
+                // 加载上下文
                 val ctx = contextLoader.load(userId, chatId, requestId)
 
-                // Save user message
+                // 保存用户消息
                 tx.execute {
                     val userMsg = Message.create(
                         chatId = chatId,
@@ -77,14 +86,15 @@ class AgentOrchestrationService(
                     messageRepository.save(userMsg)
                 }
 
-                // Build user text
+                // 构建用户消息
                 val userText = userMessage.filterIsInstance<MessageContent.Text>()
                     .joinToString("\n") { it.content }
 
-                // Create StreamingChatModel
+                // 创建流式模型
                 val streamingModel = chatModelFactory.create(ctx.effectiveLLMConfig)
+                logger.info { "${ctx.effectiveLLMConfig}" }
 
-                // Build ChatMemory and preload system prompt + history
+                // 构建聊天记录并预加载系统提示词
                 val chatMemory = MessageWindowChatMemory.builder()
                     .maxMessages(100)
                     .build()
@@ -100,21 +110,30 @@ class AgentOrchestrationService(
                     }
                 }
 
-                // Build AiServices
+                val staticTools = ctx.toolObjects.size
+                val dynamicTools = ctx.pluginTools.size
+                logger.info {
+                    "[$requestId] AI服务构建中... " +
+                            "静态工具=$staticTools, " +
+                            "动态工具=$dynamicTools, " +
+                            "总工具数=${staticTools + dynamicTools}"
+                }
+
+                // 构建ai服务
                 val builder = AiServices.builder(ChatAssistant::class.java)
                     .streamingChatModel(streamingModel)
                     .chatMemory(chatMemory)
 
-                // Register @Tool annotated objects
+                // 注册 @Tool 注解对象
                 if (ctx.toolObjects.isNotEmpty()) {
                     builder.tools(ctx.toolObjects)
                 }
 
-                // Register dynamic plugin tools via toolProvider
+                // 通过 toolProvider 注册动态插件工具
                 if (ctx.pluginTools.isNotEmpty()) {
                     val pluginToolsCopy = ctx.pluginTools.toMap()
                     builder.toolProvider { _ ->
-                        dev.langchain4j.service.tool.ToolProviderResult.builder()
+                        ToolProviderResult.builder()
                             .apply {
                                 for ((spec, executor) in pluginToolsCopy) {
                                     add(spec, executor)
@@ -126,55 +145,57 @@ class AgentOrchestrationService(
 
                 val assistant = builder.build()
 
-                // Execute chat
+                // 执行对话
                 logger.info { "[$requestId] 开始执行LLM对话..." }
-                val startTime = System.currentTimeMillis()
-                val futureResponse = CompletableFuture<ChatResponse>()
+                val startTime = Clock.System.now().toEpochMilliseconds()
                 val fullContent = StringBuilder()
                 var toolCallCount = 0
 
                 val tokenStream = assistant.chat(userText)
 
-                tokenStream
-                    .onPartialResponse { token ->
-                        fullContent.append(token)
-                        trySend(AgentStreamEvent.Delta(token))
-                    }
-                    .beforeToolExecution { beforeExec ->
-                        toolCallCount++
-                        val toolName = beforeExec.request().name()
-                        val toolArgs = try {
-                            json.parseToJsonElement(beforeExec.request().arguments()) as? JsonObject
-                                ?: JsonObject(emptyMap())
-                        } catch (_: Exception) {
-                            JsonObject(emptyMap())
+                val response = suspendCancellableCoroutine<ChatResponse> { continuation ->
+                    tokenStream
+                        .onPartialResponse { token ->
+                            fullContent.append(token)
+                            trySend(AgentStreamEvent.Delta(token))
                         }
-                        logger.info { "[$requestId] 工具调用开始 [#$toolCallCount]: tool=$toolName, args=$toolArgs" }
-                        trySend(AgentStreamEvent.ToolCallStart(toolName, toolArgs))
-                    }
-                    .onToolExecuted { toolExecution: ToolExecution ->
-                        val toolName = toolExecution.request().name()
-                        val resultText = toolExecution.result()
-                        logger.debug { "[$requestId] 工具调用完成 [#$toolCallCount]: tool=$toolName, resultLength=${resultText.length}" }
-                        trySend(AgentStreamEvent.ToolCallResult(toolName, resultText))
-                    }
-                    .onCompleteResponse { response ->
-                        futureResponse.complete(response)
-                    }
-                    .onError { error ->
-                        futureResponse.completeExceptionally(error)
-                    }
-                    .start()
+                        .beforeToolExecution { beforeExec ->
+                            toolCallCount++
+                            val toolName = beforeExec.request().name()
+                            val toolArgs = try {
+                                json.parseToJsonElement(beforeExec.request().arguments()) as? JsonObject
+                                    ?: JsonObject(emptyMap())
+                            } catch (_: Exception) {
+                                JsonObject(emptyMap())
+                            }
+                            logger.info { "[$requestId] 工具调用开始 [#$toolCallCount]: tool=$toolName, args=$toolArgs" }
+                            trySend(AgentStreamEvent.ToolCallStart(toolName, toolArgs))
+                        }
+                        .onToolExecuted { toolExecution: ToolExecution ->
+                            val toolName = toolExecution.request().name()
+                            val resultText = toolExecution.result()
+                            logger.debug { "[$requestId] 工具调用完成 [#$toolCallCount]: tool=$toolName, resultLength=${resultText.length}" }
+                            trySend(AgentStreamEvent.ToolCallResult(toolName, resultText))
+                        }
+                        .onCompleteResponse { response ->
+                            continuation.resume(response) { cause, _, _ ->
+                                logger.info { "取消对话任务: $cause" }
+                            }
+                        }
+                        .onError { error ->
+                            continuation.resumeWithException(error)
+                        }
+                        .start()
+                }
 
-                // Wait for completion
-                val response = futureResponse.join()
-                val executionTime = System.currentTimeMillis() - startTime
+                // 等待结束
+                val executionTime = Clock.System.now().toEpochMilliseconds() - startTime
                 val result = fullContent.toString().ifEmpty {
                     response.aiMessage().text() ?: ""
                 }
                 logger.info { "[$requestId] LLM对话完成: executionTime=${executionTime}ms, resultLength=${result.length}" }
 
-                // Save assistant message
+                // 保存ai消息
                 val characterId = ctx.chat.getCharacter()!!
                 tx.execute {
                     val assistantMsg = Message.createText(
@@ -195,7 +216,9 @@ class AgentOrchestrationService(
                 logger.error(e) { "[$requestId] 处理会话消息失败: chatId=$chatId, error=${e.javaClass.simpleName}, message=${e.message}" }
                 send(AgentStreamEvent.Error(e.message ?: "未知错误"))
             } finally {
-                activeChats.remove(chatId)
+                chatMutex.withLock {
+                    activeChatIds.remove(chatId)
+                }
             }
         }
     }

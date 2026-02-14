@@ -14,7 +14,7 @@ enum class LLMProvider {
     DEEPSEEK,
     GOOGLE,
     ANTHROPIC,
-    CUSTOM
+    OFFICIAL
 }
 
 data class LLMConfig(

@@ -7,7 +7,7 @@ import tech.hanasaki.azusa.modules.chat.domain.model.MessageContent
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 interface AgentUseCasePort {
-    fun processMessage(
+    suspend fun processMessage(
         userId: UserId,
         chatId: ChatId,
         userMessage: List<MessageContent>,

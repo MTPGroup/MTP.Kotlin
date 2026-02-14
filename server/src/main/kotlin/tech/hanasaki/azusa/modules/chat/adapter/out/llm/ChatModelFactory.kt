@@ -9,10 +9,11 @@ import tech.hanasaki.azusa.shared.domain.model.vo.LLMProvider
 class ChatModelFactory {
 
     fun create(config: LLMConfig): StreamingChatModel = when (config.provider) {
-        LLMProvider.CUSTOM -> OllamaStreamingChatModel.builder()
+        LLMProvider.OFFICIAL -> OllamaStreamingChatModel.builder()
             .baseUrl(config.baseUrl)
             .modelName(config.model)
             .temperature(config.temperature.toDouble())
+            .returnThinking(false)
             .build()
 
         else -> OpenAiStreamingChatModel.builder()
@@ -20,6 +21,7 @@ class ChatModelFactory {
             .apiKey(config.apiKey)
             .modelName(config.model)
             .temperature(config.temperature.toDouble())
+            .returnThinking(false)
             .build()
     }
 }

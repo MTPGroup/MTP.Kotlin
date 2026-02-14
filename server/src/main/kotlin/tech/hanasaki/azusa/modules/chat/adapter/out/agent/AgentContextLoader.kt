@@ -46,10 +46,10 @@ class AgentContextLoader(
         private const val MAX_HISTORY_TOKENS = 4000
 
         private val DEFAULT_LLM_CONFIG = LLMConfig(
-            provider = LLMProvider.DEEPSEEK,
-            baseUrl = "http://localhost:11434/v1",
-            apiKey = "sk-ef5a723504f147efaadaa78c0828ee73",
-            model = "deepseek-chat",
+            provider = LLMProvider.OFFICIAL,
+            baseUrl = "http://localhost:11434",
+            apiKey = "",
+            model = "qwen3:4b",
             temperature = 0.7f,
         )
     }
@@ -85,7 +85,6 @@ class AgentContextLoader(
             chatPluginSubscriptionRepository.findEnabledByChatId(chatId)
         }
 
-        // Build plugin tools as Map<ToolSpecification, ToolExecutor>
         val pluginToolMap = mutableMapOf<ToolSpecification, ToolExecutor>()
         tx.readOnly {
             for (sub in enabledPlugins) {
@@ -95,7 +94,6 @@ class AgentContextLoader(
             }
         }
 
-        // Build tool objects (classes with @Tool annotations)
         val toolObjects = mutableListOf<Any>()
         if (knowledgeBaseIds.isNotEmpty()) {
             toolObjects.add(SearchKnowledgeTool(knowledgeSearcher, userId, knowledgeBaseIds))

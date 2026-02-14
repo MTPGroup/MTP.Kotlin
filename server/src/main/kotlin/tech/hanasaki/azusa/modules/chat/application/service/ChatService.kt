@@ -4,11 +4,8 @@ import tech.hanasaki.azusa.modules.chat.application.port.`in`.ChatUseCasePort
 import tech.hanasaki.azusa.modules.chat.domain.model.Chat
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.model.Message
-import tech.hanasaki.azusa.modules.chat.domain.port.ChatConfigRepositoryPort
-import tech.hanasaki.azusa.modules.chat.domain.port.ChatMemberRepositoryPort
-import tech.hanasaki.azusa.modules.chat.domain.port.ChatPluginSubscriptionRepositoryPort
-import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
-import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
+import tech.hanasaki.azusa.modules.chat.domain.model.MessageId
+import tech.hanasaki.azusa.modules.chat.domain.port.*
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
@@ -70,6 +67,14 @@ class ChatService(
             requireOwner(chat, userId)
             messageRepository.findByChatIdPaged(chatId, page, limit)
         }
+
+    override suspend fun deleteMessage(
+        userId: UserId,
+        chatId: ChatId,
+        messageId: MessageId,
+    ) {
+        TODO("Not yet implemented")
+    }
 
     private fun requireOwner(chat: Chat, userId: UserId) {
         if (chat.ownerId != userId) throw AuthorizationException("无权操作此会话")
