@@ -52,6 +52,13 @@ class ExposedMessageRepository : MessageRepositoryPort {
         .singleOrNull()
         ?.let(MessageMapper::toDomain)
 
+    override suspend fun findLastByChatId(chatId: ChatId): Message? = MessageTable.selectAll()
+        .where { MessageTable.chatId eq chatId.value }
+        .orderBy(MessageTable.createdAt, SortOrder.DESC)
+        .limit(1)
+        .singleOrNull()
+        ?.let(MessageMapper::toDomain)
+
     override suspend fun deleteById(id: MessageId) {
         MessageTable.deleteWhere { MessageTable.id eq id.value }
     }

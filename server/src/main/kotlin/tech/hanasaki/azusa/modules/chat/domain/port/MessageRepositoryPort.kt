@@ -30,6 +30,11 @@ interface MessageRepositoryPort {
     suspend fun findById(id: MessageId): Message?
 
     /**
+     * 获取聊天中最新的一条消息
+     */
+    suspend fun findLastByChatId(chatId: ChatId): Message?
+
+    /**
      * 根据消息 ID 删除消息
      */
     suspend fun deleteById(id: MessageId)

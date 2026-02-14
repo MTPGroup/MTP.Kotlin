@@ -67,9 +67,12 @@ class ChatService(
         chatId: ChatId,
         messageId: MessageId,
     ) = tx.execute {
-        requireOwner(userId, chatId)
-        // TODO: 需要同时发布消息删除事件，会话检测是否需要更新最后一条消息
+        val chat = requireOwner(userId, chatId)
         messageRepository.deleteById(messageId)
+
+        val lastMsg = messageRepository.findLastByChatId(chatId)
+        chat.updateLastMessage(lastMsg?.getPlainText()?.take(100) ?: "")
+        chatRepository.save(chat)
     }
 
     // Config
