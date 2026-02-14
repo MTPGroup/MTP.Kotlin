@@ -50,6 +50,33 @@ object MessageContentSerializer {
                             content.language?.let { put("language", JsonPrimitive(it)) }
                         },
                     )
+
+                    is MessageContent.Audio -> JsonObject(
+                        mutableMapOf(
+                            "type" to JsonPrimitive("audio"),
+                            "url" to JsonPrimitive(content.url),
+                        ).apply {
+                            content.mimeType?.let { put("mimeType", JsonPrimitive(it)) }
+                        },
+                    )
+
+                    is MessageContent.Video -> JsonObject(
+                        mutableMapOf(
+                            "type" to JsonPrimitive("video"),
+                            "url" to JsonPrimitive(content.url),
+                        ).apply {
+                            content.mimeType?.let { put("mimeType", JsonPrimitive(it)) }
+                        },
+                    )
+
+                    is MessageContent.Pdf -> JsonObject(
+                        mutableMapOf(
+                            "type" to JsonPrimitive("pdf"),
+                            "url" to JsonPrimitive(content.url),
+                        ).apply {
+                            content.fileName?.let { put("fileName", JsonPrimitive(it)) }
+                        },
+                    )
                 }
             },
         )
@@ -99,6 +126,27 @@ object MessageContentSerializer {
                         ?: throw SerializationException("Missing 'code' field in code message")
                     val language = element["language"]?.jsonPrimitive?.content
                     MessageContent.Code(code, language)
+                }
+
+                "audio" -> {
+                    val url = element["url"]?.jsonPrimitive?.content
+                        ?: throw SerializationException("Missing 'url' field in audio message")
+                    val mimeType = element["mimeType"]?.jsonPrimitive?.content
+                    MessageContent.Audio(url, mimeType)
+                }
+
+                "video" -> {
+                    val url = element["url"]?.jsonPrimitive?.content
+                        ?: throw SerializationException("Missing 'url' field in video message")
+                    val mimeType = element["mimeType"]?.jsonPrimitive?.content
+                    MessageContent.Video(url, mimeType)
+                }
+
+                "pdf" -> {
+                    val url = element["url"]?.jsonPrimitive?.content
+                        ?: throw SerializationException("Missing 'url' field in pdf message")
+                    val fileName = element["fileName"]?.jsonPrimitive?.content
+                    MessageContent.Pdf(url, fileName)
                 }
 
                 else -> throw SerializationException("Unknown message content type: $type")

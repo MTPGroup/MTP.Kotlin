@@ -16,6 +16,7 @@ data class MessageContentDto(
     val fileName: String? = null,
     val fileSize: Long? = null,
     val language: String? = null,
+    val mimeType: String? = null,
 )
 
 fun MessageContentDto.toDomain(): MessageContent = when (type) {
@@ -23,6 +24,9 @@ fun MessageContentDto.toDomain(): MessageContent = when (type) {
     "image" -> MessageContent.Image(url = url ?: "", alt = alt)
     "file" -> MessageContent.File(url = url ?: "", fileName = fileName ?: "", fileSize = fileSize)
     "code" -> MessageContent.Code(code = content ?: "", language = language)
+    "audio" -> MessageContent.Audio(url = url ?: "", mimeType = mimeType)
+    "video" -> MessageContent.Video(url = url ?: "", mimeType = mimeType)
+    "pdf" -> MessageContent.Pdf(url = url ?: "", fileName = fileName)
     else -> MessageContent.Text(content = content ?: "")
 }
 
@@ -37,4 +41,7 @@ fun MessageContent.toDto(): MessageContentDto = when (this) {
     is MessageContent.Image -> MessageContentDto(type = "image", url = url, alt = alt)
     is MessageContent.File -> MessageContentDto(type = "file", url = url, fileName = fileName, fileSize = fileSize)
     is MessageContent.Code -> MessageContentDto(type = "code", content = code, language = language)
+    is MessageContent.Audio -> MessageContentDto(type = "audio", url = url, mimeType = mimeType)
+    is MessageContent.Video -> MessageContentDto(type = "video", url = url, mimeType = mimeType)
+    is MessageContent.Pdf -> MessageContentDto(type = "pdf", url = url, fileName = fileName)
 }

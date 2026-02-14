@@ -89,8 +89,17 @@ data class Message(
      * 获取纯文本内容（拼接所有 Text 类型的 content）
      */
     fun getPlainText(): String {
-        return content.filterIsInstance<MessageContent.Text>()
-            .joinToString("\n") { it.content }
+        return content.joinToString("\n") { part ->
+            when (part) {
+                is MessageContent.Text -> part.content
+                is MessageContent.Image -> "[图片: ${part.alt ?: part.url}]"
+                is MessageContent.File -> "[文件: ${part.fileName}]"
+                is MessageContent.Code -> "```${part.language ?: ""}\n${part.code}\n```"
+                is MessageContent.Audio -> "[音频: ${part.url}]"
+                is MessageContent.Video -> "[视频: ${part.url}]"
+                is MessageContent.Pdf -> "[PDF: ${part.fileName ?: part.url}]"
+            }
+        }
     }
 
     /**

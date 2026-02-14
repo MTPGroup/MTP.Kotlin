@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.chat.application.service
 
 import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.Content
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.memory.chat.MessageWindowChatMemory
@@ -18,7 +19,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import dev.langchain4j.service.UserMessage as UserMessageAnnotation
 import tech.hanasaki.azusa.modules.chat.adapter.out.llm.ChatModelFactory
+import tech.hanasaki.azusa.modules.chat.adapter.out.llm.MessageContentConverter
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentStreamEvent
 import tech.hanasaki.azusa.modules.chat.application.port.`in`.AgentUseCasePort
 import tech.hanasaki.azusa.modules.chat.application.port.out.AgentContextLoaderPort
@@ -50,7 +53,7 @@ class AgentOrchestrationService(
     private val json = Json { ignoreUnknownKeys = true }
 
     private interface ChatAssistant {
-        fun chat(message: String): TokenStream
+        fun chat(@UserMessageAnnotation contents: List<Content>): TokenStream
     }
 
     override suspend fun processMessage(
@@ -86,9 +89,8 @@ class AgentOrchestrationService(
                     messageRepository.save(userMsg)
                 }
 
-                // 构建用户消息
-                val userText = userMessage.filterIsInstance<MessageContent.Text>()
-                    .joinToString("\n") { it.content }
+                // 构建用户消息（多模态）
+                val userContents = MessageContentConverter.toContents(userMessage)
 
                 // 创建流式模型
                 val streamingModel = chatModelFactory.create(ctx.effectiveLLMConfig)
@@ -105,7 +107,7 @@ class AgentOrchestrationService(
                 }
                 for (msg in ctx.recentHistory) {
                     when (msg.senderType) {
-                        SenderType.USER -> chatMemory.add(UserMessage.from(msg.getPlainText()))
+                        SenderType.USER -> chatMemory.add(UserMessage.from(MessageContentConverter.toContents(msg.content)))
                         SenderType.CHARACTER -> chatMemory.add(AiMessage.from(msg.getPlainText()))
                     }
                 }
@@ -151,7 +153,7 @@ class AgentOrchestrationService(
                 val fullContent = StringBuilder()
                 var toolCallCount = 0
 
-                val tokenStream = assistant.chat(userText)
+                val tokenStream = assistant.chat(userContents)
 
                 val response = suspendCancellableCoroutine<ChatResponse> { continuation ->
                     tokenStream

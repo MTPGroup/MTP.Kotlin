@@ -43,4 +43,25 @@ sealed class MessageContent {
         val code: String,
         val language: String? = null,
     ) : MessageContent()
+
+    @Serializable
+    @SerialName("audio")
+    data class Audio(
+        val url: String,
+        val mimeType: String? = null,
+    ) : MessageContent()
+
+    @Serializable
+    @SerialName("video")
+    data class Video(
+        val url: String,
+        val mimeType: String? = null,
+    ) : MessageContent()
+
+    @Serializable
+    @SerialName("pdf")
+    data class Pdf(
+        val url: String,
+        val fileName: String? = null,
+    ) : MessageContent()
 }
