@@ -147,6 +147,17 @@ class AuthService(
         return@readOnly user.toUserProfileDto()
     }
 
+    override suspend fun updateProfile(
+        userId: UserId,
+        username: Username,
+    ) {
+        val user = userRepository.findById(userId)
+            ?: throw NotFoundException("用户不存在")
+
+        user.updateProfile(username)
+        userRepository.save(user)
+    }
+
     override suspend fun refreshToken(refreshToken: String): AuthenticatedUser = tx.execute {
         tokenService.verify(refreshToken)
 

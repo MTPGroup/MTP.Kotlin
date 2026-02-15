@@ -164,6 +164,10 @@ class User private constructor(
         profile = profile.copy(avatar = avatar, updatedAt = Clock.System.now())
     }
 
+    fun updateProfile(username: Username) {
+        profile = profile.copy(username = username, updatedAt = Clock.System.now())
+    }
+
     fun changeRole(newRole: UserRole) {
         role = newRole
     }

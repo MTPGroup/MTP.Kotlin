@@ -45,3 +45,8 @@ data class ChangePasswordRequest(
     val oldPassword: String,
     val newPassword: String,
 )
+
+@Serializable
+data class UpdateProfileRequest(
+    val username: String,
+)

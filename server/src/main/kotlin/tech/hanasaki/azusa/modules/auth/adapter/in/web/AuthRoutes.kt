@@ -278,6 +278,31 @@ fun Route.authRoutes() {
                 }
             }
 
+            put("/me") {
+                val userId = call.requireUserId()
+                val request = call.receive<UpdateProfileRequest>()
+                authUseCase.updateProfile(userId, Username(request.username))
+                call.respondOk(SuccessResponse(), "个人信息更新成功")
+            }.describe {
+                tag("认证管理")
+                operationId = "updateProfile"
+                summary = "更新个人信息"
+                description = "更新当前登录用户的用户名"
+                requestBody {
+                    description = "更新信息"
+                    schema = jsonSchema<UpdateProfileRequest>()
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "更新成功"
+                        schema = jsonSchema<ApiResponse<SuccessResponse>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
+
             put("/me/avatar") {
                 val userId = call.requireUserId()
 
