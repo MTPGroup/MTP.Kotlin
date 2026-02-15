@@ -19,6 +19,11 @@ fun ApplicationCall.requireUserId(): UserId {
         ?: throw AuthorizationException()
 }
 
+fun ApplicationCall.optionalUserId(): UserId? {
+    val principal = principal<JWTPrincipal>() ?: return null
+    return principal.subject?.let { runCatching { UserId(Uuid.parse(it)) }.getOrNull() }
+}
+
 fun ApplicationCall.requireAdmin() {
     val principal = principal<JWTPrincipal>() ?: throw AuthorizationException()
     val role = principal.payload.getClaim("role")?.asString() ?: "USER"

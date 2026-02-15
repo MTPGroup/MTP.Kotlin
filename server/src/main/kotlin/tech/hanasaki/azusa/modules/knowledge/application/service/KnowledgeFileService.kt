@@ -58,11 +58,11 @@ class KnowledgeFileService(
         file
     }
 
-    override suspend fun listFiles(userId: UserId, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile> =
+    override suspend fun listFiles(userId: UserId?, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile> =
         tx.readOnly {
             val kb = knowledgeBaseRepository.findById(knowledgeBaseId)
                 ?: throw NotFoundException("知识库不存在")
-            if (kb.authorId != userId) {
+            if (!kb.isPublic && kb.authorId != userId) {
                 throw AuthorizationException("无权访问")
             }
             fileRepository.findByKnowledgeBaseId(knowledgeBaseId)

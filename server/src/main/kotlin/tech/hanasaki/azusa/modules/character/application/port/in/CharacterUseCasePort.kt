@@ -24,7 +24,7 @@ interface CharacterUseCasePort {
         userId: UserId? = null,
     ): PageResult<Character>
 
-    suspend fun getCharacter(authorId: UserId, characterId: CharacterId): Character
+    suspend fun getCharacter(authorId: UserId?, characterId: CharacterId): Character
 
     suspend fun createCharacter(
         authorId: UserId,
@@ -44,6 +44,8 @@ interface CharacterUseCasePort {
         originPrompt: String? = null,
         isPublic: Boolean = false,
     ): Character
+
+    suspend fun updateCharacterAvatar(userId: UserId, characterId: CharacterId, avatar: AvatarUrl): Character
 
     suspend fun deleteCharacter(userId: UserId, characterId: CharacterId)
 

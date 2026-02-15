@@ -1,6 +1,5 @@
 package tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
@@ -26,7 +25,7 @@ typealias PagedCharacterResponse = PagedResponse<CharacterResponse>
 
 @Serializable
 data class KnowledgeSubscriptionResponse(
-    @Contextual val knowledgeBaseId: Uuid,
+    val knowledgeBaseId: Uuid,
     val priority: Int,
 )
 

@@ -1,12 +1,16 @@
 package tech.hanasaki.azusa.modules.character.adapter.`in`.web
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.openapi.*
+import io.ktor.openapi.ReferenceOr.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
@@ -15,16 +19,117 @@ import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
+import tech.hanasaki.azusa.shared.infrastructure.web.route.optionalUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
+import tech.hanasaki.azusa.shared.port.out.FileStoragePort
+import kotlin.uuid.Uuid
 
+@OptIn(InternalAPI::class)
 fun Route.characterRoutes() {
     val characterService: CharacterUseCasePort by inject()
+    val fileStoragePort: FileStoragePort by inject()
 
-    authenticate("auth-jwt") {
-        route("/characters") {
+    route("/characters") {
+        // 获取公开角色列表（分页）
+        get("/public") {
+            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
+            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val result = characterService.listPublicCharacters(page, limit)
+            call.respondOk(result.toResponse())
+        }.describe {
+            tag("角色管理")
+            operationId = "listPublicCharacters"
+            summary = "获取公开角色列表"
+            description = "获取所有公开角色（分页）"
+            parameters {
+                query("page") {
+                    description = "页码，从1开始"
+                    required = false
+                }
+                query("limit") {
+                    description = "每页数量，1-100"
+                    required = false
+                }
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "获取成功"
+                    schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
+                }
+            }
+        }
+
+        get("/search") {
+            val userId = call.optionalUserId()
+            val query = call.request.queryParameters["q"] ?: ""
+            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
+            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val result = characterService.searchCharacters(query, page, limit, userId)
+            call.respondOk(result.toResponse())
+        }.describe {
+            tag("角色管理")
+            operationId = "searchCharacters"
+            summary = "搜索角色"
+            description = "按名称搜索角色，返回公开角色及自己的私有角色"
+            parameters {
+                query("q") {
+                    description = "搜索关键词"
+                    required = false
+                }
+                query("page") {
+                    description = "页码，从1开始"
+                    required = false
+                }
+                query("limit") {
+                    description = "每页数量，1-100"
+                    required = false
+                }
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "搜索成功"
+                    schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
+                }
+                HttpStatusCode.Unauthorized {
+                    description = "未登录或令牌无效"
+                }
+            }
+        }
+
+        // 获取角色详情（公开角色无需认证，私有角色需要是作者）
+        get("/{characterId}") {
+            val userId = call.optionalUserId()
+            val characterId = CharacterId(call.uuidParam("characterId"))
+            val character = characterService.getCharacter(userId, characterId)
+            call.respondOk(character.toResponse())
+        }.describe {
+            tag("角色管理")
+            operationId = "getCharacter"
+            summary = "获取角色详情"
+            description = "获取指定角色的详细信息，公开角色无需认证，私有角色需要是作者"
+            parameters {
+                path("characterId") {
+                    description = "角色ID（UUID格式）"
+                }
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "获取成功"
+                    schema = jsonSchema<ApiResponse<CharacterResponse>>()
+                }
+                HttpStatusCode.NotFound {
+                    description = "角色不存在"
+                }
+                HttpStatusCode.Forbidden {
+                    description = "权限不足"
+                }
+            }
+        }
+
+        authenticate("auth-jwt") {
             // 获取我的角色列表
             get {
                 val userId = call.requireUserId()
@@ -59,108 +164,6 @@ fun Route.characterRoutes() {
                 }
             }
 
-            // 获取公开角色列表（分页）
-            get("/public") {
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-                val result = characterService.listPublicCharacters(page, limit)
-                call.respondOk(result.toResponse())
-            }.describe {
-                tag("角色管理")
-                operationId = "listPublicCharacters"
-                summary = "获取公开角色列表"
-                description = "获取所有公开角色（分页）"
-                parameters {
-                    query("page") {
-                        description = "页码，从1开始"
-                        required = false
-                    }
-                    query("limit") {
-                        description = "每页数量，1-100"
-                        required = false
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "获取成功"
-                        schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                }
-            }
-
-            // 搜索角色
-            get("/search") {
-                val userId = call.requireUserId()
-                val query = call.request.queryParameters["q"] ?: ""
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-                val result = characterService.searchCharacters(query, page, limit, userId)
-                call.respondOk(result.toResponse())
-            }.describe {
-                tag("角色管理")
-                operationId = "searchCharacters"
-                summary = "搜索角色"
-                description = "按名称搜索角色，返回公开角色及自己的私有角色"
-                parameters {
-                    query("q") {
-                        description = "搜索关键词"
-                        required = false
-                    }
-                    query("page") {
-                        description = "页码，从1开始"
-                        required = false
-                    }
-                    query("limit") {
-                        description = "每页数量，1-100"
-                        required = false
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "搜索成功"
-                        schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                }
-            }
-
-            // 获取角色详情
-            get("/{characterId}") {
-                val userId = call.requireUserId()
-                val characterId = CharacterId(call.uuidParam("characterId"))
-                val character = characterService.getCharacter(userId, characterId)
-                call.respondOk(character.toResponse())
-            }.describe {
-                tag("角色管理")
-                operationId = "getCharacter"
-                summary = "获取角色详情"
-                description = "获取指定角色的详细信息，需要是角色的作者"
-                parameters {
-                    path("characterId") {
-                        description = "角色ID（UUID格式）"
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "获取成功"
-                        schema = jsonSchema<ApiResponse<CharacterResponse>>()
-                    }
-                    HttpStatusCode.NotFound {
-                        description = "角色不存在"
-                    }
-                    HttpStatusCode.Forbidden {
-                        description = "权限不足"
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                }
-            }
 
             // 创建角色
             post {
@@ -266,6 +269,83 @@ fun Route.characterRoutes() {
                 responses {
                     HttpStatusCode.NoContent {
                         description = "删除成功"
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "角色不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "权限不足"
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
+
+            // 上传角色头像
+            put("/{characterId}/avatar") {
+                val userId = call.requireUserId()
+                val characterId = CharacterId(call.uuidParam("characterId"))
+
+                val multipart = call.receiveMultipart()
+                var contentType: String? = null
+                var fileBytes: ByteArray? = null
+                var fileName: String? = null
+
+                multipart.forEachPart { part ->
+                    when (part) {
+                        is PartData.FileItem -> {
+                            fileName = part.originalFileName
+                            contentType = part.contentType?.toString()
+                            fileBytes = part.provider().toInputStream().readBytes()
+                        }
+                        else -> {}
+                    }
+                    part.dispose()
+                }
+
+                val bytes = fileBytes ?: throw IllegalArgumentException("未上传文件")
+                val mime = contentType ?: "image/png"
+                val ext = (fileName ?: "avatar").substringAfterLast('.', "png")
+                val objectKey = "characters/${characterId.value}/${Uuid.random()}.$ext"
+
+                fileStoragePort.upload(objectKey, mime, bytes)
+                val avatarUrl = AvatarUrl(fileStoragePort.publicUrl(objectKey))
+                val character = characterService.updateCharacterAvatar(userId, characterId, avatarUrl)
+                call.respondOk(character.toResponse(), "头像上传成功")
+            }.describe {
+                tag("角色管理")
+                operationId = "uploadCharacterAvatar"
+                summary = "上传角色头像"
+                description = "通过 multipart/form-data 上传角色头像，需要是角色的作者"
+                parameters {
+                    path("characterId") {
+                        description = "角色ID（UUID格式）"
+                    }
+                }
+                requestBody {
+                    description = "头像文件"
+                    required = true
+                    ContentType.MultiPart.FormData {
+                        schema = JsonSchema(
+                            type = JsonType.OBJECT,
+                            properties = mapOf(
+                                "file" to Value(
+                                    JsonSchema(
+                                        type = JsonType.STRING,
+                                        format = "binary",
+                                        description = "头像图片文件"
+                                    )
+                                )
+                            ),
+                            required = listOf("file")
+                        )
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "上传成功"
+                        schema = jsonSchema<ApiResponse<CharacterResponse>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "角色不存在"

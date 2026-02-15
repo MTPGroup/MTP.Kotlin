@@ -15,7 +15,7 @@ interface KnowledgeFileUseCasePort {
         fileType: String?,
     ): KnowledgeFile
 
-    suspend fun listFiles(userId: UserId, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile>
+    suspend fun listFiles(userId: UserId?, knowledgeBaseId: KnowledgeBaseId): List<KnowledgeFile>
     suspend fun getFile(userId: UserId, fileId: KnowledgeFileId): KnowledgeFile
     suspend fun deleteFile(userId: UserId, fileId: KnowledgeFileId)
     suspend fun processFile(fileId: KnowledgeFileId)

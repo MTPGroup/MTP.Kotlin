@@ -10,7 +10,7 @@ interface KnowledgeBaseUseCasePort {
     suspend fun listPublicKnowledgeBases(page: Int = 1, limit: Int = 10): PageResult<KnowledgeBase>
     suspend fun searchKnowledgeBases(query: String, page: Int = 1, limit: Int = 10): PageResult<KnowledgeBase>
     suspend fun listMyKnowledgeBases(userId: UserId, page: Int = 1, limit: Int = 10): PageResult<KnowledgeBase>
-    suspend fun getKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBase
+    suspend fun getKnowledgeBase(userId: UserId?, knowledgeBaseId: KnowledgeBaseId): KnowledgeBase
     suspend fun createKnowledgeBase(
         userId: UserId,
         name: String,
@@ -27,5 +27,5 @@ interface KnowledgeBaseUseCasePort {
     ): KnowledgeBase
 
     suspend fun deleteKnowledgeBase(userId: UserId, knowledgeBaseId: KnowledgeBaseId)
-    suspend fun getKnowledgeBaseStats(userId: UserId, knowledgeBaseId: KnowledgeBaseId): KnowledgeBaseStats
+    suspend fun getKnowledgeBaseStats(userId: UserId?, knowledgeBaseId: KnowledgeBaseId): KnowledgeBaseStats
 }

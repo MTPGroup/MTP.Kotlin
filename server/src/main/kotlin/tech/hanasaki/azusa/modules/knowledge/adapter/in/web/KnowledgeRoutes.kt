@@ -9,7 +9,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.web.dto.*
@@ -20,6 +19,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
+import tech.hanasaki.azusa.shared.infrastructure.web.route.optionalUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
 import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
@@ -27,7 +27,6 @@ import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import kotlin.uuid.Uuid
 
-@OptIn(InternalAPI::class)
 fun Route.knowledgeRoutes() {
     val knowledgeBaseService: KnowledgeBaseUseCasePort by inject()
     val knowledgeFileService: KnowledgeFileUseCasePort by inject()
@@ -98,6 +97,124 @@ fun Route.knowledgeRoutes() {
                 }
             }
         }
+
+        // 获取知识库详情（公开知识库无需认证，私有知识库需要是所有者）
+        get("/{knowledgeBaseId}") {
+            val userId = call.optionalUserId()
+            val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
+            val kb = knowledgeBaseService.getKnowledgeBase(userId, knowledgeBaseId)
+            call.respondOk(kb.toResponse())
+        }.describe {
+            tag("知识库管理")
+            operationId = "getKnowledgeBase"
+            summary = "获取知识库详情"
+            description = "获取指定知识库的详细信息，公开知识库无需认证，私有知识库需要是所有者"
+            parameters {
+                path("knowledgeBaseId") {
+                    description = "知识库ID"
+                }
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "获取成功"
+                    schema = jsonSchema<ApiResponse<KnowledgeBaseResponse>>()
+                }
+                HttpStatusCode.NotFound {
+                    description = "知识库不存在"
+                }
+                HttpStatusCode.Forbidden {
+                    description = "无权访问该知识库"
+                }
+            }
+        }
+
+        // 获取知识库统计（公开知识库无需认证，私有知识库需要是所有者）
+        get("/{knowledgeBaseId}/stats") {
+            val userId = call.optionalUserId()
+            val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
+            val stats = knowledgeBaseService.getKnowledgeBaseStats(userId, knowledgeBaseId)
+            call.respondOk(stats.toResponse())
+        }.describe {
+            tag("知识库管理")
+            operationId = "getKnowledgeBaseStats"
+            summary = "获取知识库统计"
+            description = "获取指定知识库的文件数量和文档数量统计，公开知识库无需认证，私有知识库需要是所有者"
+            parameters {
+                path("knowledgeBaseId") {
+                    description = "知识库ID"
+                }
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "获取成功"
+                    schema = jsonSchema<ApiResponse<KnowledgeBaseStatsResponse>>()
+                }
+                HttpStatusCode.NotFound {
+                    description = "知识库不存在"
+                }
+                HttpStatusCode.Forbidden {
+                    description = "无权访问该知识库"
+                }
+            }
+        }
+
+        // 获取知识库的文件列表（公开知识库无需认证，私有知识库需要是所有者）
+        get("/{knowledgeBaseId}/files") {
+            val userId = call.optionalUserId()
+            val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
+            val files = knowledgeFileService.listFiles(userId, knowledgeBaseId)
+            call.respondOk(files.map { it.toResponse() })
+        }.describe {
+            tag("知识库文件管理")
+            operationId = "listKnowledgeFiles"
+            summary = "获取文件列表"
+            description = "获取指定知识库中的所有文件列表，公开知识库无需认证，私有知识库需要是所有者"
+            parameters {
+                path("knowledgeBaseId") {
+                    description = "知识库ID"
+                }
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "获取成功"
+                    schema = jsonSchema<ApiResponse<List<KnowledgeFileResponse>>>()
+                }
+                HttpStatusCode.NotFound {
+                    description = "知识库不存在"
+                }
+                HttpStatusCode.Forbidden {
+                    description = "无权访问该知识库"
+                }
+            }
+        }
+    }
+
+    // 公开知识库搜索（无需认证）
+    route("/knowledge") {
+        post("/search/public") {
+            val request = call.receive<SearchKnowledgeRequest>()
+            val results = knowledgeSearchService.searchPublicKnowledgeBases(
+                query = request.query,
+                threshold = request.threshold,
+                limit = request.limit,
+            )
+            call.respondOk(results.map { it.toResponse() })
+        }.describe {
+            tag("知识库搜索")
+            operationId = "searchPublicKnowledge"
+            summary = "搜索公开知识库"
+            description = "在所有公开的知识库中进行向量相似度搜索"
+            requestBody {
+                description = "搜索请求"
+                schema = jsonSchema<SearchKnowledgeRequest>()
+            }
+            responses {
+                HttpStatusCode.OK {
+                    description = "搜索成功"
+                    schema = jsonSchema<ApiResponse<List<SearchResultResponse>>>()
+                }
+            }
+        }
     }
 
     authenticate("auth-jwt") {
@@ -165,39 +282,6 @@ fun Route.knowledgeRoutes() {
                     }
                     HttpStatusCode.Unauthorized {
                         description = "未登录或令牌无效"
-                    }
-                }
-            }
-
-            // 获取知识库详情
-            get("/{knowledgeBaseId}") {
-                val userId = call.requireUserId()
-                val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-                val kb = knowledgeBaseService.getKnowledgeBase(userId, knowledgeBaseId)
-                call.respondOk(kb.toResponse())
-            }.describe {
-                tag("知识库管理")
-                operationId = "getKnowledgeBase"
-                summary = "获取知识库详情"
-                description = "获取指定知识库的详细信息"
-                parameters {
-                    path("knowledgeBaseId") {
-                        description = "知识库ID"
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "获取成功"
-                        schema = jsonSchema<ApiResponse<KnowledgeBaseResponse>>()
-                    }
-                    HttpStatusCode.NotFound {
-                        description = "知识库不存在"
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                    HttpStatusCode.Forbidden {
-                        description = "无权访问该知识库"
                     }
                 }
             }
@@ -276,72 +360,6 @@ fun Route.knowledgeRoutes() {
                     }
                     HttpStatusCode.Forbidden {
                         description = "无权删除该知识库"
-                    }
-                }
-            }
-
-            // 获取知识库统计
-            get("/{knowledgeBaseId}/stats") {
-                val userId = call.requireUserId()
-                val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-                val stats = knowledgeBaseService.getKnowledgeBaseStats(userId, knowledgeBaseId)
-                call.respondOk(stats.toResponse())
-            }.describe {
-                tag("知识库管理")
-                operationId = "getKnowledgeBaseStats"
-                summary = "获取知识库统计"
-                description = "获取指定知识库的文件数量和文档数量统计"
-                parameters {
-                    path("knowledgeBaseId") {
-                        description = "知识库ID"
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "获取成功"
-                        schema = jsonSchema<ApiResponse<KnowledgeBaseStatsResponse>>()
-                    }
-                    HttpStatusCode.NotFound {
-                        description = "知识库不存在"
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                    HttpStatusCode.Forbidden {
-                        description = "无权访问该知识库"
-                    }
-                }
-            }
-
-            // 获取知识库的文件列表
-            get("/{knowledgeBaseId}/files") {
-                val userId = call.requireUserId()
-                val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-                val files = knowledgeFileService.listFiles(userId, knowledgeBaseId)
-                call.respondOk(files.map { it.toResponse() })
-            }.describe {
-                tag("知识库文件管理")
-                operationId = "listKnowledgeFiles"
-                summary = "获取文件列表"
-                description = "获取指定知识库中的所有文件列表"
-                parameters {
-                    path("knowledgeBaseId") {
-                        description = "知识库ID"
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "获取成功"
-                        schema = jsonSchema<ApiResponse<List<KnowledgeFileResponse>>>()
-                    }
-                    HttpStatusCode.NotFound {
-                        description = "知识库不存在"
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                    HttpStatusCode.Forbidden {
-                        description = "无权访问该知识库"
                     }
                 }
             }
@@ -636,31 +654,6 @@ fun Route.knowledgeRoutes() {
                 }
             }
 
-            // 搜索公开知识库
-            post("/search/public") {
-                val request = call.receive<SearchKnowledgeRequest>()
-                val results = knowledgeSearchService.searchPublicKnowledgeBases(
-                    query = request.query,
-                    threshold = request.threshold,
-                    limit = request.limit,
-                )
-                call.respondOk(results.map { it.toResponse() })
-            }.describe {
-                tag("知识库搜索")
-                operationId = "searchPublicKnowledge"
-                summary = "搜索公开知识库"
-                description = "在所有公开的知识库中进行向量相似度搜索"
-                requestBody {
-                    description = "搜索请求"
-                    schema = jsonSchema<SearchKnowledgeRequest>()
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "搜索成功"
-                        schema = jsonSchema<ApiResponse<List<SearchResultResponse>>>()
-                    }
-                }
-            }
         }
     }
 }

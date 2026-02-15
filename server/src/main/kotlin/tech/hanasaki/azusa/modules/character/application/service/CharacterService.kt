@@ -43,8 +43,13 @@ class CharacterService(
             return@readOnly characterRepository.searchCharacters(query, page, limit, userId)
         }
 
-    override suspend fun getCharacter(authorId: UserId, characterId: CharacterId): Character = tx.readOnly {
-        return@readOnly validCharacter(characterId, authorId)
+    override suspend fun getCharacter(authorId: UserId?, characterId: CharacterId): Character = tx.readOnly {
+        val character = characterRepository.findById(characterId)
+            ?: throw NotFoundException("角色不存在")
+        if (!character.isPublic && character.authorId != authorId) {
+            throw AuthorizationException("权限不足")
+        }
+        return@readOnly character
     }
 
     override suspend fun createCharacter(
@@ -87,6 +92,17 @@ class CharacterService(
         )
         characterRepository.save(character)
         character.publishAndClear(domainEventBus)
+        return@execute character
+    }
+
+    override suspend fun updateCharacterAvatar(
+        userId: UserId,
+        characterId: CharacterId,
+        avatar: AvatarUrl,
+    ): Character = tx.execute {
+        val character = validCharacter(characterId, userId)
+        character.avatar = avatar
+        characterRepository.save(character)
         return@execute character
     }
 
