@@ -1,3 +1,5 @@
+import io.ktor.plugin.features.*
+
 plugins {
     kotlin("jvm")
     application
@@ -16,6 +18,18 @@ ktor {
     openApi {
         enabled = true
         codeInferenceEnabled = false
+    }
+    docker {
+        jreVersion.set(JavaVersion.VERSION_25)
+        localImageName.set("azusa")
+        imageTag.set(version.toString())
+        externalRegistry.set(
+            DockerImageRegistry.dockerHub(
+                appName = provider { "azusa" },
+                username = providers.environmentVariable("DOCKER_HUB_USERNAME"),
+                password = providers.environmentVariable("DOCKER_HUB_PASSWORD"),
+            )
+        )
     }
 }
 
