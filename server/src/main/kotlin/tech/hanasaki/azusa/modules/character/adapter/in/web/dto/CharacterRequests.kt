@@ -21,6 +21,11 @@ data class UpdateCharacterRequest(
     val isPublic: Boolean = false,
 )
 
+@Serializable
+data class UploadCharacterAvatarResponse(
+    val avatar: String,
+)
+
 
 @Serializable
 data class SubscribeKnowledgeBaseRequest(

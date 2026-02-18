@@ -67,7 +67,7 @@ interface AuthUseCasePort {
      */
     suspend fun getProfile(userId: UserId): UserProfileDto
 
-    suspend fun updateProfile(userId: UserId, username: Username)
+    suspend fun updateProfile(userId: UserId, username: Username, avatar: AvatarUrl?)
 
     /**
      * 使用 RefreshToken 刷新 AccessToken

@@ -284,7 +284,6 @@ fun Route.characterRoutes() {
 
             // 上传角色头像
             put("/{characterId}/avatar") {
-                val userId = call.requireUserId()
                 val characterId = CharacterId(call.uuidParam("characterId"))
 
                 val multipart = call.receiveMultipart()
@@ -299,6 +298,7 @@ fun Route.characterRoutes() {
                             contentType = part.contentType?.toString()
                             fileBytes = part.provider().toInputStream().readBytes()
                         }
+
                         else -> {}
                     }
                     part.dispose()
@@ -311,8 +311,7 @@ fun Route.characterRoutes() {
 
                 fileStoragePort.upload(objectKey, mime, bytes)
                 val avatarUrl = AvatarUrl(fileStoragePort.publicUrl(objectKey))
-                val character = characterService.updateCharacterAvatar(userId, characterId, avatarUrl)
-                call.respondOk(character.toResponse(), "头像上传成功")
+                call.respondOk(UploadCharacterAvatarResponse(avatarUrl.value), "头像上传成功")
             }.describe {
                 tag("角色管理")
                 operationId = "uploadCharacterAvatar"
@@ -345,7 +344,7 @@ fun Route.characterRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "上传成功"
-                        schema = jsonSchema<ApiResponse<CharacterResponse>>()
+                        schema = jsonSchema<ApiResponse<UploadCharacterAvatarResponse>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "角色不存在"

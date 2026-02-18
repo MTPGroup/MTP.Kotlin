@@ -150,11 +150,13 @@ class AuthService(
     override suspend fun updateProfile(
         userId: UserId,
         username: Username,
+        avatar: AvatarUrl?,
     ) = tx.execute {
         val user = userRepository.findById(userId)
             ?: throw NotFoundException("用户不存在")
 
         user.updateProfile(username)
+        user.updateAvatar(avatar)
         userRepository.save(user)
     }
 

@@ -281,7 +281,11 @@ fun Route.authRoutes() {
             put("/me") {
                 val userId = call.requireUserId()
                 val request = call.receive<UpdateProfileRequest>()
-                authUseCase.updateProfile(userId, Username(request.username))
+                authUseCase.updateProfile(
+                    userId,
+                    Username(request.username),
+                    request.avatar?.let { AvatarUrl(it) }
+                )
                 call.respondOk(SuccessResponse(), "个人信息更新成功")
             }.describe {
                 tag("认证管理")
@@ -335,8 +339,7 @@ fun Route.authRoutes() {
 
                 fileStoragePort.upload(objectKey, mime, bytes)
                 val avatarUrl = AvatarUrl(fileStoragePort.publicUrl(objectKey))
-                val profile = authUseCase.updateAvatar(userId, avatarUrl)
-                call.respondOk(profile.toUserProfile(), "头像上传成功")
+                call.respondOk(UploadAvatarResponse(avatarUrl.value), "头像上传成功")
             }.describe {
                 tag("认证管理")
                 operationId = "uploadAvatar"
@@ -364,7 +367,7 @@ fun Route.authRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "上传成功"
-                        schema = jsonSchema<ApiResponse<UserProfile>>()
+                        schema = jsonSchema<ApiResponse<UploadAvatarResponse>>()
                     }
                     HttpStatusCode.BadRequest {
                         description = "未上传文件或文件格式无效"

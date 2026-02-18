@@ -49,4 +49,10 @@ data class ChangePasswordRequest(
 @Serializable
 data class UpdateProfileRequest(
     val username: String,
+    val avatar: String? = null,
+)
+
+@Serializable
+data class UploadAvatarResponse(
+    val avatar: String,
 )
