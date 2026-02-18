@@ -71,7 +71,7 @@ class AgentContextLoader(
         tx.readOnly {
             for (sub in enabledPlugins) {
                 val plugin = pluginRepository.findById(sub.pluginId) ?: continue
-                val entry = pluginToolFactory.create(plugin)
+                val entry = pluginToolFactory.create(plugin, sub.config, userId)
                 pluginToolMap[entry.specification] = entry.executor
             }
         }

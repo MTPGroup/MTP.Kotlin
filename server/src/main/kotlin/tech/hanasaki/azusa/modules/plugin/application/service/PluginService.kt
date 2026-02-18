@@ -2,6 +2,7 @@ package tech.hanasaki.azusa.modules.plugin.application.service
 
 import tech.hanasaki.azusa.modules.plugin.application.port.`in`.PluginUseCasePort
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
+import tech.hanasaki.azusa.modules.plugin.domain.model.PluginExecutionConfig
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSchema
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import tech.hanasaki.azusa.modules.plugin.domain.port.PluginLikeRepositoryPort
@@ -51,14 +52,14 @@ class PluginService(
         description: String,
         version: String,
         schema: PluginSchema,
-        code: String,
+        executionConfig: PluginExecutionConfig,
     ): Plugin = tx.execute {
         val plugin = Plugin.create(
             name = name,
             description = description,
             version = version,
             schema = schema,
-            code = code,
+            executionConfig = executionConfig,
             authorId = authorId,
         )
         pluginRepository.save(plugin)
@@ -73,7 +74,7 @@ class PluginService(
         description: String,
         version: String,
         schema: PluginSchema,
-        code: String,
+        executionConfig: PluginExecutionConfig,
     ): Plugin = tx.execute {
         val plugin = pluginRepository.findById(pluginId)
             ?: throw NotFoundException("Plugin not found")
@@ -85,7 +86,7 @@ class PluginService(
             description = description,
             version = version,
             schema = schema,
-            code = code,
+            executionConfig = executionConfig,
         )
         pluginRepository.save(plugin)
         plugin.publishAndClear(domainEventBus)

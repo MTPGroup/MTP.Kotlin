@@ -2,7 +2,9 @@ package tech.hanasaki.azusa.modules.chat.application.port.out
 
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.service.tool.ToolExecutor
+import kotlinx.serialization.json.JsonObject
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 data class PluginToolEntry(
     val specification: ToolSpecification,
@@ -10,5 +12,5 @@ data class PluginToolEntry(
 )
 
 interface PluginToolFactoryPort {
-    fun create(plugin: Plugin): PluginToolEntry
+    fun create(plugin: Plugin, subscriptionConfig: JsonObject, userId: UserId): PluginToolEntry
 }

@@ -2,7 +2,10 @@ package tech.hanasaki.azusa.modules.plugin.adapter.`in`.web.dto
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import tech.hanasaki.azusa.modules.plugin.domain.model.HttpExecutionConfig
+import tech.hanasaki.azusa.modules.plugin.domain.model.KnowledgeSearchExecutionConfig
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
+import tech.hanasaki.azusa.modules.plugin.domain.model.PluginExecutionConfig
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import kotlin.uuid.Uuid
 
@@ -14,6 +17,7 @@ data class PluginResponse(
     val description: String,
     val version: String,
     val schema: PluginSchemaResponse,
+    val type: String,
     val authorId: Uuid,
     val status: String,
     val likeCount: Int,
@@ -28,7 +32,7 @@ data class PluginDetailResponse(
     val description: String,
     val version: String,
     val schema: PluginSchemaResponse,
-    val code: String,
+    val executionConfig: PluginExecutionConfig,
     val authorId: Uuid,
     val status: String,
     val likeCount: Int,
@@ -54,6 +58,10 @@ data class PagedPluginResponse(
     val hasPrevious: Boolean,
 )
 
+private fun PluginExecutionConfig.typeName(): String = when (this) {
+    is HttpExecutionConfig -> "HTTP"
+    is KnowledgeSearchExecutionConfig -> "KNOWLEDGE_SEARCH"
+}
 
 fun Plugin.toResponse(): PluginResponse = PluginResponse(
     id = id.value,
@@ -65,6 +73,7 @@ fun Plugin.toResponse(): PluginResponse = PluginResponse(
         description = schema.description,
         parameters = schema.parameters,
     ),
+    type = executionConfig.typeName(),
     authorId = authorId.value,
     status = status.name.lowercase(),
     likeCount = likeCount,
@@ -82,7 +91,7 @@ fun Plugin.toDetailResponse(): PluginDetailResponse = PluginDetailResponse(
         description = schema.description,
         parameters = schema.parameters,
     ),
-    code = code,
+    executionConfig = executionConfig,
     authorId = authorId.value,
     status = status.name.lowercase(),
     likeCount = likeCount,

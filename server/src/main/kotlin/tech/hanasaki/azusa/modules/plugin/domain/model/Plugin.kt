@@ -19,7 +19,7 @@ class Plugin private constructor(
     var description: String,
     var version: String,
     var schema: PluginSchema,
-    var code: String,
+    var executionConfig: PluginExecutionConfig,
     val authorId: UserId,
     var status: PluginStatus,
     var likeCount: Int,
@@ -36,7 +36,7 @@ class Plugin private constructor(
             description: String,
             version: String,
             schema: PluginSchema,
-            code: String,
+            executionConfig: PluginExecutionConfig,
             authorId: UserId,
         ): Plugin {
             val now = Clock.System.now()
@@ -46,7 +46,7 @@ class Plugin private constructor(
                 description = description,
                 version = version,
                 schema = schema,
-                code = code,
+                executionConfig = executionConfig,
                 authorId = authorId,
                 status = PluginStatus.PENDING,
                 likeCount = 0,
@@ -72,7 +72,7 @@ class Plugin private constructor(
             description: String,
             version: String,
             schema: PluginSchema,
-            code: String,
+            executionConfig: PluginExecutionConfig,
             authorId: UserId,
             status: PluginStatus,
             likeCount: Int,
@@ -84,7 +84,7 @@ class Plugin private constructor(
             description = description,
             version = version,
             schema = schema,
-            code = code,
+            executionConfig = executionConfig,
             authorId = authorId,
             status = status,
             likeCount = likeCount,
@@ -101,13 +101,13 @@ class Plugin private constructor(
         description: String,
         version: String,
         schema: PluginSchema,
-        code: String,
+        executionConfig: PluginExecutionConfig,
     ) {
         this.name = name
         this.description = description
         this.version = version
         this.schema = schema
-        this.code = code
+        this.executionConfig = executionConfig
         this.updatedAt = Clock.System.now()
         // 修改后需要重新审核
         if (this.status == PluginStatus.APPROVED) {

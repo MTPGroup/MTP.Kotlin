@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.plugin.application.port.`in`
 
 import tech.hanasaki.azusa.modules.plugin.domain.model.Plugin
+import tech.hanasaki.azusa.modules.plugin.domain.model.PluginExecutionConfig
 import tech.hanasaki.azusa.modules.plugin.domain.model.PluginSchema
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
@@ -12,8 +13,8 @@ interface PluginUseCasePort {
     suspend fun listPendingPlugins(page: Int, limit: Int): PageResult<Plugin>
     suspend fun listMyPlugins(userId: UserId, page: Int, limit: Int): PageResult<Plugin>
     suspend fun getPlugin(pluginId: PluginId): Plugin
-    suspend fun createPlugin(authorId: UserId, name: String, description: String, version: String, schema: PluginSchema, code: String): Plugin
-    suspend fun updatePlugin(userId: UserId, pluginId: PluginId, name: String, description: String, version: String, schema: PluginSchema, code: String): Plugin
+    suspend fun createPlugin(authorId: UserId, name: String, description: String, version: String, schema: PluginSchema, executionConfig: PluginExecutionConfig): Plugin
+    suspend fun updatePlugin(userId: UserId, pluginId: PluginId, name: String, description: String, version: String, schema: PluginSchema, executionConfig: PluginExecutionConfig): Plugin
     suspend fun deletePlugin(userId: UserId, pluginId: PluginId)
     suspend fun approvePlugin(pluginId: PluginId): Plugin
     suspend fun rejectPlugin(pluginId: PluginId): Plugin

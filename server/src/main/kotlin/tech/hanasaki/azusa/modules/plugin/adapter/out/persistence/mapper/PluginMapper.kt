@@ -14,7 +14,7 @@ object PluginMapper {
         description = row[PluginTable.description],
         version = row[PluginTable.version],
         schema = row[PluginTable.schema],
-        code = row[PluginTable.code],
+        executionConfig = row[PluginTable.executionConfig],
         authorId = UserId(row[PluginTable.authorId]),
         status = row[PluginTable.status],
         likeCount = row[PluginTable.liked],
@@ -27,7 +27,7 @@ object PluginMapper {
         target[PluginTable.description] = domain.description
         target[PluginTable.version] = domain.version
         target[PluginTable.schema] = domain.schema
-        target[PluginTable.code] = domain.code
+        target[PluginTable.executionConfig] = domain.executionConfig
         target[PluginTable.authorId] = domain.authorId.value
         target[PluginTable.status] = domain.status
         target[PluginTable.liked] = domain.likeCount

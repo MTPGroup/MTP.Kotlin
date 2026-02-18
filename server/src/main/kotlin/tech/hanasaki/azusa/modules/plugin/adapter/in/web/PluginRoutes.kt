@@ -112,7 +112,7 @@ fun Route.pluginRoutes() {
                     description = request.description,
                     version = request.version,
                     schema = request.schema.toDomain(),
-                    code = request.code,
+                    executionConfig = request.executionConfig,
                 )
                 call.respondOk(plugin.toResponse(), "Plugin created, pending approval")
             }.describe {
@@ -144,7 +144,7 @@ fun Route.pluginRoutes() {
                     description = request.description,
                     version = request.version,
                     schema = request.schema.toDomain(),
-                    code = request.code,
+                    executionConfig = request.executionConfig,
                 )
                 call.respondOk(plugin.toResponse(), "Plugin updated")
             }.describe {

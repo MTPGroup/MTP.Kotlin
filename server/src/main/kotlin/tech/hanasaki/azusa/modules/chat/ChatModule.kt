@@ -44,7 +44,7 @@ fun chatModule(config: ApplicationConfig) = module {
 
     // Agent 编排
     single<KnowledgeSearcherPort> { KnowledgeSearcherAdapter(get()) }
-    single<PluginToolFactoryPort> { PluginToolFactory(get()) }
+    single<PluginToolFactoryPort> { PluginToolFactory(get(), get()) }
     single<AgentContextLoaderPort> {
         AgentContextLoader(
             chatRepository = get(),
