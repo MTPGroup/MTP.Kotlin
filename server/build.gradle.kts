@@ -1,17 +1,20 @@
 import io.ktor.plugin.features.*
 
 plugins {
-    kotlin("jvm")
-    application
+    alias(serverLibs.plugins.kotlinJvm)
     alias(serverLibs.plugins.kotlinSerialization)
     alias(serverLibs.plugins.ktor)
+    application
 }
 
 group = "tech.hanasaki"
 version = "0.0.2"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("tech.hanasaki.azusa.ApplicationKt")
+
+    val isDevelopment: Boolean = project.ext.has("development")
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
 ktor {
