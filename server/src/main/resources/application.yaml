@@ -46,6 +46,12 @@ llm:
   apiKey: ${LLM_API_KEY}
   temperature: ${LLM_TEMPERATURE}
   returnThinking: ${LLM_RETURN_THINKING}
+embedding:
+  provider: ${EMBEDDING_PROVIDER}
+  baseUrl: ${EMBEDDING_ENDPOINT}
+  model: ${EMBEDDING_MODEL}
+  apiKey: ${EMBEDDING_API_KEY}
+  dimension: ${EMBEDDING_DIMENSION}
 redis:
   host: ${REDIS_HOST}
   port: ${REDIS_PORT}

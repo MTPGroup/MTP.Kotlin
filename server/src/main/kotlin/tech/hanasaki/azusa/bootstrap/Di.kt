@@ -36,7 +36,7 @@ fun appModules(config: ApplicationConfig): List<Module> {
         themeModule(config),
         characterModule(),
         pluginModule(),
-        llmModule(),
+        llmModule(config),
         chatModule(config),
         knowledgeModule()
     )
