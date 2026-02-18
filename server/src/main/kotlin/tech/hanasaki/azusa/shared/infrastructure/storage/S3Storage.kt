@@ -94,7 +94,7 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
 
     override fun publicUrl(objectKey: String): String {
         val base = config.publicBaseUrl.trimEnd('/')
-        return "$base/${config.bucket}/$objectKey"
+        return "$base/$objectKey"
     }
 
     private fun putObject(bucket: String, key: String, contentType: String, bytes: ByteArray) {
