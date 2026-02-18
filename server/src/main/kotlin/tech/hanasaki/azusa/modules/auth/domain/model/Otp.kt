@@ -1,22 +1,67 @@
 package tech.hanasaki.azusa.modules.auth.domain.model
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import java.util.*
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
-enum class OtpType(val value: String) {
-    VERIFY_EMAIL("verify_email"),
-    RESET_PASSWORD("reset_password"),
-    SIGN_IN("sign_in")
+enum class OtpType {
+    VERIFY_EMAIL,
+    RESET_PASSWORD,
+    SIGN_IN;
+
+    companion object {
+        fun fromString(value: String) = when (value.trim().lowercase()) {
+            "verify_email" -> VERIFY_EMAIL
+            "reset_password" -> RESET_PASSWORD
+            "sign_in" -> SIGN_IN
+            else -> throw ValidationException("不支持的验证码类型")
+        }
+    }
 }
 
+
 data class Otp(
-    val id: UUID = UUID.randomUUID(),
+    val id: Uuid = Uuid.random(),
     val email: Email,
-    val code: String,
+    val codeHash: String,
     val type: OtpType,
-    val expiresAt: Instant,
     val isUsed: Boolean = false,
+    val expiresAt: Instant,
+    val usedAt: Instant? = null,
 ) {
+    companion object {
+        fun create(
+            email: Email,
+            codeHash: String,
+            type: OtpType,
+            expiresAt: Instant,
+        ): Otp = Otp(
+            email = email,
+            codeHash = codeHash,
+            type = type,
+            expiresAt = expiresAt,
+        )
+
+        fun reconstitute(
+            id: Uuid,
+            email: Email,
+            codeHash: String,
+            type: OtpType,
+            isUsed: Boolean,
+            expiresAt: Instant,
+            usedAt: Instant?,
+        ): Otp = Otp(
+            id = id,
+            email = email,
+            codeHash = codeHash,
+            type = type,
+            isUsed = isUsed,
+            expiresAt = expiresAt,
+            usedAt = usedAt,
+        )
+    }
+
     fun isValid(now: Instant = Clock.System.now()): Boolean = !isUsed && now <= expiresAt
 }

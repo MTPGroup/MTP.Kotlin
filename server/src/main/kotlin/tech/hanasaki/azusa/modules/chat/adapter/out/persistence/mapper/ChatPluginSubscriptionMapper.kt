@@ -1,0 +1,24 @@
+package tech.hanasaki.azusa.modules.chat.adapter.out.persistence.mapper
+
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.statements.UpdateBuilder
+import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscription
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.ChatPluginSubscriptionTable
+import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
+import tech.hanasaki.azusa.modules.chat.domain.model.ChatPluginSubscriptionId
+
+object ChatPluginSubscriptionMapper {
+    fun toDomain(row: ResultRow): ChatPluginSubscription = ChatPluginSubscription.reconstitute(
+        id = ChatPluginSubscriptionId(row[ChatPluginSubscriptionTable.id]),
+        pluginId = PluginId(row[ChatPluginSubscriptionTable.pluginId]),
+        enabled = row[ChatPluginSubscriptionTable.enabled],
+        config = row[ChatPluginSubscriptionTable.config],
+        createdAt = row[ChatPluginSubscriptionTable.createdAt],
+    )
+
+    fun toEntity(domain: ChatPluginSubscription, target: UpdateBuilder<*>) {
+        target[ChatPluginSubscriptionTable.pluginId] = domain.pluginId.value
+        target[ChatPluginSubscriptionTable.enabled] = domain.enabled
+        target[ChatPluginSubscriptionTable.config] = domain.config
+    }
+}

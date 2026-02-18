@@ -1,46 +1,78 @@
+import io.ktor.plugin.features.*
+
 plugins {
-    kotlin("jvm")
+    alias(serverLibs.plugins.kotlinJvm)
+    alias(serverLibs.plugins.kotlinSerialization)
+    alias(serverLibs.plugins.ktor)
     application
-    alias(libs.plugins.kotlinSerialization)
 }
 
 group = "tech.hanasaki"
-version = "0.0.1"
+version = "0.0.2"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("tech.hanasaki.azusa.ApplicationKt")
+
+    val isDevelopment: Boolean = project.ext.has("development")
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+}
+
+ktor {
+    openApi {
+        enabled = true
+        codeInferenceEnabled = false
+    }
+    docker {
+        jreVersion.set(JavaVersion.VERSION_25)
+        localImageName.set("azusa")
+        imageTag.set(version.toString())
+        externalRegistry.set(
+            DockerImageRegistry.dockerHub(
+                appName = provider { "azusa" },
+                username = providers.environmentVariable("DOCKER_HUB_USERNAME"),
+                password = providers.environmentVariable("DOCKER_HUB_PASSWORD"),
+            )
+        )
+    }
+}
+
+kotlin {
+    compilerOptions {
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("io.ktor.utils.io.ExperimentalKtorApi")
+    }
 }
 
 dependencies {
-    implementation(platform(libs.koin.bom))
-    implementation(libs.koin.core)
-    implementation(libs.koin.ktor)
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.server.auth.jwt)
-    implementation(libs.ktor.server.status.pages)
-    implementation(libs.ktor.server.cors)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.server.config.yaml)
-    implementation(libs.ktor.server.openapi)
-    implementation(libs.ktor.server.swagger)
-    implementation(libs.aws.sdk.s3)
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.dao)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.json)
-    implementation(libs.exposed.kotlin.datetime)
-    implementation(libs.flyway.core)
-    implementation(libs.flyway.postgresql)
-    implementation(libs.hikari)
-    implementation(libs.postgresql)
-    implementation(libs.bcrypt)
-    implementation(libs.angus.mail)
-    testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.junit)
-    testImplementation(libs.testcontainers)
-    testImplementation(libs.testcontainers.postgresql)
+    implementation(platform(serverLibs.koin.bom))
+    implementation(platform(serverLibs.langchain4j.bom))
+    implementation(serverLibs.bundles.koin)
+    implementation(serverLibs.bundles.ktor)
+    implementation(serverLibs.bundles.kotlinx)
+    implementation(serverLibs.bundles.exposed)
+    implementation(serverLibs.bundles.database)
+    implementation(serverLibs.bundles.service)
+    implementation(serverLibs.bundles.logging)
+    implementation(serverLibs.bundles.agent)
+
+    testImplementation(platform(serverLibs.testcontainers.bom))
+    testImplementation(kotlin("test-junit5"))
+    testImplementation(serverLibs.bundles.test)
+
+    configurations.all {
+        exclude(group = "org.apache.logging.log4j", module = "log4j-core")
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks {
+    shadowJar {
+        mergeServiceFiles {
+            include("META-INF/services/**")
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+    }
 }

@@ -1,56 +1,73 @@
 package tech.hanasaki.azusa.modules.auth.application.service
 
-import kotlinx.datetime.Clock
-import tech.hanasaki.azusa.modules.auth.domain.model.Email
+import tech.hanasaki.azusa.modules.auth.application.port.`in`.OtpUseCasePort
+import tech.hanasaki.azusa.modules.auth.config.OtpConfig
 import tech.hanasaki.azusa.modules.auth.domain.model.Otp
 import tech.hanasaki.azusa.modules.auth.domain.model.OtpType
-import tech.hanasaki.azusa.modules.auth.domain.repository.OtpRepository
+import tech.hanasaki.azusa.modules.auth.domain.port.OtpRepositoryPort
+import tech.hanasaki.azusa.shared.domain.event.OtpGeneratedIntegrationEvent
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
+import tech.hanasaki.azusa.shared.domain.exception.HitLimitException
+import tech.hanasaki.azusa.shared.domain.model.vo.Email
+import tech.hanasaki.azusa.shared.port.out.OutboxSchedulerPort
+import tech.hanasaki.azusa.shared.port.out.StringEncoderPort
+import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 class OtpService(
-    private val otpRepository: OtpRepository,
-    private val emailService: EmailService,
-) {
-    suspend fun sendOtp(email: Email, type: OtpType) {
-        val code = generateCode()
-        val otp = Otp(
-            email = email,
-            code = code,
-            type = type,
-            expiresAt = Clock.System.now().plus(10.minutes) // 10分钟有效期
-        )
-        otpRepository.save(otp)
+    private val otpRepository: OtpRepositoryPort,
+    private val otpConfig: OtpConfig,
+    private val encoder: StringEncoderPort,
+    private val outboxScheduler: OutboxSchedulerPort,
+    private val tx: TransactionalPort,
+) : OtpUseCasePort {
+    override suspend fun generate(email: Email, type: OtpType) {
+        tx.execute {
+            val oneHourAgo = Clock.System.now().minus(1.hours)
+            val sentCount = otpRepository.countSentAfter(email, type, oneHourAgo)
+            if (sentCount >= otpConfig.maxPerHour) {
+                throw HitLimitException(
+                    message = "OTP请求已达限制。请稍后再试。",
+                    retryAfter = 1.hours.inWholeMilliseconds
+                )
+            }
 
-        val subject = when (type) {
-            OtpType.VERIFY_EMAIL -> "Verify your email"
-            OtpType.RESET_PASSWORD -> "Reset your password"
-            OtpType.SIGN_IN -> "Sign in code"
+            val code = if (otpConfig.testMode) otpConfig.testCode else generateCode()
+            val otp = Otp.create(
+                email = email,
+                codeHash = encoder.encode(code),
+                type = type,
+                expiresAt = Clock.System.now().plus(otpConfig.expiresMinutes.minutes)
+            )
+            otpRepository.save(otp)
+            outboxScheduler.schedule(
+                OtpGeneratedIntegrationEvent(
+                    email = email.value,
+                    code = code,
+                    type = type.name,
+                )
+            )
         }
-
-        val html = """
-            <h2>Your verification code is: <b>$code</b></h2>
-            <p>This code will expire in 10 minutes.</p>
-        """.trimIndent()
-
-        emailService.sendHtml(email, subject, html)
     }
 
-    suspend fun verifyOtp(email: Email, type: OtpType, code: String) {
-        val otp = otpRepository.findValidLatest(email, type)
-            ?: throw AuthenticationException("Invalid or expired OTP")
+    override suspend fun verify(email: Email, type: OtpType, code: String) {
+        tx.execute {
+            val otp = otpRepository.findValidLatest(email, type)
+                ?: throw AuthenticationException("非法或已过期的验证码")
 
-        if (otp.code != code) {
-            throw AuthenticationException("Invalid OTP code")
+            if (!encoder.verify(code, otp.codeHash)) {
+                throw AuthenticationException("非法的验证码")
+            }
+
+            if (!otp.isValid()) {
+                throw AuthenticationException("验证码已过期")
+            }
+
+            otpRepository.markAsUsed(otp)
         }
-
-        if (!otp.isValid()) {
-            throw AuthenticationException("OTP has expired")
-        }
-
-        // 验证成功，标记为已使用
-        otpRepository.markAsUsed(otp)
     }
 
     private fun generateCode(): String {

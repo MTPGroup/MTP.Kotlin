@@ -16,6 +16,12 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    versionCatalogs {
+        create("serverLibs") {
+            from(files("gradle/server-libs.versions.toml"))
+        }
+    }
+
     repositories {
         google {
             mavenContent {

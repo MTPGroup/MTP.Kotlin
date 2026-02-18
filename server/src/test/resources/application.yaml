@@ -1,0 +1,58 @@
+#ktor:
+#  application:
+#    modules:
+#      - tech.hanasaki.azusa.ApplicationKt.module
+#  deployment:
+#    port: 8080
+#database:
+#  driver: "org.postgresql.Driver"
+#  url: ${DB_URL}
+#  user: ${DB_USER}
+#  password: ${DB_PASSWORD}
+#  maxPoolSize: 5
+jwt:
+  issuer: azusa-test
+  audience: azusa-test
+  realm: azusa-test
+  secret: jwt_secret
+  accessTokenMinutes: 15
+  refreshTokenDays: 30
+s3:
+  endpoint: http://localhost:9000
+  region: ap-shanghai
+  bucket: avatars
+  accessKey: rustfsadmain
+  secretKey: rustfsadmain
+  publicBaseUrl: http://localhost:9000
+  forcePathStyle: true
+smtp:
+  host: localhost
+  port: 1025
+  username: no-reply@gmail.com
+  password: smtp-password
+  from: no-reply@gamil.com
+  tls: false
+  enabled: false
+otp:
+  length: 6
+  expiresMinutes: 10
+  minIntervalSeconds: 60
+  maxPerHour: 5
+  debugReturn: false
+redis:
+  host: localhost
+  port: 6379
+  password: redis-password
+event:
+  outbox:
+    pollingIntervalSeconds: 10
+    batchSize: 100
+    cleanupEnabled: true
+    cleanupIntervalMinutes: 1
+    retentionDays: 7
+  stream:
+    streamKey: azusa:stream-test:outbox-event
+    consumerGroup: azusa-test-consumers
+    consumerName: azusa-test-instance-1
+    batchSize: 10
+    pollIntervalSeconds: 1

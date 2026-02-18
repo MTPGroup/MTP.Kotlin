@@ -1,0 +1,155 @@
+[versions]
+kotlin = "2.3.10"
+koin-bom = "4.1.1"
+kotlinx = "1.10.2"
+ktor = "3.4.0"
+exposed = "1.0.0"
+flyway = "12.0.0"
+hikari = "7.0.2"
+postgresql = "42.7.9"
+bcrypt = "0.10.2"
+angus-mail = "2.0.5"
+testcontainers = "2.0.3"
+testcontainers-redis = "2.2.4"
+aws-sdk = "2.41.20"
+lettuce = "7.2.1.RELEASE"
+kotlin-logging = "7.0.14"
+logback = "1.5.29"
+log4j = "2.25.3"
+langchain4j = "1.11.0"
+
+[libraries]
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-ktor = { module = "io.insert-koin:koin-ktor" }
+koin-test = { module = "io.insert-koin:koin-test" }
+
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-routing-openapi = { module = "io.ktor:ktor-server-routing-openapi", version.ref = "ktor" }
+ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
+ktor-server-freemarker = { module = "io.ktor:ktor-server-freemarker", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+log4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlinx" }
+
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
+aws-sdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-sdk" }
+angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "angus-mail" }
+lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
+
+langchain4j-bom = { module = "dev.langchain4j:langchain4j-bom", version.ref = "langchain4j" }
+langchain4j-kotlin = { module = "dev.langchain4j:langchain4j-kotlin" }
+langchain4j-openai = { module = "dev.langchain4j:langchain4j-open-ai" }
+langchain4j-ollama = { module = "dev.langchain4j:langchain4j-ollama" }
+langchain4j-pgvector = { module = "dev.langchain4j:langchain4j-pgvector" }
+langchain4j-document-parser-apache-tika = { module = "dev.langchain4j:langchain4j-document-parser-apache-tika" }
+langchain4j-document-parser-markdown = { module = "dev.langchain4j:langchain4j-document-parser-markdown" }
+langchain4j-document-parser-yaml = { module = "dev.langchain4j:langchain4j-document-parser-yaml" }
+
+testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
+testcontainers = { module = "org.testcontainers:testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
+testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "testcontainers-redis" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation" }
+
+[bundles]
+koin = [
+    "koin-core",
+    "koin-ktor"
+]
+
+ktor = [
+    "ktor-server-core",
+    "ktor-server-netty",
+    "ktor-server-auth",
+    "ktor-server-auth-jwt",
+    "ktor-server-cors",
+    "ktor-server-content-negotiation",
+    "ktor-server-config-yaml",
+    "ktor-server-status-pages",
+    "ktor-server-routing-openapi",
+    "ktor-server-swagger",
+    "ktor-server-freemarker",
+    "ktor-serialization-kotlinx-json"
+]
+
+kotlinx = [
+    "kotlinx-coroutines-core",
+    "kotlinx-coroutines-reactive"
+]
+
+exposed = [
+    "exposed-core",
+    "exposed-jdbc",
+    "exposed-json",
+    "exposed-kotlin-datetime"
+]
+
+database = [
+    "flyway-core",
+    "flyway-postgresql",
+    "hikari",
+    "postgresql"
+]
+
+agent = [
+    "langchain4j-kotlin",
+    "langchain4j-openai",
+    "langchain4j-ollama",
+    "langchain4j-pgvector",
+    "langchain4j-document-parser-apache-tika",
+    "langchain4j-document-parser-markdown",
+    "langchain4j-document-parser-yaml",
+]
+
+service = [
+    "bcrypt",
+    "angus-mail",
+    "aws-sdk-s3",
+    "lettuce",
+    "ktor-client-cio",
+]
+
+logging = [
+    "kotlin-logging",
+    "logback",
+    "log4j",
+]
+
+test = [
+    "koin-test",
+    "ktor-server-test-host",
+    "ktor-client-content-negotiation",
+    "testcontainers",
+    "testcontainers-postgresql",
+    "testcontainers-redis",
+]
+
+[plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
