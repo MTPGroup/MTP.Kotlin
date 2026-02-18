@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.notification.adapter.out.sender
 
 import freemarker.template.Configuration
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
@@ -17,6 +18,7 @@ class SmtpEmailSender(
     private val smtpConfig: SmtpConfig,
     private val freemarkerConfig: Configuration,
 ) : EmailSenderPort {
+    private val logger = KotlinLogging.logger { }
 
     override suspend fun sendHtml(to: String, subject: String, html: String) {
         if (!smtpConfig.enabled) return
@@ -52,19 +54,30 @@ class SmtpEmailSender(
         templateName: String,
         model: Map<String, Any>,
     ) {
-        if (!smtpConfig.enabled) return
+        if (!smtpConfig.enabled) {
+            logger.warn { "SMTP 未启用，邮件未实际发送: $to" }
+            return
+        }
 
         val html = renderTemplate(templateName, model)
         sendHtml(to, subject, html)
     }
 
     private fun createSession(): Session {
+        val useSSL = smtpConfig.tls && smtpConfig.port == 465
         val props = Properties().apply {
             put("mail.smtp.host", smtpConfig.host)
             put("mail.smtp.port", smtpConfig.port.toString())
             put("mail.smtp.auth", "true")
-            put("mail.smtp.starttls.enable", smtpConfig.tls.toString())
-            put("mail.smtp.starttls.required", smtpConfig.tls.toString())
+            if (useSSL) {
+                put("mail.smtp.ssl.enable", "true")
+            } else {
+                put("mail.smtp.starttls.enable", smtpConfig.tls.toString())
+                put("mail.smtp.starttls.required", smtpConfig.tls.toString())
+            }
+            put("mail.smtp.connectiontimeout", "5000")
+            put("mail.smtp.timeout", "5000")
+            put("mail.smtp.writetimeout", "5000")
         }
 
         return Session.getInstance(props, object : Authenticator() {

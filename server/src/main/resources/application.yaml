@@ -63,3 +63,8 @@ event:
     consumerName: ${EVENT_STREAM_CONSUMER_NAME:azusa-instance-1}
     batchSize: 10
     pollIntervalSeconds: 1
+    claimIdleTimeSeconds: 30
+    claimBatchSize: 100
+    maxRetries: 3
+    dlqEnabled: true
+    dlqStreamKey: "azusa:dlq:outbox-events"
