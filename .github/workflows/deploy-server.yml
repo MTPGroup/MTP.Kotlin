@@ -2,11 +2,8 @@ name: Build & Push Server Image
 
 on:
   push:
-    branches:
-      - master
-    paths:
-      - 'server/**'
-      - '.github/workflows/deploy-server.yml'
+    tags:
+      - 'server/v*'
   workflow_dispatch:
 
 jobs:
@@ -17,10 +14,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
 
       - name: Set up Gradle
@@ -32,7 +29,7 @@ jobs:
       - name: Extract version
         id: version
         run: |
-          VERSION=$(grep -E '^version\s*=' server/build.gradle.kts | grep -oP '"\K[^"]+')
+          VERSION=${GITHUB_REF_NAME#server/v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
