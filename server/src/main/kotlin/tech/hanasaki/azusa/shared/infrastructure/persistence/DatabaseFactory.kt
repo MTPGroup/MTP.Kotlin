@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
-import tech.hanasaki.azusa.shared.infrastructure.config.DatabaseConfig
 
 object DatabaseFactory {
     fun init(config: DatabaseConfig): HikariDataSource {

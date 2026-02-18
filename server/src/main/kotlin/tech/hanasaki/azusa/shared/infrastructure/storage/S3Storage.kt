@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import tech.hanasaki.azusa.shared.infrastructure.config.S3Config
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import java.net.URI
 
@@ -34,13 +33,13 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
         .build()
 
     override fun upload(objectKey: String, contentType: String, bytes: ByteArray): String {
-        putObject(resolveBucket(objectKey), objectKey, contentType, bytes)
+        putObject(config.bucket, objectKey, contentType, bytes)
         return objectKey
     }
 
     override fun delete(objectKey: String) {
         val request = DeleteObjectRequest.builder()
-            .bucket(resolveBucket(objectKey))
+            .bucket(config.bucket)
             .key(objectKey)
             .build()
         client.deleteObject(request)
@@ -53,7 +52,7 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
             else -> prefix
         }
         logger.debug { "开始删除: $pre 下的文件" }
-        val bucket = resolveBucket(pre)
+        val bucket = config.bucket
 
         var continuationToken: String? = null
 
@@ -87,7 +86,7 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
 
     override fun download(objectKey: String): ByteArray {
         val request = GetObjectRequest.builder()
-            .bucket(resolveBucket(objectKey))
+            .bucket(config.bucket)
             .key(objectKey)
             .build()
         return client.getObject(request).readAllBytes()
@@ -95,11 +94,8 @@ class S3Storage(private val config: S3Config) : FileStoragePort {
 
     override fun publicUrl(objectKey: String): String {
         val base = config.publicBaseUrl.trimEnd('/')
-        return "$base/${resolveBucket(objectKey)}/$objectKey"
+        return "$base/${config.bucket}/$objectKey"
     }
-
-    private fun resolveBucket(objectKey: String): String =
-        if (objectKey.startsWith("avatars/")) config.avatarBucket else config.knowledgeBucket
 
     private fun putObject(bucket: String, key: String, contentType: String, bytes: ByteArray) {
         val request = PutObjectRequest.builder()

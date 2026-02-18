@@ -19,8 +19,6 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
-import tech.hanasaki.azusa.shared.infrastructure.config.RedisConfig
-import tech.hanasaki.azusa.shared.infrastructure.config.readRedisConfig
 import tech.hanasaki.azusa.shared.infrastructure.event.outbox.*
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamEventPublisher
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamListener

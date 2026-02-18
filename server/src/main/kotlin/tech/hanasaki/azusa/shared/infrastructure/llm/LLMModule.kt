@@ -14,7 +14,7 @@ import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.chat.adapter.out.llm.ChatModelFactory
 
 fun llmModule() = module {
-    single { ChatModelFactory() }
+    single { ChatModelFactory(get()) }
     single<HttpClient> {
         HttpClient(CIO) {
             install(HttpTimeout) {
