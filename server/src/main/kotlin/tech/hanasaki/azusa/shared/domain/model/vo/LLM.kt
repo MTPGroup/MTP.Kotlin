@@ -14,7 +14,8 @@ enum class LLMProvider {
     DEEPSEEK,
     GOOGLE,
     ANTHROPIC,
-    OFFICIAL
+    OLLAMA,
+    OFFICIAL,
 }
 
 data class LLMConfig(
@@ -26,4 +27,5 @@ data class LLMConfig(
     val temperature: Float,
     val maxTokens: Int? = null,
     val runOnClient: Boolean = false,
+    val returnThinking: Boolean = false,
 )

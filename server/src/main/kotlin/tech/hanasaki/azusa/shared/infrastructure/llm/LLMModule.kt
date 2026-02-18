@@ -10,11 +10,13 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.chat.adapter.out.llm.ChatModelFactory
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
 
 fun llmModule() = module {
-    single { ChatModelFactory(get()) }
+    single { ChatModelFactory(get<LLMConfig>(named("official"))) }
     single<HttpClient> {
         HttpClient(CIO) {
             install(HttpTimeout) {

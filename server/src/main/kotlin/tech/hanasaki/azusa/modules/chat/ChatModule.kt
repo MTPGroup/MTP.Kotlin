@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.chat
 
 import io.ktor.server.config.*
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import tech.hanasaki.azusa.modules.chat.adapter.out.agent.AgentContextLoader
 import tech.hanasaki.azusa.modules.chat.adapter.out.knowledge.KnowledgeSearcherAdapter
@@ -17,6 +18,7 @@ import tech.hanasaki.azusa.modules.chat.application.service.AgentOrchestrationSe
 import tech.hanasaki.azusa.modules.chat.application.service.ChatService
 import tech.hanasaki.azusa.modules.chat.config.OfficialLLMConfig
 import tech.hanasaki.azusa.modules.chat.config.readOfficialLLMConfig
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatMemberRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
@@ -38,6 +40,7 @@ fun chatModule(config: ApplicationConfig) = module {
     }
 
     single<OfficialLLMConfig> { config.readOfficialLLMConfig() }
+    single<LLMConfig>(named("official")) { get<OfficialLLMConfig>().toLLMConfig() }
 
     // Agent 编排
     single<KnowledgeSearcherPort> { KnowledgeSearcherAdapter(get()) }
@@ -52,6 +55,7 @@ fun chatModule(config: ApplicationConfig) = module {
             knowledgeSearcher = get(),
             pluginToolFactory = get(),
             llmConfigProvider = get(),
+            officialLLMConfig = get(named("official")),
             tx = get(),
         )
     }

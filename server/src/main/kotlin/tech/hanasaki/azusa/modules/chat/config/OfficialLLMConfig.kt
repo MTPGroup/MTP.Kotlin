@@ -1,6 +1,8 @@
 package tech.hanasaki.azusa.modules.chat.config
 
 import io.ktor.server.config.*
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
+import tech.hanasaki.azusa.shared.domain.model.vo.LLMProvider
 import tech.hanasaki.azusa.shared.infrastructure.config.optionalBoolean
 import tech.hanasaki.azusa.shared.infrastructure.config.requireString
 
@@ -11,7 +13,24 @@ data class OfficialLLMConfig(
     val apiKey: String,
     val temperature: Double,
     val returnThinking: Boolean,
-)
+) {
+    fun toLLMConfig(): LLMConfig = LLMConfig(
+        provider = when (provider.lowercase()) {
+            "ollama" -> LLMProvider.OLLAMA
+            "openai" -> LLMProvider.OPENAI
+            "alibaba" -> LLMProvider.ALIBABA
+            "deepseek" -> LLMProvider.DEEPSEEK
+            "google" -> LLMProvider.GOOGLE
+            "anthropic" -> LLMProvider.ANTHROPIC
+            else -> LLMProvider.OPENAI
+        },
+        baseUrl = baseUrl,
+        apiKey = apiKey,
+        model = model,
+        temperature = temperature.toFloat(),
+        returnThinking = returnThinking,
+    )
+}
 
 fun ApplicationConfig.readOfficialLLMConfig(): OfficialLLMConfig =
     OfficialLLMConfig(

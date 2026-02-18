@@ -20,7 +20,6 @@ import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
-import tech.hanasaki.azusa.shared.domain.model.vo.LLMProvider
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.LLMConfigProvider
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
@@ -34,20 +33,13 @@ class AgentContextLoader(
     private val knowledgeSearcher: KnowledgeSearcherPort,
     private val pluginToolFactory: PluginToolFactoryPort,
     private val llmConfigProvider: LLMConfigProvider,
+    private val officialLLMConfig: LLMConfig,
     private val tx: TransactionalPort,
 ) : AgentContextLoaderPort {
     private val logger = KotlinLogging.logger {}
 
     companion object {
         private const val MAX_HISTORY_TOKENS = 4000
-
-        private val DEFAULT_LLM_CONFIG = LLMConfig(
-            provider = LLMProvider.OFFICIAL,
-            baseUrl = "http://localhost:11434",
-            apiKey = "",
-            model = "qwen3:4b",
-            temperature = 0.7f,
-        )
     }
 
     override suspend fun load(userId: UserId, chatId: ChatId, requestId: String): AgentContext {
@@ -96,7 +88,7 @@ class AgentContextLoader(
 
         val llmConfig = tx.readOnly {
             llmConfigProvider.getActiveConfig(userId)
-        } ?: DEFAULT_LLM_CONFIG
+        } ?: officialLLMConfig
         val effectiveConfig = applyLLMOverrides(llmConfig, chat.config)
 
         return AgentContext(
