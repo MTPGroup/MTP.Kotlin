@@ -98,92 +98,94 @@ fun Route.knowledgeRoutes() {
             }
         }
 
-        // 获取知识库详情（公开知识库无需认证，私有知识库需要是所有者）
-        get("/{knowledgeBaseId}") {
-            val userId = call.optionalUserId()
-            val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-            val kb = knowledgeBaseService.getKnowledgeBase(userId, knowledgeBaseId)
-            call.respondOk(kb.toResponse())
-        }.describe {
-            tag("知识库管理")
-            operationId = "getKnowledgeBase"
-            summary = "获取知识库详情"
-            description = "获取指定知识库的详细信息，公开知识库无需认证，私有知识库需要是所有者"
-            parameters {
-                path("knowledgeBaseId") {
-                    description = "知识库ID"
+        authenticate("auth-jwt", optional = true) {
+            // 获取知识库详情（公开知识库无需认证，私有知识库需要是所有者）
+            get("/{knowledgeBaseId}") {
+                val userId = call.optionalUserId()
+                val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
+                val kb = knowledgeBaseService.getKnowledgeBase(userId, knowledgeBaseId)
+                call.respondOk(kb.toResponse())
+            }.describe {
+                tag("知识库管理")
+                operationId = "getKnowledgeBase"
+                summary = "获取知识库详情"
+                description = "获取指定知识库的详细信息，公开知识库无需认证，私有知识库需要是所有者"
+                parameters {
+                    path("knowledgeBaseId") {
+                        description = "知识库ID"
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<KnowledgeBaseResponse>>()
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "知识库不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "无权访问该知识库"
+                    }
                 }
             }
-            responses {
-                HttpStatusCode.OK {
-                    description = "获取成功"
-                    schema = jsonSchema<ApiResponse<KnowledgeBaseResponse>>()
-                }
-                HttpStatusCode.NotFound {
-                    description = "知识库不存在"
-                }
-                HttpStatusCode.Forbidden {
-                    description = "无权访问该知识库"
-                }
-            }
-        }
 
-        // 获取知识库统计（公开知识库无需认证，私有知识库需要是所有者）
-        get("/{knowledgeBaseId}/stats") {
-            val userId = call.optionalUserId()
-            val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-            val stats = knowledgeBaseService.getKnowledgeBaseStats(userId, knowledgeBaseId)
-            call.respondOk(stats.toResponse())
-        }.describe {
-            tag("知识库管理")
-            operationId = "getKnowledgeBaseStats"
-            summary = "获取知识库统计"
-            description = "获取指定知识库的文件数量和文档数量统计，公开知识库无需认证，私有知识库需要是所有者"
-            parameters {
-                path("knowledgeBaseId") {
-                    description = "知识库ID"
+            // 获取知识库统计（公开知识库无需认证，私有知识库需要是所有者）
+            get("/{knowledgeBaseId}/stats") {
+                val userId = call.optionalUserId()
+                val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
+                val stats = knowledgeBaseService.getKnowledgeBaseStats(userId, knowledgeBaseId)
+                call.respondOk(stats.toResponse())
+            }.describe {
+                tag("知识库管理")
+                operationId = "getKnowledgeBaseStats"
+                summary = "获取知识库统计"
+                description = "获取指定知识库的文件数量和文档数量统计，公开知识库无需认证，私有知识库需要是所有者"
+                parameters {
+                    path("knowledgeBaseId") {
+                        description = "知识库ID"
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<KnowledgeBaseStatsResponse>>()
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "知识库不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "无权访问该知识库"
+                    }
                 }
             }
-            responses {
-                HttpStatusCode.OK {
-                    description = "获取成功"
-                    schema = jsonSchema<ApiResponse<KnowledgeBaseStatsResponse>>()
-                }
-                HttpStatusCode.NotFound {
-                    description = "知识库不存在"
-                }
-                HttpStatusCode.Forbidden {
-                    description = "无权访问该知识库"
-                }
-            }
-        }
 
-        // 获取知识库的文件列表（公开知识库无需认证，私有知识库需要是所有者）
-        get("/{knowledgeBaseId}/files") {
-            val userId = call.optionalUserId()
-            val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-            val files = knowledgeFileService.listFiles(userId, knowledgeBaseId)
-            call.respondOk(files.map { it.toResponse() })
-        }.describe {
-            tag("知识库文件管理")
-            operationId = "listKnowledgeFiles"
-            summary = "获取文件列表"
-            description = "获取指定知识库中的所有文件列表，公开知识库无需认证，私有知识库需要是所有者"
-            parameters {
-                path("knowledgeBaseId") {
-                    description = "知识库ID"
+            // 获取知识库的文件列表（公开知识库无需认证，私有知识库需要是所有者）
+            get("/{knowledgeBaseId}/files") {
+                val userId = call.optionalUserId()
+                val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
+                val files = knowledgeFileService.listFiles(userId, knowledgeBaseId)
+                call.respondOk(files.map { it.toResponse() })
+            }.describe {
+                tag("知识库文件管理")
+                operationId = "listKnowledgeFiles"
+                summary = "获取文件列表"
+                description = "获取指定知识库中的所有文件列表，公开知识库无需认证，私有知识库需要是所有者"
+                parameters {
+                    path("knowledgeBaseId") {
+                        description = "知识库ID"
+                    }
                 }
-            }
-            responses {
-                HttpStatusCode.OK {
-                    description = "获取成功"
-                    schema = jsonSchema<ApiResponse<List<KnowledgeFileResponse>>>()
-                }
-                HttpStatusCode.NotFound {
-                    description = "知识库不存在"
-                }
-                HttpStatusCode.Forbidden {
-                    description = "无权访问该知识库"
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<List<KnowledgeFileResponse>>>()
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "知识库不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "无权访问该知识库"
+                    }
                 }
             }
         }

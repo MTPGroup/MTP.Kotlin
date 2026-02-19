@@ -62,69 +62,68 @@ fun Route.characterRoutes() {
             }
         }
 
-        get("/search") {
-            val userId = call.optionalUserId()
-            val query = call.request.queryParameters["q"] ?: ""
-            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-            val result = characterService.searchCharacters(query, page, limit, userId)
-            call.respondOk(result.toResponse())
-        }.describe {
-            tag("角色管理")
-            operationId = "searchCharacters"
-            summary = "搜索角色"
-            description = "按名称搜索角色，返回公开角色及自己的私有角色"
-            parameters {
-                query("q") {
-                    description = "搜索关键词"
-                    required = false
+        authenticate("auth-jwt", optional = true) {
+            get("/search") {
+                val userId = call.optionalUserId()
+                val query = call.request.queryParameters["q"] ?: ""
+                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
+                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val result = characterService.searchCharacters(query, page, limit, userId)
+                call.respondOk(result.toResponse())
+            }.describe {
+                tag("角色管理")
+                operationId = "searchCharacters"
+                summary = "搜索角色"
+                description = "按名称搜索角色，返回公开角色及自己的私有角色"
+                parameters {
+                    query("q") {
+                        description = "搜索关键词"
+                        required = false
+                    }
+                    query("page") {
+                        description = "页码，从1开始"
+                        required = false
+                    }
+                    query("limit") {
+                        description = "每页数量，1-100"
+                        required = false
+                    }
                 }
-                query("page") {
-                    description = "页码，从1开始"
-                    required = false
-                }
-                query("limit") {
-                    description = "每页数量，1-100"
-                    required = false
+                responses {
+                    HttpStatusCode.OK {
+                        description = "搜索成功"
+                        schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
+                    }
                 }
             }
-            responses {
-                HttpStatusCode.OK {
-                    description = "搜索成功"
-                    schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
-                }
-                HttpStatusCode.Unauthorized {
-                    description = "未登录或令牌无效"
-                }
-            }
-        }
 
-        // 获取角色详情（公开角色无需认证，私有角色需要是作者）
-        get("/{characterId}") {
-            val userId = call.optionalUserId()
-            val characterId = CharacterId(call.uuidParam("characterId"))
-            val character = characterService.getCharacter(userId, characterId)
-            call.respondOk(character.toResponse())
-        }.describe {
-            tag("角色管理")
-            operationId = "getCharacter"
-            summary = "获取角色详情"
-            description = "获取指定角色的详细信息，公开角色无需认证，私有角色需要是作者"
-            parameters {
-                path("characterId") {
-                    description = "角色ID（UUID格式）"
+            // 获取角色详情（公开角色无需认证，私有角色需要是作者）
+            get("/{characterId}") {
+                val userId = call.optionalUserId()
+                val characterId = CharacterId(call.uuidParam("characterId"))
+                val character = characterService.getCharacter(userId, characterId)
+                call.respondOk(character.toResponse())
+            }.describe {
+                tag("角色管理")
+                operationId = "getCharacter"
+                summary = "获取角色详情"
+                description = "获取指定角色的详细信息，公开角色无需认证，私有角色需要是作者"
+                parameters {
+                    path("characterId") {
+                        description = "角色ID（UUID格式）"
+                    }
                 }
-            }
-            responses {
-                HttpStatusCode.OK {
-                    description = "获取成功"
-                    schema = jsonSchema<ApiResponse<CharacterResponse>>()
-                }
-                HttpStatusCode.NotFound {
-                    description = "角色不存在"
-                }
-                HttpStatusCode.Forbidden {
-                    description = "权限不足"
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<CharacterResponse>>()
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "角色不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "权限不足"
+                    }
                 }
             }
         }

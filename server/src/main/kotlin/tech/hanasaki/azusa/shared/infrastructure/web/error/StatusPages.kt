@@ -98,6 +98,35 @@ fun Application.configureErrorHandling() {
             )
         }
 
+        // 数据库并发冲突（序列化失败）
+        exception<org.jetbrains.exposed.v1.exceptions.ExposedSQLException> { call, exception ->
+            if (exception.message?.contains("could not serialize access") == true) {
+                logger.warn { "数据库并发冲突: ${exception.message}" }
+                call.respond(
+                    HttpStatusCode.Conflict,
+                    ApiResponse.error<Unit>(
+                        message = "操作冲突，请重试",
+                        code = "CONCURRENT_CONFLICT"
+                    )
+                )
+            } else {
+                logger.error(exception) { "数据库错误" }
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    ApiResponse.error<Unit>(
+                        message = "服务器内部错误",
+                        code = "INTERNAL_SERVER_ERROR"
+                    )
+                )
+            }
+        }
+
+        // 客户端断开连接（协程取消）
+        exception<kotlinx.coroutines.CancellationException> { _, exception ->
+            logger.debug { "请求已取消: ${exception.message}" }
+            throw exception
+        }
+
         // 其他所有异常
         exception<Throwable> { call, exception ->
             logger.error(exception) { "未知错误" }

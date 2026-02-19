@@ -14,7 +14,7 @@ object DatabaseFactory {
             password = config.password
             maximumPoolSize = config.maxPoolSize
             isAutoCommit = true
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            transactionIsolation = "TRANSACTION_READ_COMMITTED"
         }
 
         val dataSource = HikariDataSource(hikariConfig)
