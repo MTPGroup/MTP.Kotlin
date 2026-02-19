@@ -3,7 +3,6 @@ package tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 
 object ChatTable : Table("chats") {
@@ -14,6 +13,8 @@ object ChatTable : Table("chats") {
     val isGroup = bool("is_group").default(false)
     val createdAt = timestamp("created_at").default(Clock.System.now())
     val updatedAt = timestamp("updated_at").default(Clock.System.now())
+    val temporary = bool("temporary").default(false)
+    val expiresAt = timestamp("expires_at").nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

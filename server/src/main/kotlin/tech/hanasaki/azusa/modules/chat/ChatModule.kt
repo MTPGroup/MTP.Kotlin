@@ -16,6 +16,10 @@ import tech.hanasaki.azusa.modules.chat.application.port.out.KnowledgeSearcherPo
 import tech.hanasaki.azusa.modules.chat.application.port.out.PluginToolFactoryPort
 import tech.hanasaki.azusa.modules.chat.application.service.AgentOrchestrationService
 import tech.hanasaki.azusa.modules.chat.application.service.ChatService
+import tech.hanasaki.azusa.modules.chat.application.service.TemporaryChatCleaner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import tech.hanasaki.azusa.modules.chat.config.OfficialLLMConfig
 import tech.hanasaki.azusa.modules.chat.config.readOfficialLLMConfig
 import tech.hanasaki.azusa.shared.domain.model.vo.LLMConfig
@@ -66,6 +70,14 @@ fun chatModule(config: ApplicationConfig) = module {
             messageRepository = get(),
             chatModelFactory = get(),
             tx = get(),
+        )
+    }
+
+    single {
+        TemporaryChatCleaner(
+            chatRepository = get(),
+            tx = get(),
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
         )
     }
 }

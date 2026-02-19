@@ -25,6 +25,8 @@ object ChatMapper {
             members = members,
             config = config,
             pluginSubscriptions = pluginSubscriptions,
+            temporary = row[ChatTable.temporary],
+            expiresAt = row[ChatTable.expiresAt],
         )
 
     fun toEntity(domain: Chat, target: UpdateBuilder<*>) {
@@ -32,5 +34,7 @@ object ChatMapper {
         target[ChatTable.name] = domain.name
         target[ChatTable.lastMessage] = domain.lastMessage
         target[ChatTable.updatedAt] = domain.updatedAt
+        target[ChatTable.temporary] = domain.temporary
+        target[ChatTable.expiresAt] = domain.expiresAt
     }
 }

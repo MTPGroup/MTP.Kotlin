@@ -26,9 +26,9 @@ class ChatService(
     private val tx: TransactionalPort,
 ) : ChatUseCasePort {
 
-    override suspend fun createChat(userId: UserId, characterId: CharacterId, name: String?): Chat =
+    override suspend fun createChat(userId: UserId, characterId: CharacterId, name: String?, temporary: Boolean): Chat =
         tx.execute {
-            val chat = Chat.createPrivateChat(ownerId = userId, characterId = characterId, name = name)
+            val chat = Chat.createPrivateChat(ownerId = userId, characterId = characterId, name = name, temporary = temporary)
             chatRepository.save(chat)
             chat.members.forEach { chatMemberRepository.save(it) }
             chat.publishAndClear(domainEventBus)

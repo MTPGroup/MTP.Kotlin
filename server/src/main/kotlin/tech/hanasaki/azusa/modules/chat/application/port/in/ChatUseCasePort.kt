@@ -13,7 +13,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 interface ChatUseCasePort {
-    suspend fun createChat(userId: UserId, characterId: CharacterId, name: String?): Chat
+    suspend fun createChat(userId: UserId, characterId: CharacterId, name: String?, temporary: Boolean = false): Chat
     suspend fun getChat(userId: UserId, chatId: ChatId): Chat
     suspend fun listChats(userId: UserId, page: Int, limit: Int): PageResult<Chat>
     suspend fun deleteChat(userId: UserId, chatId: ChatId)

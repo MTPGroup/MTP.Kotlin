@@ -47,6 +47,7 @@ fun Route.chatRoutes() {
                     userId = userId,
                     characterId = CharacterId(request.characterId),
                     name = request.name,
+                    temporary = request.temporary,
                 )
                 call.respondOk(chat.toResponse(), "会话创建成功", HttpStatusCode.Created)
             }.describe {

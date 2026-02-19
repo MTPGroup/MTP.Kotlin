@@ -7,6 +7,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.PluginId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -27,6 +28,8 @@ class Chat private constructor(
     var members: List<ChatMember>,
     var config: ChatConfig?,
     var pluginSubscriptions: List<ChatPluginSubscription>,
+    val temporary: Boolean = false,
+    val expiresAt: Instant? = null,
 ) : AggregateRoot() {
 
     companion object {
@@ -37,6 +40,7 @@ class Chat private constructor(
             ownerId: UserId,
             characterId: CharacterId,
             name: String? = null,
+            temporary: Boolean = false,
         ): Chat {
             val now = Clock.System.now()
             val chat = Chat(
@@ -49,6 +53,8 @@ class Chat private constructor(
                 members = emptyList(),
                 config = ChatConfig.create(),
                 pluginSubscriptions = emptyList(),
+                temporary = temporary,
+                expiresAt = if (temporary) now + 24.hours else null,
             )
             chat.addMember(
                 ChatMember(
@@ -97,6 +103,8 @@ class Chat private constructor(
             members: List<ChatMember>,
             config: ChatConfig? = null,
             pluginSubscriptions: List<ChatPluginSubscription> = emptyList(),
+            temporary: Boolean = false,
+            expiresAt: Instant? = null,
         ): Chat = Chat(
             id = id,
             ownerId = ownerId,
@@ -107,6 +115,8 @@ class Chat private constructor(
             members = members,
             config = config,
             pluginSubscriptions = pluginSubscriptions,
+            temporary = temporary,
+            expiresAt = expiresAt,
         )
     }
 

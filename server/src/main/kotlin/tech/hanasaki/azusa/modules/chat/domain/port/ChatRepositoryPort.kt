@@ -28,4 +28,9 @@ interface ChatRepositoryPort {
      * 获取用户的聊天列表（分页）
      */
     suspend fun findByOwnerIdPaged(ownerId: UserId, page: Int, limit: Int): PageResult<Chat>
+
+    /**
+     * 删除已过期的临时会话，返回删除数量
+     */
+    suspend fun deleteExpiredTemporaryChats(): Int
 }

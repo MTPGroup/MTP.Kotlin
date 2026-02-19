@@ -1,17 +1,21 @@
 package tech.hanasaki.azusa.modules.chat.adapter.out.persistence.repository
 
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.lessEq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import kotlin.time.Clock
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.mapper.ChatConfigMapper
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.mapper.ChatMapper
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.mapper.ChatPluginSubscriptionMapper
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.ChatConfigTable
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.ChatPluginSubscriptionTable
 import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.ChatTable
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.MessageTable
 import tech.hanasaki.azusa.modules.chat.domain.model.Chat
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatMemberRepositoryPort
@@ -102,11 +106,11 @@ class ExposedChatRepository(
 
     override suspend fun findByOwnerIdPaged(ownerId: UserId, page: Int, limit: Int): PageResult<Chat> {
         val total = ChatTable.selectAll()
-            .where { ChatTable.ownerId eq ownerId.value }
+            .where { (ChatTable.ownerId eq ownerId.value) and (ChatTable.temporary eq false) }
             .count()
 
         val chatRows = ChatTable.selectAll()
-            .where { ChatTable.ownerId eq ownerId.value }
+            .where { (ChatTable.ownerId eq ownerId.value) and (ChatTable.temporary eq false) }
             .orderBy(ChatTable.updatedAt, SortOrder.DESC)
             .limit(limit)
             .offset(((page - 1) * limit).toLong())
@@ -129,5 +133,22 @@ class ExposedChatRepository(
         }
 
         return PageResult(chats, total, page, limit)
+    }
+
+    override suspend fun deleteExpiredTemporaryChats(): Int {
+        val now = Clock.System.now()
+        val expiredChatIds = ChatTable.selectAll()
+            .where { (ChatTable.temporary eq true) and (ChatTable.expiresAt lessEq now) }
+            .map { ChatId(it[ChatTable.id]) }
+
+        for (chatId in expiredChatIds) {
+            MessageTable.deleteWhere { MessageTable.chatId eq chatId.value }
+            chatMemberRepository.deleteByChatId(chatId)
+            ChatPluginSubscriptionTable.deleteWhere { ChatPluginSubscriptionTable.chatId eq chatId.value }
+            ChatConfigTable.deleteWhere { ChatConfigTable.chatId eq chatId.value }
+            ChatTable.deleteWhere { ChatTable.id eq chatId.value }
+        }
+
+        return expiredChatIds.size
     }
 }

@@ -18,6 +18,7 @@ data class ChatResponse(
     val characterId: Uuid?,
     val createdAt: String,
     val updatedAt: String,
+    val temporary: Boolean,
 )
 
 @Serializable
@@ -54,6 +55,7 @@ fun Chat.toResponse(): ChatResponse = ChatResponse(
     characterId = getCharacter()?.value,
     createdAt = createdAt.toString(),
     updatedAt = updatedAt.toString(),
+    temporary = temporary,
 )
 
 fun Message.toResponse(): MessageResponse = MessageResponse(

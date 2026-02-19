@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.uuid.Uuid
 
 @Serializable
-data class CreateChatRequest(val characterId: Uuid, val name: String? = null)
+data class CreateChatRequest(val characterId: Uuid, val name: String? = null, val temporary: Boolean = false)
 
 @Serializable
 data class UpdateChatNameRequest(val name: String?)
