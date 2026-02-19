@@ -28,7 +28,8 @@ class ChatService(
 
     override suspend fun createChat(userId: UserId, characterId: CharacterId, name: String?, temporary: Boolean): Chat =
         tx.execute {
-            val chat = Chat.createPrivateChat(ownerId = userId, characterId = characterId, name = name, temporary = temporary)
+            val chat =
+                Chat.createPrivateChat(ownerId = userId, characterId = characterId, name = name, temporary = temporary)
             chatRepository.save(chat)
             chat.members.forEach { chatMemberRepository.save(it) }
             chat.publishAndClear(domainEventBus)
@@ -61,6 +62,14 @@ class ChatService(
             requireOwner(userId, chatId)
             messageRepository.findByChatIdPaged(chatId, page, limit)
         }
+
+    override suspend fun deleteMessages(
+        userId: UserId,
+        chatId: ChatId,
+    ) = tx.execute {
+        requireOwner(userId, chatId)
+        messageRepository.deleteByChatId(chatId)
+    }
 
     override suspend fun deleteMessage(
         userId: UserId,

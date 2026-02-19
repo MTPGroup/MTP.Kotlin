@@ -217,7 +217,7 @@ fun Route.chatRoutes() {
                 val result = chatService.getMessages(userId, chatId, page, limit)
                 call.respondOk(result.toMessageResponse())
             }.describe {
-                tag("消息")
+                tag("会话消息")
                 operationId = "listMessages"
                 summary = "获取历史消息"
                 description = "获取指定会话的历史消息（分页），需要是会话的所有者"
@@ -238,6 +238,36 @@ fun Route.chatRoutes() {
                     HttpStatusCode.OK {
                         description = "获取成功"
                         schema = jsonSchema<ApiResponse<PagedMessageResponse>>()
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "会话不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "权限不足"
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
+
+            delete("/{chatId}/messages") {
+                val userId = call.requireUserId()
+                val chatId = ChatId(call.uuidParam("chatId"))
+                chatService.deleteMessages(userId, chatId)
+                call.respond(HttpStatusCode.NoContent)
+            }.describe {
+                tag("会话消息")
+                operationId = "deleteMessages"
+                summary = "清空会话中的历史消息"
+                parameters {
+                    path("chatId") {
+                        description = "会话ID (UUID)"
+                    }
+                }
+                responses {
+                    HttpStatusCode.NoContent {
+                        description = "清空会话消息成功"
                     }
                     HttpStatusCode.NotFound {
                         description = "会话不存在"
