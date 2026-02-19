@@ -126,6 +126,40 @@ fun Route.characterRoutes() {
                     }
                 }
             }
+
+            // 获取角色订阅的知识库列表
+            get("/{characterId}/knowledge-bases") {
+                val userId = call.optionalUserId()
+                val characterId = CharacterId(call.uuidParam("characterId"))
+                characterService.getCharacter(userId, characterId) // 权限校验
+                val subscriptions = characterService.getKnowledgeSubscriptions(characterId)
+                call.respondOk(subscriptions.toResponse())
+            }.describe {
+                tag("角色管理")
+                operationId = "listCharacterKnowledgeBases"
+                summary = "获取角色关联的知识库"
+                description = "获取指定角色订阅的所有知识库列表，需要是角色的作者"
+                parameters {
+                    path("characterId") {
+                        description = "角色ID（UUID格式）"
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<List<KnowledgeSubscriptionResponse>>>()
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "角色不存在"
+                    }
+                    HttpStatusCode.Forbidden {
+                        description = "权限不足"
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
         }
 
         authenticate("auth-jwt") {
@@ -357,39 +391,6 @@ fun Route.characterRoutes() {
                 }
             }
 
-            // 获取角色订阅的知识库列表
-            get("/{characterId}/knowledge-bases") {
-                val userId = call.requireUserId()
-                val characterId = CharacterId(call.uuidParam("characterId"))
-                characterService.getCharacter(userId, characterId) // 权限校验
-                val subscriptions = characterService.getKnowledgeSubscriptions(characterId)
-                call.respondOk(subscriptions.toResponse())
-            }.describe {
-                tag("角色管理")
-                operationId = "listCharacterKnowledgeBases"
-                summary = "获取角色关联的知识库"
-                description = "获取指定角色订阅的所有知识库列表，需要是角色的作者"
-                parameters {
-                    path("characterId") {
-                        description = "角色ID（UUID格式）"
-                    }
-                }
-                responses {
-                    HttpStatusCode.OK {
-                        description = "获取成功"
-                        schema = jsonSchema<ApiResponse<List<KnowledgeSubscriptionResponse>>>()
-                    }
-                    HttpStatusCode.NotFound {
-                        description = "角色不存在"
-                    }
-                    HttpStatusCode.Forbidden {
-                        description = "权限不足"
-                    }
-                    HttpStatusCode.Unauthorized {
-                        description = "未登录或令牌无效"
-                    }
-                }
-            }
 
             // 链接知识库到角色
             post("/{characterId}/knowledge-bases") {
