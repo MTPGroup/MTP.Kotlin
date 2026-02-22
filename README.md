@@ -47,6 +47,25 @@ MomoTalk Plus (MTP) 是一款基于 Kotlin Multiplatform 开发的角色扮演�
 - **数据存储**：Kotlin Multiplatform Settings
 - **构建工具**：Gradle
 
+### 后端部署
+
+**开发环境**：
+
+```bash
+cd server
+docker-compose up -d      # 启动依赖服务 (PostgreSQL, Redis, S3, MailDev)
+./gradlew :server:run     # 本地运行应用
+```
+
+**生产环境**：
+
+```bash
+# Docker 容器
+docker run -d -p 8080:8080 --env-file .env hanasak1/azusa:latest
+```
+
+详细文档请查看 [server/README.md](server/README.md)。
+
 ### 项目结构
 
 ```
