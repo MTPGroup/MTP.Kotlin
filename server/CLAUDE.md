@@ -7,49 +7,53 @@ Azusa 是一个基于 **Ktor + Exposed + Koin** 技术栈的 Kotlin 后端服务
 **技术栈:**
 
 - **Web Framework:** Ktor (Netty)
-- **ORM:** Exposed (Jetbrains)
+- **ORM:** Exposed (JetBrains)
 - **DI:** Koin
-- **Database:** PostgreSQL
+- **Database:** PostgreSQL + pgvector
+- **Cache/Message Queue:** Redis
 - **Serialization:** Kotlinx Serialization
 - **Auth:** JWT
-- **Storage:** S3 Compatible
+- **Storage:** S3 Compatible (MinIO/RustFS)
 - **Migration:** Flyway
+- **Mail:** SMTP
+- **AI/LLM:** LangChain4j
+- **Vector DB:** pgvector (PostgreSQL extension)
 
 ## Directory Structure
 
 ```
 server/src/main/kotlin/tech/hanasaki/azusa/
 ├── Application.kt              # 应用入口
-├── AppModule.kt                # Koin 模块聚合
-├── config/                     # 配置读取
-├── plugins/                    # Ktor 插件配置
-│   ├── Di.kt                   # 依赖注入
+├── bootstrap/                  # Ktor 插件配置
+│   ├── Di.kt                   # 依赖注入初始化
 │   ├── Routing.kt              # 路由配置
-│   ├── Security.kt             # JWT 安全配置
-│   ├── StatusPages.kt          # 异常处理
-│   ├── Events.kt               # 事件系统生命周期
 │   ├── ContentNegotiation.kt   # 序列化配置
-│   └── ApiResponseWrapper.kt   # 统一响应包装
+│   └── Cors.kt                 # CORS 配置
 ├── shared/                     # 共享内核 (Shared Kernel)
 │   ├── domain/
 │   │   ├── base/               # DDD 基础设施 (AggregateRoot)
-│   │   ├── model/              # 共享值对象 (UserId, ThemeId 等)
+│   │   ├── model/              # 共享值对象、分页等
 │   │   ├── event/              # 领域事件接口
 │   │   └── exception/          # 领域异常
-│   ├── api/                    # 共享 API 工具
+│   ├── port/                   # 端口接口（应用层）
+│   │   ├── in/                 # 入站端口（事件处理器）
+│   │   └── out/                # 出站端口（仓储、服务）
 │   └── infrastructure/
-│       ├── database/           # 数据库连接
-│       ├── event/              # 事件系统实现
-│       │   ├── config/         # 事件配置
-│       │   ├── persistence/    # 事件仓储实现
-│       │   └── service/        # 事件总线、轮询器
-│       ├── external/           # 外部服务 (S3)
-│       └── utils/              # 工具类
+│       ├── persistence/        # 数据库连接、事务
+│       ├── event/              # 事件系统实现（内存总线、Outbox、Redis）
+│       ├── llm/                # LLM 配置
+│       ├── security/           # 安全模块（密码编码）
+│       ├── storage/            # 对象存储（S3）
+│       └── web/                # Web 工具（响应包装、路由助手、校验）
 └── modules/                    # 业务模块
-    ├── auth/                   # 认证模块
-    ├── character/              # 角色模块
-    ├── theme/                  # 主题模块
-    └── setting/                # 设置模块
+    ├── auth/                   # 认证模块（用户、JWT、OTP）
+    ├── character/              # AI 角色模块
+    ├── chat/                   # 聊天模块（会话、消息、Agent）
+    ├── knowledge/              # 知识库模块（文档、向量搜索）
+    ├── notification/           # 通知模块（邮件、推送）
+    ├── plugin/                 # 插件模块
+    ├── setting/                # 用户设置模块
+    └── theme/                  # 主题模块
 ```
 
 ## Module Architecture (Hexagonal / Ports & Adapters)
@@ -110,14 +114,17 @@ abstract class AggregateRoot(
 // shared/domain/model/Ids.kt
 @JvmInline
 value class UserId(@Contextual val value: UUID)
+
 @JvmInline
 value class ThemeId(@Contextual val value: UUID)
+
 @JvmInline
 value class CharacterId(@Contextual val value: UUID)
 
 // 模块内值对象
 @JvmInline
 value class Email(val value: String)
+
 @JvmInline
 value class PasswordHash(val value: String)
 ```
@@ -279,7 +286,8 @@ onDomainEvent<UserRegistered>("auth.user.registered") {
 
 ```kotlin
 // 1. 定义集成事件（需要 @Serializable）
-@Serializable @SerialName("OtpGenerated")
+@Serializable
+@SerialName("OtpGenerated")
 data class OtpGeneratedIntegrationEvent(
     val email: String,
     val code: String,
@@ -396,16 +404,30 @@ object UserTable : Table("users") {
 
 ## Modules Overview
 
-| Module      | Description          | Aggregate Root |
-|-------------|----------------------|----------------|
-| `auth`      | 用户认证、注册、JWT、OTP、密码管理 | `User`         |
-| `character` | AI 角色管理              | `Character`    |
-| `theme`     | 主题/皮肤管理              | `Theme`        |
-| `setting`   | 用户设置、LLM 配置          | `Setting`      |
+| Module         | Description          | Aggregate Root     |
+|----------------|----------------------|--------------------|
+| `auth`         | 用户认证、注册、JWT、OTP、密码管理 | `User`             |
+| `character`    | AI 角色管理              | `Character`        |
+| `chat`         | 聊天消息、会话管理            | `Chat` / `Message` |
+| `knowledge`    | 知识库文件、向量嵌入           | `KnowledgeFile`    |
+| `theme`        | 主题/皮肤管理              | `Theme`            |
+| `setting`      | 用户设置、LLM 配置          | `Setting`          |
+| `notification` | 通知系统                 | `Notification`     |
+| `plugin`       | 插件系统                 | `Plugin`           |
 
 ## Configuration
 
-通过 `application.yaml` + 环境变量配置：
+通过 `.env` 文件 + `application.yaml` 配置：
+
+### 环境变量配置
+
+复制 `.env.example` 为 `.env` 并配置：
+
+```bash
+cp .env.example .env
+```
+
+### application.yaml 配置
 
 ```yaml
 database:
@@ -432,7 +454,25 @@ event:
   outbox:
     pollingIntervalSeconds: 30
     batchSize: 100
+...
 ```
+
+### 开发环境配置
+
+开发环境使用 Docker Compose 启动依赖服务：
+
+```bash
+docker-compose up -d
+```
+
+这将启动：
+
+- PostgreSQL + pgvector
+- Redis
+- RustFS (S3 兼容对象存储)
+- MailDev (邮件测试服务)
+
+⚠️ **注意**：`docker-compose.yml` 仅用于开发环境，不适用于生产部署。
 
 ## Coding Conventions
 
