@@ -12,6 +12,7 @@ import io.ktor.server.routing.openapi.*
 import io.ktor.utils.io.jvm.javaio.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.web.dto.*
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseQueryUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
@@ -29,6 +30,7 @@ import kotlin.uuid.Uuid
 
 fun Route.knowledgeRoutes() {
     val knowledgeBaseService: KnowledgeBaseUseCasePort by inject()
+    val knowledgeBaseQueryService: KnowledgeBaseQueryUseCasePort by inject()
     val knowledgeFileService: KnowledgeFileUseCasePort by inject()
     val knowledgeSearchService: KnowledgeSearchUseCasePort by inject()
     val fileStoragePort: FileStoragePort by inject()
@@ -39,7 +41,7 @@ fun Route.knowledgeRoutes() {
         get("/public") {
             val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
             val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-            val result = knowledgeBaseService.listPublicKnowledgeBases(page, limit)
+            val result = knowledgeBaseQueryService.listPublicKnowledgeBases(page, limit)
             call.respondOk(result.toResponse())
         }.describe {
             tag("知识库管理")
@@ -69,7 +71,7 @@ fun Route.knowledgeRoutes() {
             val query = call.request.queryParameters["q"] ?: ""
             val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
             val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-            val result = knowledgeBaseService.searchKnowledgeBases(query, page, limit)
+            val result = knowledgeBaseQueryService.searchKnowledgeBases(query, page, limit)
             call.respondOk(result.toResponse())
         }.describe {
             tag("知识库管理")
@@ -103,7 +105,7 @@ fun Route.knowledgeRoutes() {
             get("/{knowledgeBaseId}") {
                 val userId = call.optionalUserId()
                 val knowledgeBaseId = KnowledgeBaseId(call.uuidParam("knowledgeBaseId"))
-                val kb = knowledgeBaseService.getKnowledgeBase(userId, knowledgeBaseId)
+                val kb = knowledgeBaseQueryService.getKnowledgeBase(userId, knowledgeBaseId)
                 call.respondOk(kb.toResponse())
             }.describe {
                 tag("知识库管理")
@@ -178,7 +180,7 @@ fun Route.knowledgeRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "获取成功"
-                        schema = jsonSchema<ApiResponse<List<KnowledgeFileResponse>>>()
+                        schema = jsonSchema<ApiResponse<Array<KnowledgeFileResponse>>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "知识库不存在"
@@ -213,7 +215,7 @@ fun Route.knowledgeRoutes() {
             responses {
                 HttpStatusCode.OK {
                     description = "搜索成功"
-                    schema = jsonSchema<ApiResponse<List<SearchResultResponse>>>()
+                    schema = jsonSchema<ApiResponse<Array<SearchResultResponse>>>()
                 }
             }
         }
@@ -226,7 +228,7 @@ fun Route.knowledgeRoutes() {
                 val userId = call.requireUserId()
                 val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
                 val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-                val result = knowledgeBaseService.listMyKnowledgeBases(userId, page, limit)
+                val result = knowledgeBaseQueryService.listMyKnowledgeBases(userId, page, limit)
                 call.respondOk(result.toResponse())
             }.describe {
                 tag("知识库管理")
@@ -264,7 +266,12 @@ fun Route.knowledgeRoutes() {
                     request.description,
                     request.isPublic
                 )
-                call.respondOk(kb.toResponse(), "知识库创建成功", HttpStatusCode.Created)
+                val view = knowledgeBaseQueryService.getKnowledgeBase(userId, kb.id)
+                call.respondOk(
+                    view.toResponse(),
+                    "知识库创建成功",
+                    HttpStatusCode.Created
+                )
             }.describe {
                 tag("知识库管理")
                 operationId = "createKnowledgeBase"
@@ -299,7 +306,8 @@ fun Route.knowledgeRoutes() {
                     request.description,
                     request.isPublic,
                 )
-                call.respondOk(kb.toResponse(), "知识库更新成功")
+                val view = knowledgeBaseQueryService.getKnowledgeBase(userId, kb.id)
+                call.respondOk(view.toResponse(), "知识库更新成功")
             }.describe {
                 tag("知识库管理")
                 operationId = "updateKnowledgeBase"
@@ -594,7 +602,7 @@ fun Route.knowledgeRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "搜索成功"
-                        schema = jsonSchema<ApiResponse<List<SearchResultResponse>>>()
+                        schema = jsonSchema<ApiResponse<Array<SearchResultResponse>>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "知识库不存在"
@@ -645,7 +653,7 @@ fun Route.knowledgeRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "搜索成功"
-                        schema = jsonSchema<ApiResponse<List<SearchResultResponse>>>()
+                        schema = jsonSchema<ApiResponse<Array<SearchResultResponse>>>()
                     }
                     HttpStatusCode.Unauthorized {
                         description = "未登录或令牌无效"

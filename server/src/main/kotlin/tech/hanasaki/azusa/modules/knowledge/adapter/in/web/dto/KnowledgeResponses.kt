@@ -2,7 +2,9 @@ package tech.hanasaki.azusa.modules.knowledge.adapter.`in`.web.dto
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.dto.KnowledgeBaseAuthorView
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.dto.KnowledgeBaseStats
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.dto.KnowledgeBaseView
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.SearchResult
 import tech.hanasaki.azusa.modules.knowledge.domain.model.FileStatus
 import tech.hanasaki.azusa.modules.knowledge.domain.model.KnowledgeBase
@@ -12,11 +14,18 @@ import kotlin.uuid.Uuid
 
 
 @Serializable
+data class AuthorProfileResponse(
+    val id: Uuid,
+    val name: String,
+    val avatar: String?,
+)
+
+@Serializable
 data class KnowledgeBaseResponse(
     val id: Uuid,
     val name: String,
     val description: String?,
-    val authorId: Uuid,
+    val author: AuthorProfileResponse? = null,
     val isPublic: Boolean,
     val createdAt: String,
     val updatedAt: String,
@@ -62,17 +71,23 @@ data class SearchResultResponse(
     val similarity: Float,
 )
 
-fun KnowledgeBase.toResponse(): KnowledgeBaseResponse = KnowledgeBaseResponse(
-    id = id.value,
+fun KnowledgeBaseAuthorView.toResponse(): AuthorProfileResponse = AuthorProfileResponse(
+    id = id,
     name = name,
-    description = description,
-    authorId = authorId.value,
-    isPublic = isPublic,
-    createdAt = createdAt.toString(),
-    updatedAt = updatedAt.toString(),
+    avatar = avatar,
 )
 
-fun PageResult<KnowledgeBase>.toResponse(): PagedKnowledgeBaseResponse = PagedKnowledgeBaseResponse(
+fun KnowledgeBaseView.toResponse(): KnowledgeBaseResponse = KnowledgeBaseResponse(
+    id = id,
+    name = name,
+    description = description,
+    author = author?.toResponse(),
+    isPublic = isPublic,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun PageResult<KnowledgeBaseView>.toResponse(): PagedKnowledgeBaseResponse = PagedKnowledgeBaseResponse(
     items = items.map { it.toResponse() },
     total = total,
     page = page,
@@ -81,6 +96,27 @@ fun PageResult<KnowledgeBase>.toResponse(): PagedKnowledgeBaseResponse = PagedKn
     hasNext = hasNext,
     hasPrevious = hasPrevious,
 )
+
+fun KnowledgeBase.toResponse(author: AuthorProfileResponse? = null): KnowledgeBaseResponse = KnowledgeBaseResponse(
+    id = id.value,
+    name = name,
+    description = description,
+    author = author,
+    isPublic = isPublic,
+    createdAt = createdAt.toString(),
+    updatedAt = updatedAt.toString(),
+)
+
+fun PageResult<KnowledgeBase>.toResponse(authors: Map<Uuid, AuthorProfileResponse> = emptyMap()): PagedKnowledgeBaseResponse =
+    PagedKnowledgeBaseResponse(
+        items = items.map { knowledgeBase -> knowledgeBase.toResponse(authors[knowledgeBase.authorId.value]) },
+        total = total,
+        page = page,
+        limit = limit,
+        totalPages = totalPages,
+        hasNext = hasNext,
+        hasPrevious = hasPrevious,
+    )
 
 fun KnowledgeFile.toResponse(): KnowledgeFileResponse = KnowledgeFileResponse(
     id = id.value,

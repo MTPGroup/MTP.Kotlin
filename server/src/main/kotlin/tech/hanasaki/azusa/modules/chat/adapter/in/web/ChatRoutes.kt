@@ -520,7 +520,7 @@ fun Route.chatRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "获取成功"
-                        schema = jsonSchema<ApiResponse<List<PluginSubscriptionResponse>>>()
+                        schema = jsonSchema<ApiResponse<Array<PluginSubscriptionResponse>>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "会话不存在"

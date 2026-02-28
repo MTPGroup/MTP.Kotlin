@@ -1,0 +1,13 @@
+package tech.hanasaki.azusa.modules.character.application.port.out
+
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
+import tech.hanasaki.azusa.shared.domain.model.page.PageResult
+import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
+import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+
+interface CharacterQueryRepositoryPort {
+    suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<CharacterView>
+    suspend fun findPublicCharactersPaged(page: Int, limit: Int): PageResult<CharacterView>
+    suspend fun searchCharacters(query: String, page: Int, limit: Int, userId: UserId?): PageResult<CharacterView>
+    suspend fun findVisibleById(characterId: CharacterId, userId: UserId?): CharacterView?
+}

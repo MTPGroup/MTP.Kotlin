@@ -12,17 +12,21 @@ import tech.hanasaki.azusa.modules.knowledge.adapter.`in`.event.KnowledgeBaseDel
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.embedding.Lc4jEmbeddingService
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.ingestor.Lc4jDocumentIngestorAdapter
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.parser.Lc4jDocumentParser
+import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeBaseQueryRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeBaseRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeDocumentRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.persistence.repository.ExposedKnowledgeFileRepository
 import tech.hanasaki.azusa.modules.knowledge.adapter.out.vector.Lc4jVectorStore
+import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseQueryUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentIngestorPort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParserPort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.EmbeddingServicePort
+import tech.hanasaki.azusa.modules.knowledge.application.port.out.KnowledgeBaseQueryRepositoryPort
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.VectorStore
+import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseQueryService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeBaseService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeFileService
 import tech.hanasaki.azusa.modules.knowledge.application.service.KnowledgeSearchService
@@ -36,6 +40,7 @@ import tech.hanasaki.azusa.shared.infrastructure.event.onDomainEvent
 
 fun knowledgeModule() = module {
     single<KnowledgeBaseRepositoryPort> { ExposedKnowledgeBaseRepository() }
+    single<KnowledgeBaseQueryRepositoryPort> { ExposedKnowledgeBaseQueryRepository() }
     single<KnowledgeFileRepositoryPort> { ExposedKnowledgeFileRepository() }
     single<KnowledgeDocumentRepositoryPort> { ExposedKnowledgeDocumentRepository() }
 
@@ -53,6 +58,14 @@ fun knowledgeModule() = module {
             embeddingStore = get<EmbeddingStore<TextSegment>>(),
             maxSegmentSize = 500,
             maxOverlapSize = 50,
+        )
+    }
+
+    single<KnowledgeBaseQueryUseCasePort> {
+        KnowledgeBaseQueryService(
+            knowledgeBaseQueryRepository = get(),
+            knowledgeBaseRepository = get(),
+            tx = get(),
         )
     }
 

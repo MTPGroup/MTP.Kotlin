@@ -25,7 +25,7 @@ data class ChatResponse(
 data class MessageResponse(
     val id: Uuid,
     val senderType: String,
-    val content: List<MessageContentDto>,
+    val content: Array<MessageContentDto>,
     val createdAt: String,
 )
 
@@ -61,7 +61,7 @@ fun Chat.toResponse(): ChatResponse = ChatResponse(
 fun Message.toResponse(): MessageResponse = MessageResponse(
     id = id.value,
     senderType = senderType.name,
-    content = content.map { it.toDto() },
+    content = content.map { it.toDto() }.toTypedArray(),
     createdAt = createdAt.toString(),
 )
 

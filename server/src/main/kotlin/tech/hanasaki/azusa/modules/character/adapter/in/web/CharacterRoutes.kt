@@ -13,6 +13,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.*
+import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterQueryUseCasePort
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
@@ -30,6 +31,7 @@ import kotlin.uuid.Uuid
 @OptIn(InternalAPI::class)
 fun Route.characterRoutes() {
     val characterService: CharacterUseCasePort by inject()
+    val characterQueryService: CharacterQueryUseCasePort by inject()
     val fileStoragePort: FileStoragePort by inject()
 
     route("/characters") {
@@ -37,7 +39,7 @@ fun Route.characterRoutes() {
         get("/public") {
             val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
             val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-            val result = characterService.listPublicCharacters(page, limit)
+            val result = characterQueryService.listPublicCharacters(page, limit)
             call.respondOk(result.toResponse())
         }.describe {
             tag("角色管理")
@@ -68,7 +70,7 @@ fun Route.characterRoutes() {
                 val query = call.request.queryParameters["q"] ?: ""
                 val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
                 val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
-                val result = characterService.searchCharacters(query, page, limit, userId)
+                val result = characterQueryService.searchCharacters(query, page, limit, userId)
                 call.respondOk(result.toResponse())
             }.describe {
                 tag("角色管理")
@@ -101,7 +103,7 @@ fun Route.characterRoutes() {
             get("/{characterId}") {
                 val userId = call.optionalUserId()
                 val characterId = CharacterId(call.uuidParam("characterId"))
-                val character = characterService.getCharacter(userId, characterId)
+                val character = characterQueryService.getCharacter(userId, characterId)
                 call.respondOk(character.toResponse())
             }.describe {
                 tag("角色管理")
@@ -131,7 +133,7 @@ fun Route.characterRoutes() {
             get("/{characterId}/knowledge-bases") {
                 val userId = call.optionalUserId()
                 val characterId = CharacterId(call.uuidParam("characterId"))
-                characterService.getCharacter(userId, characterId) // 权限校验
+                characterQueryService.getCharacter(userId, characterId) // 权限校验
                 val subscriptions = characterService.getKnowledgeSubscriptions(characterId)
                 call.respondOk(subscriptions.toResponse())
             }.describe {
@@ -147,7 +149,7 @@ fun Route.characterRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "获取成功"
-                        schema = jsonSchema<ApiResponse<List<KnowledgeSubscriptionResponse>>>()
+                        schema = jsonSchema<ApiResponse<Array<KnowledgeSubscriptionResponse>>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "角色不存在"
@@ -169,7 +171,7 @@ fun Route.characterRoutes() {
                 val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
                 val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
 
-                val result = characterService.listMyCharacters(userId, page, limit)
+                val result = characterQueryService.listMyCharacters(userId, page, limit)
                 call.respondOk(result.toResponse())
             }.describe {
                 tag("角色管理")
@@ -210,7 +212,12 @@ fun Route.characterRoutes() {
                     originPrompt = request.originPrompt,
                     isPublic = request.isPublic
                 )
-                call.respondOk(character.toResponse(), "角色创建成功", HttpStatusCode.Created)
+                val view = characterQueryService.getCharacter(userId, character.id)
+                call.respondOk(
+                    view.toResponse(),
+                    "角色创建成功",
+                    HttpStatusCode.Created
+                )
             }.describe {
                 tag("角色管理")
                 operationId = "createCharacter"
@@ -248,7 +255,8 @@ fun Route.characterRoutes() {
                     originPrompt = request.originPrompt,
                     isPublic = request.isPublic
                 )
-                call.respondOk(character.toResponse(), "角色更新成功")
+                val view = characterQueryService.getCharacter(userId, character.id)
+                call.respondOk(view.toResponse(), "角色更新成功")
             }.describe {
                 tag("角色管理")
                 operationId = "updateCharacter"
