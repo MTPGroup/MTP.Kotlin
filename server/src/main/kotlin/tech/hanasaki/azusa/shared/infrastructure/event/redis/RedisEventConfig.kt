@@ -7,6 +7,8 @@ import tech.hanasaki.azusa.shared.infrastructure.config.optionalLong
 import tech.hanasaki.azusa.shared.infrastructure.config.optionalString
 import tech.hanasaki.azusa.shared.infrastructure.config.requireString
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -35,6 +37,10 @@ data class StreamConfig(
     val dlqEnabled: Boolean = true,
     /** 死信队列 Stream key */
     val dlqStreamKey: String? = "azusa:dlq:outbox-events",
+    /** 处理锁 TTL（用于防止并发重复消费） */
+    val idempotencyLockTtl: Duration = 5.minutes,
+    /** 已处理标记 TTL */
+    val idempotencyProcessedTtl: Duration = 7.days,
 )
 
 /**
@@ -55,6 +61,8 @@ data class StreamConfig(
  *     maxRetries: 3
  *     dlqEnabled: true
  *     dlqStreamKey: "azusa:dlq:outbox-events"
+ *     idempotencyLockTtlMinutes: 5
+ *     idempotencyProcessedTtlDays: 7
  * ```
  */
 fun ApplicationConfig.readStreamConfig(): StreamConfig {
@@ -71,5 +79,7 @@ fun ApplicationConfig.readStreamConfig(): StreamConfig {
         maxRetries = optionalInt("$prefix.maxRetries") ?: 3,
         dlqEnabled = optionalBoolean("$prefix.dlqEnabled") ?: true,
         dlqStreamKey = optionalString("$prefix.dlqStreamKey") ?: "azusa:dlq:outbox-events",
+        idempotencyLockTtl = optionalLong("$prefix.idempotencyLockTtlMinutes")?.minutes ?: 5.minutes,
+        idempotencyProcessedTtl = optionalLong("$prefix.idempotencyProcessedTtlDays")?.days ?: 7.days,
     )
 }

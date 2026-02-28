@@ -20,6 +20,7 @@ import org.koin.dsl.module
 import tech.hanasaki.azusa.shared.domain.event.DomainEvent
 import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
 import tech.hanasaki.azusa.shared.infrastructure.event.outbox.*
+import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisIntegrationEventIdempotency
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamEventPublisher
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.RedisStreamListener
 import tech.hanasaki.azusa.shared.infrastructure.event.redis.StreamConfig
@@ -77,6 +78,12 @@ fun eventModule(config: ApplicationConfig) = module {
         RedisStreamEventPublisher(
             get(),
             get(),
+        )
+    }
+    single<IntegrationEventIdempotencyPort> {
+        RedisIntegrationEventIdempotency(
+            redisCommands = get(),
+            config = get(),
         )
     }
     single {
@@ -159,9 +166,25 @@ inline fun <reified IE : IntegrationEvent> Module.onIntegrationEvent(
     single(qualifier = name, createdAtStart = true) {
         val logger = KotlinLogging.logger { }
         val subscriber = get<EventSubscriberPort>()
+        val idempotency = get<IntegrationEventIdempotencyPort>()
         val handler = handlerFactory()
+        val handlerKey = "${eventType}:${handler::class.qualifiedName ?: handler::class.simpleName ?: "anonymous"}"
         logger.info { "注册集成事件处理器: ${handler::class.simpleName} -> $eventType" }
-        subscriber.registerHandler(eventType) { event -> if (event is IE) handler(event) }
+        subscriber.registerHandler(eventType) { event ->
+            if (event is IE) {
+                if (!idempotency.tryAcquire(event, handlerKey)) {
+                    logger.debug { "跳过重复集成事件: eventId=${event.eventId}, handler=$handlerKey" }
+                    return@registerHandler
+                }
+                try {
+                    handler(event)
+                    idempotency.markProcessed(event, handlerKey)
+                } catch (e: Exception) {
+                    idempotency.release(event, handlerKey)
+                    throw e
+                }
+            }
+        }
         handler
     }
 }

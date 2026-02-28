@@ -76,3 +76,5 @@ event:
     maxRetries: ${STREAM_MAX_RETRIES:3}
     dlqEnabled: ${STREAM_DLQ_ENABLED:true}
     dlqStreamKey: ${STREAM_DLQ_KEY:azusa:dlq:outbox-events}
+    idempotencyLockTtlMinutes: ${STREAM_IDEMPOTENCY_LOCK_TTL_MINUTES:5}
+    idempotencyProcessedTtlDays: ${STREAM_IDEMPOTENCY_PROCESSED_TTL_DAYS:7}
