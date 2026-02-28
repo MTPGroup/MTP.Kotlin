@@ -86,7 +86,7 @@ fun Route.pluginRoutes() {
 
         get("/{pluginId}") {
             val pluginId = PluginId(call.uuidParam("pluginId"))
-            val plugin = pluginService.getPlugin(pluginId)
+            val plugin = pluginService.getApprovedPlugin(pluginId)
             call.respondOk(plugin.toDetailResponse())
         }.describe {
             tag("插件管理")

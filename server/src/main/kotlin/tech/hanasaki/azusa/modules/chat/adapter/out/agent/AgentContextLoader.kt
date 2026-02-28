@@ -15,6 +15,7 @@ import tech.hanasaki.azusa.modules.chat.application.service.trimHistoryByTokenBu
 import tech.hanasaki.azusa.modules.chat.domain.model.ChatId
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
+import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import tech.hanasaki.azusa.modules.plugin.domain.port.PluginRepositoryPort
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
@@ -71,6 +72,10 @@ class AgentContextLoader(
         tx.readOnly {
             for (sub in enabledPlugins) {
                 val plugin = pluginRepository.findById(sub.pluginId) ?: continue
+                if (plugin.status != PluginStatus.APPROVED) {
+                    logger.warn { "[$requestId] 跳过未通过审核插件: pluginId=${sub.pluginId.value}, status=${plugin.status}" }
+                    continue
+                }
                 val entry = pluginToolFactory.create(plugin, sub.config, userId)
                 pluginToolMap[entry.specification] = entry.executor
             }

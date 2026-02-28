@@ -6,9 +6,11 @@ import tech.hanasaki.azusa.modules.chat.domain.model.*
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatMemberRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.ChatRepositoryPort
 import tech.hanasaki.azusa.modules.chat.domain.port.MessageRepositoryPort
+import tech.hanasaki.azusa.modules.plugin.domain.model.PluginStatus
 import tech.hanasaki.azusa.modules.plugin.domain.port.PluginRepositoryPort
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
@@ -120,7 +122,10 @@ class ChatService(
         enabled: Boolean,
     ): ChatPluginSubscription = tx.execute {
         val chat = requireOwner(userId, chatId)
-        pluginRepository.findById(pluginId) ?: throw NotFoundException("插件不存在")
+        val plugin = pluginRepository.findById(pluginId) ?: throw NotFoundException("插件不存在")
+        if (enabled && plugin.status != PluginStatus.APPROVED) {
+            throw ValidationException("仅可启用已审核通过的插件")
+        }
         val subscription = chat.togglePlugin(pluginId, enabled)
         chatRepository.save(chat)
         subscription

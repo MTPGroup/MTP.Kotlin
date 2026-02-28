@@ -46,6 +46,15 @@ class PluginService(
             ?: throw NotFoundException("Plugin not found")
     }
 
+    override suspend fun getApprovedPlugin(pluginId: PluginId): Plugin = tx.readOnly {
+        val plugin = pluginRepository.findById(pluginId)
+            ?: throw NotFoundException("Plugin not found")
+        if (plugin.status != PluginStatus.APPROVED) {
+            throw NotFoundException("Plugin not found")
+        }
+        plugin
+    }
+
     override suspend fun createPlugin(
         authorId: UserId,
         name: String,
@@ -121,18 +130,24 @@ class PluginService(
     }
 
     override suspend fun likePlugin(userId: UserId, pluginId: PluginId) = tx.execute {
-        pluginRepository.findById(pluginId)
+        val plugin = pluginRepository.findById(pluginId)
             ?: throw NotFoundException("Plugin not found")
         if (likeRepository.exists(userId, pluginId)) {
             throw ConflictException("Already liked")
         }
         likeRepository.like(userId, pluginId)
+        plugin.incrementLikeCount()
+        pluginRepository.save(plugin)
     }
 
     override suspend fun unlikePlugin(userId: UserId, pluginId: PluginId) = tx.execute {
+        val plugin = pluginRepository.findById(pluginId)
+            ?: throw NotFoundException("Plugin not found")
         if (!likeRepository.exists(userId, pluginId)) {
             throw NotFoundException("Like not found")
         }
         likeRepository.unlike(userId, pluginId)
+        plugin.decrementLikeCount()
+        pluginRepository.save(plugin)
     }
 }

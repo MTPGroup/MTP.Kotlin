@@ -13,6 +13,7 @@ interface PluginUseCasePort {
     suspend fun listPendingPlugins(page: Int, limit: Int): PageResult<Plugin>
     suspend fun listMyPlugins(userId: UserId, page: Int, limit: Int): PageResult<Plugin>
     suspend fun getPlugin(pluginId: PluginId): Plugin
+    suspend fun getApprovedPlugin(pluginId: PluginId): Plugin
     suspend fun createPlugin(authorId: UserId, name: String, description: String, version: String, schema: PluginSchema, executionConfig: PluginExecutionConfig): Plugin
     suspend fun updatePlugin(userId: UserId, pluginId: PluginId, name: String, description: String, version: String, schema: PluginSchema, executionConfig: PluginExecutionConfig): Plugin
     suspend fun deletePlugin(userId: UserId, pluginId: PluginId)
