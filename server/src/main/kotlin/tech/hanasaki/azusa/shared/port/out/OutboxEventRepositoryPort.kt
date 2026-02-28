@@ -22,8 +22,9 @@ interface OutboxEventRepositoryPort {
     /**
      * 查找未发布的事件
      * @param limit 最大返回数量
+     * @param maxRetries 最大重试次数（仅对 FAILED 事件生效）
      */
-    suspend fun findPending(limit: Int = 100): List<OutboxEvent>
+    suspend fun findPending(limit: Int = 100, maxRetries: Int = 3): List<OutboxEvent>
 
     /**
      * 标记事件为已发布

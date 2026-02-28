@@ -17,6 +17,8 @@ data class OutboxPollerConfig(
     val pollingInterval: Duration = 30.seconds,
     /** 每次轮询的批量大小 */
     val batchSize: Int = 100,
+    /** 发布失败后的最大重试次数 */
+    val maxRetries: Int = 3,
     /** 是否启用清理任务 */
     val cleanupEnabled: Boolean = true,
     /** 清理任务执行间隔 */
@@ -34,6 +36,7 @@ data class OutboxPollerConfig(
  *   outbox:
  *     pollingIntervalSeconds: 30
  *     batchSize: 100
+ *     maxRetries: 3
  *     cleanupEnabled: true
  *     cleanupIntervalMinutes: 1
  *     retentionDays: 7
@@ -44,6 +47,7 @@ fun ApplicationConfig.readOutboxPollerConfig(): OutboxPollerConfig {
     return OutboxPollerConfig(
         pollingInterval = optionalLong("$prefix.pollingIntervalSeconds")?.seconds ?: 30.seconds,
         batchSize = optionalInt("$prefix.batchSize") ?: 100,
+        maxRetries = optionalInt("$prefix.maxRetries") ?: 3,
         cleanupEnabled = optionalBoolean("$prefix.cleanupEnabled") ?: true,
         cleanupInterval = optionalLong("$prefix.cleanupIntervalMinutes")?.minutes ?: 1.minutes,
         retentionPeriod = optionalLong("$prefix.retentionDays")?.days ?: 7.days,

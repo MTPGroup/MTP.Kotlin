@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.lettuce.core.*
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.coroutines.*
+import kotlin.time.Clock
 import tech.hanasaki.azusa.shared.domain.event.IntegrationEvent
 import tech.hanasaki.azusa.shared.port.`in`.EventSubscriberPort
 import tech.hanasaki.azusa.shared.port.out.EventSerializerPort
@@ -42,8 +43,15 @@ class RedisStreamListener(
         logger.info { "启动Redis Stream监听器: ${config.streamKey}" }
 
         listeningJob = scope.launch {
+            var nextClaimAt = Clock.System.now() + config.claimInterval
             while (isActive && running) {
                 try {
+                    val now = Clock.System.now()
+                    if (now >= nextClaimAt) {
+                        claimPendingMessages()
+                        nextClaimAt = now + config.claimInterval
+                    }
+
                     val processed = onMessage()
                     if (!processed) {
                         delay(100)

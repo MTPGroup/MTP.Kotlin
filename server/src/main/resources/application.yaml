@@ -58,19 +58,21 @@ redis:
   password: ${REDIS_PASSWORD}
 event:
   outbox:
-    pollingIntervalSeconds: 10
-    batchSize: 100
-    cleanupEnabled: true
-    cleanupIntervalMinutes: 1
-    retentionDays: 7
+    pollingIntervalSeconds: ${OUTBOX_POLLING_INTERVAL_SECONDS:10}
+    batchSize: ${OUTBOX_BATCH_SIZE:100}
+    maxRetries: ${OUTBOX_MAX_RETRIES:3}
+    cleanupEnabled: ${OUTBOX_CLEANUP_ENABLED:true}
+    cleanupIntervalMinutes: ${OUTBOX_CLEANUP_INTERVAL_MINUTES:1}
+    retentionDays: ${OUTBOX_RETENTION_DAYS:7}
   stream:
     streamKey: ${STREAM_KEY}
     consumerGroup: ${CONSUMER_GROUP}
     consumerName: ${EVENT_STREAM_CONSUMER_NAME:azusa-instance-1}
-    batchSize: 10
-    pollIntervalSeconds: 1
-    claimIdleTimeSeconds: 30
-    claimBatchSize: 100
-    maxRetries: 3
-    dlqEnabled: true
-    dlqStreamKey: "azusa:dlq:outbox-events"
+    batchSize: ${STREAM_BATCH_SIZE:10}
+    pollIntervalSeconds: ${STREAM_POLL_INTERVAL_SECONDS:1}
+    claimIdleTimeSeconds: ${STREAM_CLAIM_IDLE_TIME_SECONDS:30}
+    claimBatchSize: ${STREAM_CLAIM_BATCH_SIZE:100}
+    claimIntervalSeconds: ${STREAM_CLAIM_INTERVAL_SECONDS:10}
+    maxRetries: ${STREAM_MAX_RETRIES:3}
+    dlqEnabled: ${STREAM_DLQ_ENABLED:true}
+    dlqStreamKey: ${STREAM_DLQ_KEY:azusa:dlq:outbox-events}

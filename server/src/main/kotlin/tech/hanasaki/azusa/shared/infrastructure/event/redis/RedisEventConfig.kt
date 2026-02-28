@@ -27,6 +27,8 @@ data class StreamConfig(
     val claimIdleTime: Duration = 30.seconds,
     /** 每次认领消息的批量大小 */
     val claimBatchSize: Int = 100,
+    /** 周期性认领检查间隔 */
+    val claimInterval: Duration = 10.seconds,
     /** 消息处理失败最大重试次数 */
     val maxRetries: Int = 3,
     /** 是否启用死信队列 */
@@ -49,6 +51,7 @@ data class StreamConfig(
  *     pollIntervalSeconds: 1
  *     claimIdleTimeSeconds: 30
  *     claimBatchSize: 100
+ *     claimIntervalSeconds: 10
  *     maxRetries: 3
  *     dlqEnabled: true
  *     dlqStreamKey: "azusa:dlq:outbox-events"
@@ -64,6 +67,7 @@ fun ApplicationConfig.readStreamConfig(): StreamConfig {
         pollInterval = optionalLong("$prefix.pollIntervalSeconds")?.seconds ?: 1.seconds,
         claimIdleTime = optionalLong("$prefix.claimIdleTimeSeconds")?.seconds ?: 30.seconds,
         claimBatchSize = optionalInt("$prefix.claimBatchSize") ?: 100,
+        claimInterval = optionalLong("$prefix.claimIntervalSeconds")?.seconds ?: 10.seconds,
         maxRetries = optionalInt("$prefix.maxRetries") ?: 3,
         dlqEnabled = optionalBoolean("$prefix.dlqEnabled") ?: true,
         dlqStreamKey = optionalString("$prefix.dlqStreamKey") ?: "azusa:dlq:outbox-events",

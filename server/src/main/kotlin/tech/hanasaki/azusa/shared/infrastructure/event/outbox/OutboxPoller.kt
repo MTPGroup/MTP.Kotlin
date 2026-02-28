@@ -71,7 +71,10 @@ class OutboxPoller(
 
     private suspend fun processBatch() {
         tx.execute {
-            val events = repository.findPending(outboxConfig.batchSize)
+            val events = repository.findPending(
+                limit = outboxConfig.batchSize,
+                maxRetries = outboxConfig.maxRetries,
+            )
 
             events.forEach { event ->
                 try {

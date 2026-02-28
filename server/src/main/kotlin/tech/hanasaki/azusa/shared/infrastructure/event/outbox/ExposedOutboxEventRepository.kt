@@ -30,13 +30,13 @@ class ExposedOutboxEventRepository : OutboxEventRepositoryPort {
         }
     }
 
-    override suspend fun findPending(limit: Int): List<OutboxEvent> {
+    override suspend fun findPending(limit: Int, maxRetries: Int): List<OutboxEvent> {
         return OutboxEventsTable
             .selectAll()
             .where {
                 (OutboxEventsTable.status eq OutboxEventStatus.PENDING) or
                         (OutboxEventsTable.status eq OutboxEventStatus.FAILED) and
-                        (OutboxEventsTable.retryCount less 5)
+                        (OutboxEventsTable.retryCount less maxRetries)
             }
             .orderBy(OutboxEventsTable.createdAt, SortOrder.ASC)
             .limit(limit)
