@@ -14,7 +14,10 @@ application {
     mainClass.set("tech.hanasaki.azusa.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    applicationDefaultJvmArgs = listOf(
+        "-Dio.ktor.development=$isDevelopment",
+        "--enable-native-access=ALL-UNNAMED",
+    )
 }
 
 ktor {
@@ -54,6 +57,11 @@ dependencies {
     implementation(serverLibs.bundles.service)
     implementation(serverLibs.bundles.logging)
     implementation(serverLibs.bundles.agent)
+
+    // macOS DNS 原生解析（避免 Netty 回退到系统默认实现）
+    runtimeOnly("io.netty:netty-resolver-dns-classes-macos:4.2.9.Final")
+    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.2.9.Final:osx-aarch_64")
+    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.2.9.Final:osx-x86_64")
 
     testImplementation(platform(serverLibs.testcontainers.bom))
     testImplementation(kotlin("test-junit5"))
