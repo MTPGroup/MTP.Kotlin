@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "tech.hanasaki"
-version = "0.1.4"
+version = "0.1.5"
 
 application {
     mainClass.set("tech.hanasaki.azusa.ApplicationKt")
