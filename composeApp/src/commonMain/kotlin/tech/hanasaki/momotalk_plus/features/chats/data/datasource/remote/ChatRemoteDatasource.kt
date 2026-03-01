@@ -1,7 +1,5 @@
 package tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote
 
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
 import io.ktor.client.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
@@ -12,12 +10,13 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
+import tech.hanasaki.momotalk_plus.core.auth.TokenStore
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamChunk
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 
 class ChatRemoteDatasource(
     private val client: HttpClient,
-    private val supabase: SupabaseClient,
+    private val tokenStore: TokenStore,
 ) {
     // Supabase Edge Function URL
     private val endpoint = "http://localhost:8000/functions/v1/chats"
@@ -33,7 +32,7 @@ class ChatRemoteDatasource(
         message: String,
     ): Flow<StreamEvent> = flow {
         try {
-            val accessToken = supabase.auth.currentSessionOrNull()?.accessToken ?: ""
+            val accessToken = tokenStore.get()?.accessToken.orEmpty()
             
             client.sse(
                 urlString = "$endpoint/$chatId/messages/stream",

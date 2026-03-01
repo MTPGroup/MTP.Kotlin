@@ -59,9 +59,9 @@ dependencies {
     implementation(serverLibs.bundles.agent)
 
     // macOS DNS 原生解析（避免 Netty 回退到系统默认实现）
-    runtimeOnly("io.netty:netty-resolver-dns-classes-macos:4.2.9.Final")
-    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.2.9.Final:osx-aarch_64")
-    runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.2.9.Final:osx-x86_64")
+    runtimeOnly(libs.netty.resolver.dns.classes.macos)
+    runtimeOnly(libs.netty.resolver.dns.native.macos)
+    runtimeOnly(libs.netty.resolver.dns.native.macos)
 
     testImplementation(platform(serverLibs.testcontainers.bom))
     testImplementation(kotlin("test-junit5"))

@@ -1,12 +1,17 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.state
 
+import tech.hanasaki.momotalk_plus.features.auth.presentation.support.AuthUiText
+
 data class ForgotPasswordState(
     val email: String = "",
     val newPassword: String = "",
     val otpCode: String = "",
     val isLoading: Boolean = false,
     val isRequestingCode: Boolean = false,
-    val error: String? = null,
+    val resendCooldownSeconds: Int = 0,
+    val emailError: AuthUiText? = null,
+    val passwordError: AuthUiText? = null,
+    val otpError: AuthUiText? = null,
 )
 
 sealed class ForgotPasswordIntent {
@@ -19,5 +24,5 @@ sealed class ForgotPasswordIntent {
 
 sealed class ForgotPasswordSideEffect {
     data object NavigateToSuccess : ForgotPasswordSideEffect()
-    data class ShowToast(val message: String) : ForgotPasswordSideEffect()
+    data class ShowToast(val message: AuthUiText) : ForgotPasswordSideEffect()
 }

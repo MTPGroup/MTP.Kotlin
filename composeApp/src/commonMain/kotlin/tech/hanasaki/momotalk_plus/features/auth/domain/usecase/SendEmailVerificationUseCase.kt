@@ -1,10 +1,10 @@
 package tech.hanasaki.momotalk_plus.features.auth.domain.usecase
 
-import io.github.jan.supabase.auth.OtpType
+import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
 
 class SendEmailVerificationUseCase(private val repository: AuthRepository) {
-    suspend operator fun invoke(email: String, type: OtpType.Email): Result<Unit> = try {
+    suspend operator fun invoke(email: String, type: OTPType): Result<Unit> = try {
         repository.sendEmailVerification(email, type)
         Result.success(Unit)
     } catch (e: Exception) {

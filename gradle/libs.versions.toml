@@ -5,38 +5,26 @@ android-minSdk = "30"
 #noinspection OldTargetApi
 android-targetSdk = "35"
 androidx-activity = "1.12.4"
-androidx-appcompat = "1.7.1"
-androidx-constraintlayout = "2.2.1"
 annexflow-constraintlayout = "0.6.1"
-androidx-core = "1.17.0"
-androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.6"
-androidx-testExt = "1.3.0"
 androidx-collection = "1.5.0"
 androidx-navigation = "2.9.2"
 composeHotReload = "1.0.0"
 composeMultiplatform = "1.10.1"
-junit = "4.13.2"
-kotlin = "2.3.10"
-ksp = "2.2.20-2.0.4"
+composeMaterial3 = "1.10.0-alpha02"
+kotlin = "2.3.0"
+ksp = "2.3.4"
 ktorfit = "2.7.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-coroutines = "1.10.2"
-kotlinx-serialization-json = "1.8.1"
 koin-bom = "4.1.1"
 ktor = "3.4.0"
-exposed = "1.1.1"
-flyway = "12.0.3"
-hikari = "7.0.2"
-postgresql = "42.7.10"
-bcrypt = "0.10.2"
-angus-mail = "2.0.5"
-testcontainers = "2.0.3"
-aws-sdk = "2.42.4"
 coil = "3.4.0"
 multiplatform-settings = "1.3.0"
 ionicons = "8.0.13"
 compose-core = "1.49.6"
+nettyResolverDnsClassesMacos = "4.2.9.Final"
+nettyResolverDnsNativeMacos = "4.2.9.Final"
 supabase = "3.2.5"
 orbit = "11.0.0"
 
@@ -72,7 +60,16 @@ multiplatform-settings-noArg = { module = "com.russhwolf:multiplatform-settings-
 multiplatform-settings-makeObservable = { module = "com.russhwolf:multiplatform-settings-make-observable", version.ref = "multiplatform-settings" }
 compose-icon-ionicons = { module = "com.woowla.compose.icon.collections:ionicons", version.ref = "ionicons" }
 compose-core = { module = "com.composables:core", version.ref = "compose-core" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
+compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 ktorfit = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfit" }
+netty-resolver-dns-classes-macos = { module = "io.netty:netty-resolver-dns-classes-macos", version.ref = "nettyResolverDnsClassesMacos" }
+netty-resolver-dns-native-macos = { module = "io.netty:netty-resolver-dns-native-macos", version.ref = "nettyResolverDnsNativeMacos" }
 supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "supabase" }
 supabase-auth = { module = "io.github.jan-tennert.supabase:auth-kt" }
 supabase-postgrest = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
@@ -80,8 +77,18 @@ supabase-realtime = { module = "io.github.jan-tennert.supabase:realtime-kt" }
 supabase-storage = { module = "io.github.jan-tennert.supabase:storage-kt" }
 supabase-functions = { module = "io.github.jan-tennert.supabase:functions-kt" }
 orbit-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
+oribit-viewmodel = { module = "org.orbit-mvi:orbit-viewmodel", version.ref = "orbit" }
 
 [bundles]
+compose-ui-base = [
+    "compose-runtime",
+    "compose-foundation",
+    "compose-material3",
+    "compose-ui",
+    "compose-components-resources",
+    "compose-ui-tooling-preview",
+]
+
 compose-common = [
     "androidx-collection",
     "androidx-navigation",
@@ -92,6 +99,7 @@ compose-common = [
     "compose-icon-ionicons",
     "compose-core",
     "orbit-core",
+    "oribit-viewmodel",
 ]
 
 koin-common = [

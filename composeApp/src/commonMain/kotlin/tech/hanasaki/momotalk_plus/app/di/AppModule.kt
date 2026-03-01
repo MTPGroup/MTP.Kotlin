@@ -1,23 +1,19 @@
 package tech.hanasaki.momotalk_plus.app.di
 
-import de.jensklingenberg.ktorfit.Ktorfit
-import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.plugins.sse.*
-import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
+import tech.hanasaki.momotalk_plus.core.auth.InMemoryTokenStore
+import tech.hanasaki.momotalk_plus.core.auth.TokenStore
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
@@ -26,7 +22,10 @@ import tech.hanasaki.momotalk_plus.core.data.repository.SettingsRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.UploadImageRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.*
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
+import tech.hanasaki.momotalk_plus.core.network.NetworkErrorMapper
+import tech.hanasaki.momotalk_plus.core.network.createHttpClient
 import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
+import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.AuthRemoteDataSource
 import tech.hanasaki.momotalk_plus.features.auth.data.repository.AuthRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
 import tech.hanasaki.momotalk_plus.features.auth.domain.usecase.*
@@ -65,33 +64,23 @@ val storageModule = module {
 
 @OptIn(ExperimentalTime::class)
 val networkModule = module {
-    single<Ktorfit> {
-        Ktorfit.Builder()
-            .baseUrl("https://momotalk-plus.hanasaki.tech/api/")
-            .httpClient {
-                install(Logging) {
-                    logger = Logger.DEFAULT
-                    level = LogLevel.ALL
-                }
-                install(ContentNegotiation) {
-                    json(Json {
-                        prettyPrint = true
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                    })
-                }
-
-                install(SSE) {
-                    showRetryEvents()
-                    showCommentEvents()
-                }
-            }
-            .build()
+    single {
+        Json {
+            prettyPrint = true
+            isLenient = true
+            ignoreUnknownKeys = true
+        }
     }
 
-    // 如果有地方需要直接使用 HttpClient，从 Ktorfit 中获取
+    single<TokenStore> { InMemoryTokenStore() }
+
+    single { NetworkErrorMapper(get()) }
+
     single<HttpClient> {
-        get<Ktorfit>().httpClient
+        createHttpClient(
+            tokenStore = get(),
+            json = get(),
+        )
     }
 }
 
@@ -101,7 +90,6 @@ val supabaseModule = module {
             "http://127.0.0.1:8000",
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2Mzc4MDcyLCJleHAiOjE5MjQwNTgwNzJ9.cwrBICbBHINhojKuJ0pdoHaQguBR28rlPS41bPCh_pI"
         ) {
-            install(Auth)
             install(Postgrest)
             install(Storage)
             install(Realtime)
@@ -129,7 +117,7 @@ val characterModule = module {
 }
 
 val sessionModule = module {
-    single<SessionRepository> { SessionRepositoryImpl(get()) }
+    single<SessionRepository> { SessionRepositoryImpl(get(), get(), get()) }
 
     factoryOf(::ObserveCurrentUserUseCase)
     factoryOf(::ObserveLoginStateUseCase)
@@ -137,7 +125,8 @@ val sessionModule = module {
 }
 
 val authModule = module {
-    single<AuthRepository> { AuthRepositoryImpl(get()) }
+    single { AuthRemoteDataSource(get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get(), get()) }
 
     factoryOf(::SignInUserUseCase)
     factoryOf(::SignUpUserUseCase)

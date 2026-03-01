@@ -2,100 +2,91 @@
 
 package tech.hanasaki.momotalk_plus.core.data.repository
 
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.annotations.SupabaseExperimental
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.status.SessionStatus
-import io.github.jan.supabase.functions.functions
-import io.ktor.client.call.body
-import io.ktor.http.HttpMethod
-import io.ktor.http.path
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.Serializable
+import tech.hanasaki.momotalk_plus.core.auth.TokenStore
 import tech.hanasaki.momotalk_plus.core.domain.model.User
 import tech.hanasaki.momotalk_plus.core.domain.repository.SessionRepository
-import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.dto.ProfileResponse
+import tech.hanasaki.momotalk_plus.core.network.ApiEnvelope
+import tech.hanasaki.momotalk_plus.core.network.NetworkErrorMapper
+import tech.hanasaki.momotalk_plus.core.network.RefreshTokenRequest
+import tech.hanasaki.momotalk_plus.core.network.refreshAuthTokens
 
-/**
- * 使用 Supabase 作为单一事实来源的会话仓库实现。
- *
- * 这个实现直接利用 supabase-kt 客户端的内置会话管理能力，
- * 观察其认证状态流来提供用户信息和登录状态。
- * 这样就无需自定义缓存（Store5）或额外的后端API（SessionApi）来管理会话。
- */
 class SessionRepositoryImpl(
-    private val supabase: SupabaseClient,
+    private val client: HttpClient,
+    private val tokenStore: TokenStore,
+    private val errorMapper: NetworkErrorMapper,
 ) : SessionRepository {
 
-    /**
-     * 观察当前登录的用户信息。
-     *
-     * 它通过映射 Supabase 的 `sessionStatus` 流来实现：
-     * - 当用户通过身份验证时，流会发出一个 `User` 对象。
-     * - 在其他状态下（如未登录、加载中），流会发出 `null`。
-     */
-    @OptIn(SupabaseExperimental::class, ExperimentalCoroutinesApi::class)
     override fun obverseUser(): Flow<User?> {
-        return supabase.auth.sessionStatus
-            .flatMapLatest { sessionStatus ->
-                when (sessionStatus) {
-                    is SessionStatus.Authenticated -> {
-                        runCatching {
-                            val response = supabase.functions.invoke("profiles") {
-                                method = HttpMethod.Get
-                            }.body<ProfileResponse>()
-                            val profile = response.data
-                            User(
-                                id = profile.id,
-                                username = profile.username ?: profile.uid ?: profile.id,
-                                avatar = profile.avatar,
-                                createdAt = profile.createdAt,
-                                updatedAt = profile.updatedAt,
-                            )
-                        }.fold(
-                            onSuccess = { flowOf(it) },
-                            onFailure = {
-                                it.printStackTrace()
-                                flowOf(null)
-                            }
-                        )
-                    }
-
-                    else -> flowOf(null)
+        return tokenStore.tokensFlow
+            .map { it?.accessToken }
+            .onEach { token ->
+                if (token == null) return@onEach
+                val me = runCatching { fetchCurrentUser() }.getOrNull()
+                if (me == null) {
+                    tokenStore.clear()
                 }
+            }
+            .map { token ->
+                if (token == null) null else runCatching { fetchCurrentUser() }.getOrNull()
             }
     }
 
-    /**
-     * 观察用户的登录状态。
-     *
-     * - 如果用户已登录，流会发出 `true`。
-     * - 否则发出 `false`。
-     */
     override fun obverseLoginState(): Flow<Boolean> {
-        return obverseUser().map { it != null }
+        return tokenStore.tokensFlow.map { it != null }
     }
 
-    /**
-     * 登出用户。
-     *
-     * 这会调用 Supabase 的 signOut，它会清除本地存储的会话信息。
-     * 由于我们的状态流直接来自 Supabase，UI 会自动更新。
-     */
-    override suspend fun logout() {
-        supabase.auth.signOut()
-    }
-
-    /**
-     * 刷新当前会话。
-     *
-     * 这是一个可选的辅助函数，用于在需要时强制刷新会话令牌。
-     * supabase-kt 客户端通常会自动处理令牌刷新。
-     */
     override suspend fun refreshCurrentSession() {
-        supabase.auth.refreshCurrentSession()
+        try {
+            client.refreshAuthTokens(tokenStore)
+        } catch (t: Throwable) {
+            errorMapper.map(t)
+            tokenStore.clear()
+        }
+    }
+
+    override suspend fun logout() {
+        val refreshToken = tokenStore.get()?.refreshToken
+        runCatching {
+            client.post("auth/sign-out") {
+                if (refreshToken != null) {
+                    setBody(RefreshTokenRequest(refreshToken))
+                }
+            }
+        }
+        tokenStore.clear()
+    }
+
+    private suspend fun fetchCurrentUser(): User {
+        val envelope = client.get("auth/me").body<ApiEnvelope<UserPayload>>()
+        if (!envelope.success || envelope.data == null) {
+            throw IllegalStateException(envelope.message)
+        }
+
+        val data = envelope.data
+        return User(
+            id = data.userId,
+            username = data.username,
+            avatar = data.avatar,
+            createdAt = data.createdAt,
+            updatedAt = data.updatedAt,
+        )
     }
 }
+
+@Serializable
+private data class UserPayload(
+    val userId: String,
+    val email: String,
+    val username: String,
+    val avatar: String? = null,
+    val isEmailVerified: Boolean,
+    val createdAt: String,
+    val updatedAt: String,
+)

@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
@@ -33,7 +34,10 @@ sealed interface NavigationRoute {
     data object Login : NavigationRoute
 
     @Serializable
-    data object Register : NavigationRoute
+    data class Register(
+        val pendingEmail: String? = null,
+        val forceVerify: Boolean = false,
+    ) : NavigationRoute
 
     @Serializable
     data object ForgotPassword : NavigationRoute
@@ -100,7 +104,7 @@ fun AppNavigation(
                         navController.navigate(NavigationRoute.ForgotPassword)
                     },
                     onRegister = {
-                        navController.navigate(NavigationRoute.Register)
+                        navController.navigate(NavigationRoute.Register())
                     },
                 )
             }
@@ -111,11 +115,14 @@ fun AppNavigation(
                 )
             }
 
-            composable<NavigationRoute.Register> {
+            composable<NavigationRoute.Register> { backStackEntry ->
+                val route = backStackEntry.toRoute<NavigationRoute.Register>()
                 RegisterScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    }
+                    },
+                    initialEmail = route.pendingEmail,
+                    forceVerify = route.forceVerify,
                 )
             }
         }

@@ -38,7 +38,14 @@ class AuthService(
     ) = tx.execute {
         val email = email
 
-        if (userRepository.findByEmail(email) != null) {
+        val existingUser = userRepository.findByEmail(email)
+        if (existingUser != null) {
+            if (existingUser.status == UserStatus.PENDING || !existingUser.isEmailVerified) {
+                throw ConflictException(
+                    message = "邮箱已注册但尚未验证，请完成邮箱验证",
+                    code = ErrorCodes.EMAIL_NOT_VERIFIED,
+                )
+            }
             throw ConflictException("邮箱已被注册")
         }
 
@@ -65,7 +72,10 @@ class AuthService(
         if (!user.canSignIn()) {
             when (user.status) {
                 UserStatus.BANNED -> throw AuthorizationException("账号已被封禁，封禁结束时间： ${user.bannedUntil}")
-                UserStatus.PENDING -> throw AuthorizationException("邮箱未验证")
+                UserStatus.PENDING -> throw AuthorizationException(
+                    message = "邮箱未验证",
+                    code = ErrorCodes.EMAIL_NOT_VERIFIED,
+                )
                 else -> throw AuthorizationException("账号不可用")
             }
         }

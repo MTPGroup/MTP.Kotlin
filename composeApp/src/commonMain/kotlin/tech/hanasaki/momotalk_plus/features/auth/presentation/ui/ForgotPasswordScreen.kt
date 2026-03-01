@@ -1,11 +1,34 @@
 package tech.hanasaki.momotalk_plus.features.auth.presentation.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -15,13 +38,41 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.woowla.compose.icon.collections.ionicons.Ionicons
 import com.woowla.compose.icon.collections.ionicons.ionicons.Outline
-import com.woowla.compose.icon.collections.ionicons.ionicons.outline.*
-import kotlinx.coroutines.launch
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.CheckmarkCircle
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Eye
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.EyeOff
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.LockClosed
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.Mail
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.RefreshCircle
+import com.woowla.compose.icon.collections.ionicons.ionicons.outline.ShieldCheckmark
+import momotalkplus.composeapp.generated.resources.Res
+import momotalkplus.composeapp.generated.resources.auth_change_password
+import momotalkplus.composeapp.generated.resources.auth_email_icon_desc
+import momotalkplus.composeapp.generated.resources.auth_email_label
+import momotalkplus.composeapp.generated.resources.auth_forgot_password_title
+import momotalkplus.composeapp.generated.resources.auth_get_verification_code
+import momotalkplus.composeapp.generated.resources.auth_new_password
+import momotalkplus.composeapp.generated.resources.auth_otp_code_label
+import momotalkplus.composeapp.generated.resources.auth_otp_icon_desc
+import momotalkplus.composeapp.generated.resources.auth_password_hide
+import momotalkplus.composeapp.generated.resources.auth_password_icon_desc
+import momotalkplus.composeapp.generated.resources.auth_resend_in_seconds
+import momotalkplus.composeapp.generated.resources.auth_password_reset_hint
+import momotalkplus.composeapp.generated.resources.auth_password_reset_icon_desc
+import momotalkplus.composeapp.generated.resources.auth_password_reset_success
+import momotalkplus.composeapp.generated.resources.auth_password_reset_success_desc
+import momotalkplus.composeapp.generated.resources.auth_password_reset_success_icon_desc
+import momotalkplus.composeapp.generated.resources.auth_password_reset_title
+import momotalkplus.composeapp.generated.resources.auth_password_show
+import momotalkplus.composeapp.generated.resources.auth_to_login
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import tech.hanasaki.momotalk_plus.app.ui.widgets.MTopBar
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordIntent
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordSideEffect
 import tech.hanasaki.momotalk_plus.features.auth.presentation.state.ForgotPasswordState
+import tech.hanasaki.momotalk_plus.features.auth.presentation.support.asString
+import tech.hanasaki.momotalk_plus.features.auth.presentation.support.resolve
 import tech.hanasaki.momotalk_plus.features.auth.presentation.viewmodel.ForgotPasswordViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,34 +82,28 @@ fun ForgotPasswordScreen(
     viewModel: ForgotPasswordViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.container.stateFlow.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 2 }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel.container) {
+    LaunchedEffect(Unit) {
         viewModel.container.sideEffectFlow.collect { effect ->
             when (effect) {
-                is ForgotPasswordSideEffect.NavigateToSuccess ->
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(1)
-                    }
-
+                is ForgotPasswordSideEffect.NavigateToSuccess -> pagerState.animateScrollToPage(1)
                 is ForgotPasswordSideEffect.ShowToast -> {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(message = effect.message, withDismissAction = true)
-                    }
+                    snackbarHostState.showSnackbar(
+                        message = effect.message.resolve(),
+                        withDismissAction = true,
+                    )
                 }
             }
         }
     }
 
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             MTopBar(
-                title = "忘记密码",
+                title = stringResource(Res.string.auth_forgot_password_title),
                 onNavigateBack = onNavigateBack,
             )
         },
@@ -69,17 +114,13 @@ fun ForgotPasswordScreen(
                 .padding(paddingValues)
                 .fillMaxSize(),
         ) { page ->
-            // 根据页面索引显示不同内容
             when (page) {
                 0 -> RequestEmailStep(uiState = uiState, onIntent = viewModel::onIntent)
-                1 -> ResetSuccessStep(
-                    onNavigateToLogin = onNavigateBack,
-                )
+                1 -> ResetSuccessStep(onNavigateToLogin = onNavigateBack)
             }
         }
     }
 }
-
 
 @Composable
 private fun RequestEmailStep(
@@ -89,83 +130,85 @@ private fun RequestEmailStep(
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .padding(horizontal = 32.dp),
+        modifier = Modifier.padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
             imageVector = Ionicons.Outline.RefreshCircle,
-            contentDescription = "重置密码图标",
+            contentDescription = stringResource(Res.string.auth_password_reset_icon_desc),
             modifier = Modifier.size(100.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
         )
         Text(
-            text = "重置您的密码",
+            text = stringResource(Res.string.auth_password_reset_title),
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = "请输入关联您账户的邮箱地址，我们将向您发送验证码。",
+            text = stringResource(Res.string.auth_password_reset_hint),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
         OutlinedTextField(
             value = uiState.email,
             onValueChange = { onIntent(ForgotPasswordIntent.EmailChanged(it)) },
-            label = { Text("邮箱") },
+            label = { Text(stringResource(Res.string.auth_email_label)) },
             modifier = Modifier.fillMaxWidth(),
-            isError = uiState.error != null,
+            isError = uiState.emailError != null,
             singleLine = true,
             leadingIcon = {
                 Icon(
                     imageVector = Ionicons.Outline.Mail,
-                    contentDescription = "邮箱图标",
+                    contentDescription = stringResource(Res.string.auth_email_icon_desc),
                     modifier = Modifier.size(24.dp),
                 )
             },
             supportingText = {
-                if (uiState.error != null && uiState.error.contains("邮箱")) {
-                    Text(uiState.error)
-                }
+                uiState.emailError?.let { Text(it.asString()) }
             },
             shape = MaterialTheme.shapes.small,
         )
+
         OutlinedTextField(
             value = uiState.newPassword,
             onValueChange = { onIntent(ForgotPasswordIntent.PasswordChanged(it)) },
-            label = { Text("新密码") },
+            label = { Text(stringResource(Res.string.auth_new_password)) },
             modifier = Modifier.fillMaxWidth(),
-            isError = uiState.error != null,
+            isError = uiState.passwordError != null,
             singleLine = true,
             leadingIcon = {
                 Icon(
                     imageVector = Ionicons.Outline.LockClosed,
-                    contentDescription = "密码图标",
+                    contentDescription = stringResource(Res.string.auth_password_icon_desc),
                     modifier = Modifier.size(24.dp),
                 )
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
-                val image =
-                    if (passwordVisible) Ionicons.Outline.EyeOff else Ionicons.Outline.Eye
+                val image = if (passwordVisible) Ionicons.Outline.EyeOff else Ionicons.Outline.Eye
+                val description = if (passwordVisible) {
+                    stringResource(Res.string.auth_password_hide)
+                } else {
+                    stringResource(Res.string.auth_password_show)
+                }
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = image,
-                        contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                        contentDescription = description,
                         modifier = Modifier.size(24.dp),
                     )
                 }
             },
             supportingText = {
-                if (uiState.error != null && uiState.error.contains("密码")) {
-                    Text(uiState.error)
-                }
+                uiState.passwordError?.let { Text(it.asString()) }
             },
             shape = MaterialTheme.shapes.small,
         )
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -173,46 +216,47 @@ private fun RequestEmailStep(
             OutlinedTextField(
                 value = uiState.otpCode,
                 onValueChange = { onIntent(ForgotPasswordIntent.VerificationCodeChanged(it)) },
-                label = { Text("验证码") },
+                label = { Text(stringResource(Res.string.auth_otp_code_label)) },
                 modifier = Modifier.weight(1f),
-                isError = uiState.error != null,
+                isError = uiState.otpError != null,
                 singleLine = true,
                 leadingIcon = {
                     Icon(
                         imageVector = Ionicons.Outline.ShieldCheckmark,
-                        contentDescription = "验证码图标",
+                        contentDescription = stringResource(Res.string.auth_otp_icon_desc),
                         modifier = Modifier.size(24.dp),
                     )
                 },
                 supportingText = {
-                    if (uiState.error != null && uiState.error.contains("验证码")) {
-                        Text(uiState.error)
-                    }
+                    uiState.otpError?.let { Text(it.asString()) }
                 },
                 shape = MaterialTheme.shapes.small,
             )
             Button(
                 onClick = { onIntent(ForgotPasswordIntent.SendVerificationCode) },
-                enabled = !uiState.isRequestingCode,
+                enabled = !uiState.isRequestingCode && uiState.resendCooldownSeconds == 0,
             ) {
-                Text("获取验证码")
+                val resendText = if (uiState.resendCooldownSeconds > 0) {
+                    stringResource(Res.string.auth_resend_in_seconds, uiState.resendCooldownSeconds)
+                } else {
+                    stringResource(Res.string.auth_get_verification_code)
+                }
+                Text(resendText)
             }
         }
+
         Button(
             onClick = { onIntent(ForgotPasswordIntent.ResetPasswordClicked) },
             enabled = uiState.email.isNotBlank() && !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(48.dp),
         ) {
-            Text("更改密码")
+            Text(stringResource(Res.string.auth_change_password))
         }
     }
 }
 
-/**
- * 重置成功页面
- */
 @Composable
 private fun ResetSuccessStep(onNavigateToLogin: () -> Unit) {
     Column(
@@ -220,25 +264,25 @@ private fun ResetSuccessStep(onNavigateToLogin: () -> Unit) {
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = Ionicons.Outline.CheckmarkCircle,
-            contentDescription = "重置密码成功",
+            contentDescription = stringResource(Res.string.auth_password_reset_success_icon_desc),
             modifier = Modifier.size(100.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
         )
         Spacer(Modifier.height(24.dp))
         Text(
-            text = "重置密码成功！",
-            style = MaterialTheme.typography.headlineMedium
+            text = stringResource(Res.string.auth_password_reset_success),
+            style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "现在您可以使用新密码登录您的账户。",
+            text = stringResource(Res.string.auth_password_reset_success_desc),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(48.dp))
         Button(
@@ -246,9 +290,9 @@ private fun ResetSuccessStep(onNavigateToLogin: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
         ) {
-            Text("前往登录")
+            Text(stringResource(Res.string.auth_to_login))
         }
     }
 }
