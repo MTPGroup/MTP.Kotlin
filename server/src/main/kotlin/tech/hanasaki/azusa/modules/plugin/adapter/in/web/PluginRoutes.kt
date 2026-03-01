@@ -16,16 +16,20 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireAdmin
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.ValidationCollector
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectPage
 
 fun Route.pluginRoutes() {
     val pluginService: PluginUseCasePort by inject()
 
     route("/plugins") {
         get {
-            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val validator = ValidationCollector()
+            val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+            val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+            validator.throwIfAny()
+
             val result = pluginService.listApprovedPlugins(page, limit)
             call.respondOk(result.toResponse())
         }.describe {
@@ -53,8 +57,11 @@ fun Route.pluginRoutes() {
 
         get("/search") {
             val query = call.request.queryParameters["q"] ?: ""
-            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val validator = ValidationCollector()
+            val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+            val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+            validator.throwIfAny()
+
             val result = pluginService.searchPlugins(query, page, limit)
             call.respondOk(result.toResponse())
         }.describe {
@@ -268,8 +275,11 @@ fun Route.pluginRoutes() {
         route("/me/plugins") {
             get {
                 val userId = call.requireUserId()
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
                 val result = pluginService.listMyPlugins(userId, page, limit)
                 call.respondOk(result.toResponse())
             }.describe {
@@ -302,8 +312,11 @@ fun Route.pluginRoutes() {
         route("/admin/plugins") {
             get("/pending") {
                 call.requireAdmin()
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
                 val result = pluginService.listPendingPlugins(page, limit)
                 call.respondOk(result.toResponse())
             }.describe {

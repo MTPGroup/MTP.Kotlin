@@ -12,6 +12,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentChunk
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.DocumentParserPort
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import java.io.ByteArrayInputStream
 
@@ -72,7 +73,7 @@ class Lc4jDocumentParser(
         }
 
         if (bytes.size > MAX_FILE_SIZE) {
-            throw IllegalArgumentException("文件大小超过限制 (${MAX_FILE_SIZE / 1024 / 1024}MB): $filePath")
+            throw ValidationException("文件大小超过限制 (${MAX_FILE_SIZE / 1024 / 1024}MB)")
         }
 
         val document = parseDocument(bytes, fileType, filePath)

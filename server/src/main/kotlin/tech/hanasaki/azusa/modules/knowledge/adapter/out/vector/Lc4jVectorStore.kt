@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.SearchResult
 import tech.hanasaki.azusa.modules.knowledge.application.port.out.VectorStore
+import tech.hanasaki.azusa.shared.domain.exception.InternalServerException
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeDocumentId
 import kotlin.uuid.Uuid
@@ -89,15 +90,14 @@ class Lc4jVectorStore(
             JsonObject(emptyMap())
         }
 
+        val fileId = metadata.getString("fileId")
+            ?: throw InternalServerException("向量检索结果缺少 fileId 元数据")
+        val knowledgeBaseId = metadata.getString("knowledgeBaseId")
+            ?: throw InternalServerException("向量检索结果缺少 knowledgeBaseId 元数据")
+
         return SearchResult(
-            documentId = KnowledgeDocumentId(
-                Uuid.parse(metadata.getString("fileId") ?: throw IllegalStateException("fileId not found"))
-            ),
-            knowledgeBaseId = KnowledgeBaseId(
-                Uuid.parse(
-                    metadata.getString("knowledgeBaseId") ?: throw IllegalStateException("knowledgeBaseId not found")
-                )
-            ),
+            documentId = KnowledgeDocumentId(Uuid.parse(fileId)),
+            knowledgeBaseId = KnowledgeBaseId(Uuid.parse(knowledgeBaseId)),
             content = segment.text(),
             metadata = jsonMetadata,
             similarity = this.score().toFloat(),

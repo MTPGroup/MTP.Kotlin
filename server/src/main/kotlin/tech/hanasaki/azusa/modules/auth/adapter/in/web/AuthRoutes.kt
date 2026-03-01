@@ -28,9 +28,7 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireAdmin
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateEmail
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePassword
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateUsername
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.ValidationCollector
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import kotlin.uuid.Uuid
 
@@ -42,15 +40,16 @@ fun Route.authRoutes() {
     route("/auth") {
         post("/sign-up/email") {
             val request = call.receive<SignUpRequest>()
-
-            validateEmail(request.email)
-            validatePassword(request.password)
-            validateUsername(request.name)
+            val validator = ValidationCollector()
+            val email = validator.vo("email") { Email(request.email) }
+            val password = validator.vo("password") { PlainPassword(request.password) }
+            val username = validator.vo("name") { Username(request.name) }
+            validator.throwIfAny()
 
             authUseCase.register(
-                email = Email(request.email),
-                password = PlainPassword(request.password),
-                username = Username(request.name)
+                email = requireNotNull(email),
+                password = requireNotNull(password),
+                username = requireNotNull(username),
             )
 
             call.respondOk(
@@ -83,12 +82,14 @@ fun Route.authRoutes() {
 
         post("/sign-in/email") {
             val request = call.receive<SignInWithPasswordRequest>()
-
-            validateEmail(request.email)
+            val validator = ValidationCollector()
+            val email = validator.vo("email") { Email(request.email) }
+            val password = validator.vo("password") { PlainPassword(request.password) }
+            validator.throwIfAny()
 
             val result = authUseCase.login(
-                email = Email(request.email),
-                password = PlainPassword(request.password)
+                email = requireNotNull(email),
+                password = requireNotNull(password),
             )
             call.respondOk(result.toLoginResponse(), "登录成功")
         }.describe {
@@ -116,10 +117,11 @@ fun Route.authRoutes() {
 
         post("/email-otp/send") {
             val request = call.receive<SendOtpRequest>()
+            val validator = ValidationCollector()
+            val email = validator.vo("email") { Email(request.email) }
+            validator.throwIfAny()
 
-            validateEmail(request.email)
-
-            otpService.generate(Email(request.email), OtpType.fromString(request.type))
+            otpService.generate(requireNotNull(email), OtpType.fromString(request.type))
             call.respondOk(SuccessResponse(), "验证码已发送")
         }.describe {
             tag("认证管理")
@@ -143,15 +145,16 @@ fun Route.authRoutes() {
 
         post("/email-otp/verify-email") {
             val request = call.receive<VerifyOTPRequest>()
-            validateEmail(request.email)
-
-            val email = Email(request.email)
+            val validator = ValidationCollector()
+            val email = validator.vo("email") { Email(request.email) }
+            validator.throwIfAny()
+            val verifiedEmail = requireNotNull(email)
             otpService.verify(
-                email,
+                verifiedEmail,
                 OtpType.VERIFY_EMAIL,
                 request.otp
             )
-            authUseCase.verifyEmail(email)
+            authUseCase.verifyEmail(verifiedEmail)
             call.respondOk(SuccessResponse(), "邮箱验证成功")
         }.describe {
             tag("认证管理")
@@ -175,19 +178,20 @@ fun Route.authRoutes() {
 
         post("/email-otp/reset-password") {
             val request = call.receive<ResetPasswordRequest>()
+            val validator = ValidationCollector()
+            val email = validator.vo("email") { Email(request.email) }
+            val password = validator.vo("password") { PlainPassword(request.password) }
+            validator.throwIfAny()
 
-            validateEmail(request.email)
-            validatePassword(request.password)
-
-            val email = Email(request.email)
+            val verifiedEmail = requireNotNull(email)
             otpService.verify(
-                email,
+                verifiedEmail,
                 OtpType.RESET_PASSWORD,
                 request.otp
             )
             authUseCase.resetPassword(
-                email,
-                PlainPassword(request.password)
+                verifiedEmail,
+                requireNotNull(password)
             )
             call.respondOk(SuccessResponse(), "密码重置成功")
         }.describe {
@@ -281,10 +285,15 @@ fun Route.authRoutes() {
             put("/me") {
                 val userId = call.requireUserId()
                 val request = call.receive<UpdateProfileRequest>()
+                val validator = ValidationCollector()
+                val username = validator.vo("username") { Username(request.username) }
+                val avatar = request.avatar?.let { validator.vo("avatar") { AvatarUrl(it) } }
+                validator.throwIfAny()
+
                 authUseCase.updateProfile(
                     userId,
-                    Username(request.username),
-                    request.avatar?.let { AvatarUrl(it) }
+                    requireNotNull(username),
+                    avatar
                 )
                 call.respondOk(SuccessResponse(), "个人信息更新成功")
             }.describe {
@@ -381,13 +390,15 @@ fun Route.authRoutes() {
             post("/password/change") {
                 val userId = call.requireUserId()
                 val request = call.receive<ChangePasswordRequest>()
-
-                validatePassword(request.newPassword)
+                val validator = ValidationCollector()
+                val oldPassword = validator.vo("oldPassword") { PlainPassword(request.oldPassword) }
+                val newPassword = validator.vo("newPassword") { PlainPassword(request.newPassword) }
+                validator.throwIfAny()
 
                 authUseCase.changePassword(
                     userId,
-                    PlainPassword(request.oldPassword),
-                    PlainPassword(request.newPassword),
+                    requireNotNull(oldPassword),
+                    requireNotNull(newPassword),
                 )
                 call.respondOk(SuccessResponse(), "密码修改成功")
             }.describe {

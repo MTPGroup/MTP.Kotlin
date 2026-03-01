@@ -1,5 +1,7 @@
 package tech.hanasaki.azusa.modules.plugin.domain.model
 
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
+
 /**
  * 插件状态
  */
@@ -15,7 +17,7 @@ enum class PluginStatus {
             "approved" -> APPROVED
             "rejected" -> REJECTED
             "archived" -> ARCHIVED
-            else -> throw IllegalArgumentException("Unknown plugin status: $value")
+            else -> throw ValidationException("Unknown plugin status: $value")
         }
     }
 }

@@ -9,6 +9,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.auth.config.JwtConfig
+import tech.hanasaki.azusa.shared.domain.exception.ErrorCodes
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
@@ -33,15 +34,10 @@ fun Application.configureSecurity() {
                 } else {
                     "没有权限"
                 }
-                val payload = ApiResponse<Nothing>(
-                    success = false,
+                val payload = ApiResponse.error<Nothing>(
                     message = message,
-                    errors = mapOf(
-                        "code" to "UNAUTHORIZED",
-                        "message" to message,
-                    ),
-                    timestamp = Clock.System.now(),
-                )
+                    code = ErrorCodes.AUTHENTICATION_FAILED,
+                ).copy(timestamp = Clock.System.now())
                 call.respond(HttpStatusCode.Unauthorized, payload)
             }
             validate { credential ->

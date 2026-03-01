@@ -7,6 +7,8 @@ import tech.hanasaki.azusa.modules.notification.application.port.out.SmsSenderPo
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationChannel
 import tech.hanasaki.azusa.modules.notification.domain.model.NotificationLog
 import tech.hanasaki.azusa.modules.notification.domain.port.NotificationLogRepositoryPort
+import tech.hanasaki.azusa.shared.domain.exception.InternalServerException
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.shared.port.out.TransactionalPort
 
@@ -25,7 +27,9 @@ class NotificationService(
         model: Map<String, Any>,
         userId: UserId?,
     ) {
-        require(content != null || templateName != null) { "content 或 templateName 至少提供一个" }
+        if (content == null && templateName == null) {
+            throw ValidationException("content 或 templateName 至少提供一个")
+        }
 
         val log = NotificationLog.create(
             userId = userId,
@@ -55,7 +59,7 @@ class NotificationService(
         content: String,
         userId: UserId?,
     ) {
-        val sender = smsSender ?: throw UnsupportedOperationException("SMS发送器未配置")
+        val sender = smsSender ?: throw InternalServerException("SMS发送器未配置")
 
         val log = NotificationLog.create(
             userId = userId,
@@ -83,7 +87,7 @@ class NotificationService(
         userId: UserId?,
         data: Map<String, String>?,
     ) {
-        val sender = pushSender ?: throw UnsupportedOperationException("推送器未配置")
+        val sender = pushSender ?: throw InternalServerException("推送器未配置")
 
         val log = NotificationLog.create(
             userId = userId,

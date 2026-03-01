@@ -114,6 +114,9 @@ class PluginService(
     override suspend fun approvePlugin(pluginId: PluginId): Plugin = tx.execute {
         val plugin = pluginRepository.findById(pluginId)
             ?: throw NotFoundException("Plugin not found")
+        if (plugin.status != PluginStatus.PENDING) {
+            throw ConflictException("Only pending plugins can be approved")
+        }
         plugin.approve()
         pluginRepository.save(plugin)
         plugin.publishAndClear(domainEventBus)
@@ -123,6 +126,9 @@ class PluginService(
     override suspend fun rejectPlugin(pluginId: PluginId): Plugin = tx.execute {
         val plugin = pluginRepository.findById(pluginId)
             ?: throw NotFoundException("Plugin not found")
+        if (plugin.status != PluginStatus.PENDING) {
+            throw ConflictException("Only pending plugins can be rejected")
+        }
         plugin.reject()
         pluginRepository.save(plugin)
         plugin.publishAndClear(domainEventBus)

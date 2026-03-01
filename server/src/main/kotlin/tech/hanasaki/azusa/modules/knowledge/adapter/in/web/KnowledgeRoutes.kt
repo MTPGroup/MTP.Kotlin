@@ -16,6 +16,7 @@ import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBase
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeBaseUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeFileUseCasePort
 import tech.hanasaki.azusa.modules.knowledge.application.port.`in`.KnowledgeSearchUseCasePort
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
 import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
@@ -23,8 +24,9 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
 import tech.hanasaki.azusa.shared.infrastructure.web.route.optionalUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.ValidationCollector
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectPage
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import kotlin.uuid.Uuid
 
@@ -39,8 +41,11 @@ fun Route.knowledgeRoutes() {
     route("/knowledge-bases") {
         // 获取公开知识库列表
         get("/public") {
-            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val validator = ValidationCollector()
+            val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+            val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+            validator.throwIfAny()
+
             val result = knowledgeBaseQueryService.listPublicKnowledgeBases(page, limit)
             call.respondOk(result.toResponse())
         }.describe {
@@ -69,8 +74,11 @@ fun Route.knowledgeRoutes() {
         // 搜索公开知识库
         get("/search") {
             val query = call.request.queryParameters["q"] ?: ""
-            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val validator = ValidationCollector()
+            val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+            val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+            validator.throwIfAny()
+
             val result = knowledgeBaseQueryService.searchKnowledgeBases(query, page, limit)
             call.respondOk(result.toResponse())
         }.describe {
@@ -226,8 +234,11 @@ fun Route.knowledgeRoutes() {
             // 获取我的知识库列表
             get {
                 val userId = call.requireUserId()
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
                 val result = knowledgeBaseQueryService.listMyKnowledgeBases(userId, page, limit)
                 call.respondOk(result.toResponse())
             }.describe {
@@ -397,7 +408,7 @@ fun Route.knowledgeRoutes() {
                     part.dispose()
                 }
 
-                val bytes = fileBytes ?: throw IllegalArgumentException("No file uploaded")
+                val bytes = fileBytes ?: throw ValidationException("未上传文件")
                 val name = fileName ?: "unknown"
                 val ext = name.substringAfterLast('.', "bin")
                 val objectKey = "knowledge/${knowledgeBaseId.value}/${Uuid.random()}.$ext"
@@ -623,8 +634,14 @@ fun Route.knowledgeRoutes() {
             post("/search") {
                 val userId = call.requireUserId()
                 val request = call.receive<SearchKnowledgeRequest>()
+                val validator = ValidationCollector()
 
-                val results = if (request.knowledgeBaseIds.isNullOrEmpty()) {
+                val selectedKnowledgeBaseIds = request.knowledgeBaseIds?.mapIndexedNotNull { index, rawId ->
+                    validator.vo("knowledgeBaseIds[$index]") { KnowledgeBaseId(rawId) }
+                }
+                validator.throwIfAny()
+
+                val results = if (selectedKnowledgeBaseIds.isNullOrEmpty()) {
                     knowledgeSearchService.searchMyKnowledgeBases(
                         userId = userId,
                         query = request.query,
@@ -634,7 +651,7 @@ fun Route.knowledgeRoutes() {
                 } else {
                     knowledgeSearchService.search(
                         userId = userId,
-                        knowledgeBaseIds = request.knowledgeBaseIds.map { KnowledgeBaseId(it) },
+                        knowledgeBaseIds = selectedKnowledgeBaseIds,
                         query = request.query,
                         threshold = request.threshold,
                         limit = request.limit,

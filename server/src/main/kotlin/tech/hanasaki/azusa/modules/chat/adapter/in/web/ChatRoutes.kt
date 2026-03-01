@@ -29,8 +29,9 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.ApiResponse
 import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.ValidationCollector
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectPage
 
 fun Route.chatRoutes() {
     val chatService: ChatUseCasePort by inject()
@@ -43,9 +44,13 @@ fun Route.chatRoutes() {
             post {
                 val userId = call.requireUserId()
                 val request = call.receive<CreateChatRequest>()
+                val validator = ValidationCollector()
+                val characterId = validator.vo("characterId") { CharacterId(request.characterId) }
+                validator.throwIfAny()
+
                 val chat = chatService.createChat(
                     userId = userId,
-                    characterId = CharacterId(request.characterId),
+                    characterId = requireNotNull(characterId),
                     name = request.name,
                     temporary = request.temporary,
                 )
@@ -76,8 +81,11 @@ fun Route.chatRoutes() {
             // 获取会话列表
             get {
                 val userId = call.requireUserId()
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
                 val result = chatService.listChats(userId, page, limit)
                 call.respondOk(result.toResponse())
             }.describe {
@@ -212,8 +220,11 @@ fun Route.chatRoutes() {
             get("/{chatId}/messages") {
                 val userId = call.requireUserId()
                 val chatId = ChatId(call.uuidParam("chatId"))
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
                 val result = chatService.getMessages(userId, chatId, page, limit)
                 call.respondOk(result.toMessageResponse())
             }.describe {

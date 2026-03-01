@@ -15,6 +15,7 @@ import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterQueryUseCasePort
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
@@ -23,8 +24,9 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
 import tech.hanasaki.azusa.shared.infrastructure.web.route.optionalUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validateLimit
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.validatePage
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.ValidationCollector
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectLimit
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectPage
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import kotlin.uuid.Uuid
 
@@ -37,8 +39,11 @@ fun Route.characterRoutes() {
     route("/characters") {
         // 获取公开角色列表（分页）
         get("/public") {
-            val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-            val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+            val validator = ValidationCollector()
+            val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+            val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+            validator.throwIfAny()
+
             val result = characterQueryService.listPublicCharacters(page, limit)
             call.respondOk(result.toResponse())
         }.describe {
@@ -68,8 +73,11 @@ fun Route.characterRoutes() {
             get("/search") {
                 val userId = call.optionalUserId()
                 val query = call.request.queryParameters["q"] ?: ""
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
                 val result = characterQueryService.searchCharacters(query, page, limit, userId)
                 call.respondOk(result.toResponse())
             }.describe {
@@ -168,8 +176,10 @@ fun Route.characterRoutes() {
             // 获取我的角色列表
             get {
                 val userId = call.requireUserId()
-                val page = call.request.queryParameters["page"]?.let { validatePage(it) } ?: 1
-                val limit = call.request.queryParameters["limit"]?.let { validateLimit(it) } ?: 10
+                val validator = ValidationCollector()
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
 
                 val result = characterQueryService.listMyCharacters(userId, page, limit)
                 call.respondOk(result.toResponse())
@@ -204,10 +214,14 @@ fun Route.characterRoutes() {
             post {
                 val userId = call.requireUserId()
                 val request = call.receive<CreateCharacterRequest>()
+                val validator = ValidationCollector()
+                val avatar = request.avatar?.let { validator.vo("avatar") { AvatarUrl(it) } }
+                validator.throwIfAny()
+
                 val character = characterService.createCharacter(
                     authorId = userId,
                     name = request.name,
-                    avatar = request.avatar?.let { AvatarUrl(it) },
+                    avatar = avatar,
                     bio = request.bio,
                     originPrompt = request.originPrompt,
                     isPublic = request.isPublic
@@ -246,11 +260,15 @@ fun Route.characterRoutes() {
                 val userId = call.requireUserId()
                 val characterId = CharacterId(call.uuidParam("characterId"))
                 val request = call.receive<UpdateCharacterRequest>()
+                val validator = ValidationCollector()
+                val avatar = request.avatar?.let { validator.vo("avatar") { AvatarUrl(it) } }
+                validator.throwIfAny()
+
                 val character = characterService.updateCharacter(
                     userId = userId,
                     characterId = characterId,
                     name = request.name,
-                    avatar = request.avatar?.let { AvatarUrl(it) },
+                    avatar = avatar,
                     bio = request.bio,
                     originPrompt = request.originPrompt,
                     isPublic = request.isPublic
@@ -345,7 +363,7 @@ fun Route.characterRoutes() {
                     part.dispose()
                 }
 
-                val bytes = fileBytes ?: throw IllegalArgumentException("未上传文件")
+                val bytes = fileBytes ?: throw ValidationException("未上传文件")
                 val mime = contentType ?: "image/png"
                 val ext = (fileName ?: "avatar").substringAfterLast('.', "png")
                 val objectKey = "characters/${characterId.value}/${Uuid.random()}.$ext"
@@ -405,10 +423,14 @@ fun Route.characterRoutes() {
                 val userId = call.requireUserId()
                 val characterId = CharacterId(call.uuidParam("characterId"))
                 val request = call.receive<SubscribeKnowledgeBaseRequest>()
+                val validator = ValidationCollector()
+                val knowledgeBaseId = validator.vo("knowledgeBaseId") { KnowledgeBaseId(request.knowledgeBaseId) }
+                validator.throwIfAny()
+
                 characterService.subscribeKnowledgeBase(
                     userId,
                     characterId,
-                    KnowledgeBaseId(request.knowledgeBaseId),
+                    requireNotNull(knowledgeBaseId),
                     request.priority
                 )
                 call.respondOk(SuccessResponse(), "知识库已连接")

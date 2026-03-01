@@ -13,6 +13,7 @@ import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeDocumentReposi
 import tech.hanasaki.azusa.modules.knowledge.domain.port.KnowledgeFileRepositoryPort
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
+import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeFileId
@@ -158,7 +159,7 @@ class KnowledgeFileService(
             throw AuthorizationException("无权访问")
         }
         if (file.status != FileStatus.FAILED) {
-            throw IllegalStateException("只有失败的文件才能重试")
+            throw ValidationException("只有失败的文件才能重试")
         }
 
         // 删除之前可能部分处理的文档

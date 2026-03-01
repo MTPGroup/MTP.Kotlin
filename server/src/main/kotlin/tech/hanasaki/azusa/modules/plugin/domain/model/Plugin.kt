@@ -6,6 +6,7 @@ import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginApproved
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginCreated
 import tech.hanasaki.azusa.modules.plugin.domain.events.PluginRejected
+import tech.hanasaki.azusa.shared.domain.exception.ConflictException
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -120,7 +121,7 @@ class Plugin private constructor(
      */
     fun approve() {
         if (status != PluginStatus.PENDING) {
-            throw IllegalStateException("Only pending plugins can be approved")
+            throw ConflictException("Only pending plugins can be approved")
         }
         status = PluginStatus.APPROVED
         updatedAt = Clock.System.now()
@@ -137,7 +138,7 @@ class Plugin private constructor(
      */
     fun reject() {
         if (status != PluginStatus.PENDING) {
-            throw IllegalStateException("Only pending plugins can be rejected")
+            throw ConflictException("Only pending plugins can be rejected")
         }
         status = PluginStatus.REJECTED
         updatedAt = Clock.System.now()
