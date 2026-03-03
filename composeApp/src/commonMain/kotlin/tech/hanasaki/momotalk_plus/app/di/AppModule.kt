@@ -12,7 +12,7 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
-import tech.hanasaki.momotalk_plus.core.auth.InMemoryTokenStore
+import tech.hanasaki.momotalk_plus.core.auth.PersistentTokenStore
 import tech.hanasaki.momotalk_plus.core.auth.TokenStore
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
@@ -79,7 +79,7 @@ val networkModule = module {
         }
     }
 
-    single<TokenStore> { InMemoryTokenStore() }
+    single<TokenStore> { PersistentTokenStore() }
 
     single { NetworkErrorMapper(get()) }
 
