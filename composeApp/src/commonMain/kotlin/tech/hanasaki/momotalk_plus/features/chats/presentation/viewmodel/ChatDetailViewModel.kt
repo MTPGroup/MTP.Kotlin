@@ -13,7 +13,12 @@ import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.domain.model.User
-import tech.hanasaki.momotalk_plus.features.chats.domain.model.*
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.Chat
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.MessageSender
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.MessageSenderRole
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.MessageType
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.ClearChatHistoryUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.GetChatHistoryUseCase
 import tech.hanasaki.momotalk_plus.features.chats.domain.usecase.GetChatInfoUseCase
@@ -71,9 +76,9 @@ class ChatDetailViewModel(
                             isLoading = false,
                             title = info.title,
                             avatar = info.avatarUrl,
-                            characterName = info.character.name,
-                            characterAvatar = info.character.avatarUrl,
-                            error = null
+                            characterName = info.characterName,
+                            characterAvatar = info.characterAvatar,
+                            error = null,
                         )
                     }
                 }
@@ -151,34 +156,35 @@ class ChatDetailViewModel(
         var finalAiContent = ""
         sendMessageStreamUseCase(chatId, message).collect { event ->
             when (event) {
-                is StreamEvent.Token -> {
-                    finalAiContent += event.content
+                is StreamEvent.Delta -> {
+                    finalAiContent += event.text
                     intent {
                         reduce {
                             val updatedMessages = state.messages.map { msg ->
-                                if (msg.id == streamingMessageId) {
-                                    msg.copy(content = finalAiContent)
-                                } else {
-                                    msg
-                                }
+                                if (msg.id == streamingMessageId) msg.copy(content = finalAiContent) else msg
                             }
                             state.copy(messages = updatedMessages)
                         }
                     }
                 }
 
-                is StreamEvent.ReflectionChunk -> {
+                is StreamEvent.ToolCallStart -> {
+                    // 预留: 可在 UI 中展示工具调用状态
                 }
 
-                is StreamEvent.Final -> {
+                is StreamEvent.ToolCallResult -> {
+                    // 预留: 可在 UI 中展示工具调用结果
+                }
+
+                is StreamEvent.Done -> {
+                    if (event.fullContent.isNotBlank()) {
+                        finalAiContent = event.fullContent
+                    }
                     intent {
                         reduce {
                             val finalMessages = state.messages.map { msg ->
                                 if (msg.id == streamingMessageId) {
-                                    msg.copy(
-                                        content = finalAiContent,
-                                        isStreaming = false,
-                                    )
+                                    msg.copy(content = finalAiContent, isStreaming = false)
                                 } else {
                                     msg
                                 }
@@ -198,16 +204,14 @@ class ChatDetailViewModel(
                     intent {
                         reduce {
                             state.copy(
-                                messages = state.messages.filter { msg ->
-                                    msg.id != streamingMessageId
-                                },
+                                messages = state.messages.filter { it.id != streamingMessageId },
                                 isStreaming = false,
                                 isTyping = false,
                                 streamingMessageId = null,
-                                error = event.content
+                                error = event.message,
                             )
                         }
-                        postSideEffect(ChatDetailSideEffect.ShowToast(event.content))
+                        postSideEffect(ChatDetailSideEffect.ShowToast(event.message))
                     }
                 }
             }

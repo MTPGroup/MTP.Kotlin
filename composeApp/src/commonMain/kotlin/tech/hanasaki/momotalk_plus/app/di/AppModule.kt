@@ -18,7 +18,6 @@ import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalData
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.SessionRepositoryImpl
-import tech.hanasaki.momotalk_plus.core.data.repository.SettingsRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.UploadImageRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.domain.repository.*
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
@@ -53,6 +52,14 @@ import tech.hanasaki.momotalk_plus.features.profile.data.repository.ProfileRepos
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
 import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
+import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.SettingsRemoteDataSource
+import tech.hanasaki.momotalk_plus.features.settings.data.repository.SettingsRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository as FeatureSettingsRepository
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.ObserveSettingsUseCase as ObserveFeatureSettingsUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveNotificationsUseCase as SaveFeatureNotificationsUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveSoundUseCase as SaveFeatureSoundUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveThemeUseCase as SaveFeatureThemeUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveVibrationUseCase as SaveFeatureVibrationUseCase
 import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
 import kotlin.time.ExperimentalTime
 
@@ -168,15 +175,14 @@ val profileModule = module {
 }
 
 val settingsModule = module {
-    single<SettingsRepository> {
-        SettingsRepositoryImpl(get(), get())
-    }
+    single { SettingsRemoteDataSource(get()) }
+    single<FeatureSettingsRepository> { SettingsRepositoryImpl(get(), get(), get()) }
 
-    factoryOf(::GetUserSettingsUseCase)
-    factoryOf(::SaveNotificationSettingsUseCase)
-    factoryOf(::SaveSoundSettingsUseCase)
-    factoryOf(::SaveThemeUseCase)
-    factoryOf(::SaveVibrationSettingsUseCase)
+    factoryOf(::ObserveFeatureSettingsUseCase)
+    factoryOf(::SaveFeatureNotificationsUseCase)
+    factoryOf(::SaveFeatureSoundUseCase)
+    factoryOf(::SaveFeatureThemeUseCase)
+    factoryOf(::SaveFeatureVibrationUseCase)
 }
 
 val datasourceModule = module {

@@ -1,8 +1,5 @@
 package tech.hanasaki.momotalk_plus.features.chats.domain.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class Chat(
     val id: String,
     val creatorId: String,

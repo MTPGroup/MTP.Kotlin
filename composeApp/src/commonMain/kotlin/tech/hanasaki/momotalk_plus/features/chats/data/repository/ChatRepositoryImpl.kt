@@ -1,115 +1,154 @@
 package tech.hanasaki.momotalk_plus.features.chats.data.repository
 
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.functions.functions
-import io.ktor.client.call.body
-import io.ktor.client.request.setBody
-import io.ktor.http.HttpMethod
-import io.ktor.http.path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import tech.hanasaki.momotalk_plus.core.network.AppErrorException
+import tech.hanasaki.momotalk_plus.core.network.AppResult
+import tech.hanasaki.momotalk_plus.core.network.NetworkErrorMapper
+import tech.hanasaki.momotalk_plus.core.network.callApi
+import tech.hanasaki.momotalk_plus.core.network.callRawApi
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.ChatRemoteDatasource
-import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.ChatInfoResponse
-import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.ChatListResponse
-import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.ChatMessagesResponse
+import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.ChatResponseDto
 import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.CreateChatRequest
-import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.UpdateChatInfoRequest
+import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.MessageResponseDto
+import tech.hanasaki.momotalk_plus.features.chats.data.datasource.remote.dto.UpdateChatNameRequest
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Chat
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.ChatWithCharacter
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.Message
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.MessageSender
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.MessageSenderRole
+import tech.hanasaki.momotalk_plus.features.chats.domain.model.MessageType
 import tech.hanasaki.momotalk_plus.features.chats.domain.model.StreamEvent
 import tech.hanasaki.momotalk_plus.features.chats.domain.repository.ChatRepository
 
 class ChatRepositoryImpl(
-    private val supabase: SupabaseClient,
-    private val remoteDatasource: ChatRemoteDatasource,
+    private val remote: ChatRemoteDatasource,
+    private val errorMapper: NetworkErrorMapper,
 ) : ChatRepository {
 
     override suspend fun createChat(
         characterId: String,
-        title: String,
+        name: String,
         description: String?,
         avatarUrl: String?,
+        temporary: Boolean,
     ) {
-        supabase.functions.invoke("chats") {
-            url { path("private") }
-            method = HttpMethod.Post
-            setBody(
+        val result = callApi(errorMapper) {
+            remote.createChat(
                 CreateChatRequest(
                     characterId = characterId,
-                    title = title,
-                    description = description,
-                    avatarUrl = avatarUrl,
-                )
+                    name = name.ifBlank { null },
+                    temporary = temporary,
+                ),
             )
         }
+        result.throwIfFailure()
     }
 
-    override fun getChatList(): Flow<List<Chat>> = flow {
-        val response = supabase.functions.invoke("chats") {
-            method = HttpMethod.Get
-        }.body<ChatListResponse>()
-        emit(response.data.chats)
+    override fun getChatList(page: Int, limit: Int): Flow<List<Chat>> = flow {
+        when (val result = callApi(errorMapper) { remote.listChats(page, limit) }) {
+            is AppResult.Success -> emit(result.data.items.map { it.toDomainChat() })
+            is AppResult.Failure -> throw AppErrorException(result.error)
+        }
     }
 
     override suspend fun deleteChat(chatId: String) {
-        supabase.functions.invoke("chats") {
-            url { path(chatId) }
-            method = HttpMethod.Delete
-        }
+        val result = callRawApi(errorMapper) { remote.deleteChat(chatId) }
+        result.throwIfFailure()
     }
 
     override suspend fun updateChatInfo(
         chatId: String,
-        title: String,
-        description: String,
-        avatarUrl: String,
+        name: String,
+        description: String?,
+        avatarUrl: String?,
     ) {
-        supabase.functions.invoke("chats") {
-            url { path(chatId) }
-            method = HttpMethod.Patch
-            setBody(
-                UpdateChatInfoRequest(
-                    title = title,
-                    description = description,
-                    avatarUrl = avatarUrl
-                )
-            )
+        val result = callApi(errorMapper) {
+            remote.updateChatName(chatId, UpdateChatNameRequest(name = name.ifBlank { null }))
         }
+        result.throwIfFailure()
     }
 
     override fun getChatInfo(chatId: String): Flow<ChatWithCharacter> = flow {
-        val response = supabase.functions.invoke("chats") {
-            url { path(chatId) }
-            method = HttpMethod.Get
-        }.body<ChatInfoResponse>()
-        emit(response.data)
-    }
-
-    override fun getChatHistory(chatId: String, limits: Int?): Flow<List<Message>> = flow {
-        val response = supabase.functions.invoke("chats") {
-            url {
-                path(chatId, "messages")
-                if (limits != null) {
-                    parameters.append("limit", limits.toString())
-                }
-            }
-            method = HttpMethod.Get
-        }.body<ChatMessagesResponse>()
-        emit(response.data.messages)
-    }
-
-    override suspend fun clearChatHistory(chatId: String) {
-        supabase.functions.invoke("chats") {
-            url { path(chatId, "messages") }
-            method = HttpMethod.Delete
+        when (val result = callApi(errorMapper) { remote.getChat(chatId) }) {
+            is AppResult.Success -> emit(result.data.toDomainChatWithCharacter())
+            is AppResult.Failure -> throw AppErrorException(result.error)
         }
     }
 
-    override fun sendMessageStream(
-        chatId: String,
-        message: String,
-    ): Flow<StreamEvent> {
-        return remoteDatasource.sendMessageStream(chatId, message)
+    override fun getChatHistory(chatId: String, page: Int, limit: Int): Flow<List<Message>> = flow {
+        when (val result = callApi(errorMapper) { remote.listMessages(chatId, page, limit) }) {
+            is AppResult.Success -> emit(result.data.items.map { it.toDomainMessage(chatId) })
+            is AppResult.Failure -> throw AppErrorException(result.error)
+        }
     }
+
+    override suspend fun clearChatHistory(chatId: String) {
+        val result = callRawApi(errorMapper) { remote.clearMessages(chatId) }
+        result.throwIfFailure()
+    }
+
+    override fun sendMessageStream(chatId: String, message: String): Flow<StreamEvent> =
+        remote.sendMessageStream(chatId, message)
+}
+
+private fun ChatResponseDto.toDomainChat(): Chat = Chat(
+    id = id,
+    creatorId = "",
+    characterId = characterId.orEmpty(),
+    title = name ?: "未命名会话",
+    description = "",
+    avatarUrl = null,
+    lastMessage = lastMessage,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+private fun ChatResponseDto.toDomainChatWithCharacter(): ChatWithCharacter = ChatWithCharacter(
+    id = id,
+    characterId = characterId.orEmpty(),
+    title = name ?: "未命名会话",
+    avatarUrl = null,
+    lastMessage = lastMessage,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+    characterName = name ?: "对话角色",
+    characterAvatar = null,
+)
+
+private fun MessageResponseDto.toDomainMessage(chatId: String): Message {
+    val textContent = content
+        .joinToString("\n") { item ->
+            when (item.type) {
+                "text" -> item.content.orEmpty()
+                "image", "audio", "video", "pdf", "file" -> item.url ?: item.fileName.orEmpty()
+                "code" -> item.content.orEmpty()
+                else -> item.content.orEmpty()
+            }
+        }
+        .ifBlank { "[空消息]" }
+
+    val role = if (senderType.equals("USER", ignoreCase = true)) {
+        MessageSenderRole.USER
+    } else {
+        MessageSenderRole.AI
+    }
+
+    return Message(
+        id = id,
+        sender = MessageSender(
+            name = if (role == MessageSenderRole.USER) "我" else "AI",
+            avatar = null,
+        ),
+        chatId = chatId,
+        role = role,
+        content = textContent,
+        type = MessageType.TEXT,
+        createdAt = createdAt,
+        updatedAt = createdAt,
+    )
+}
+
+private fun AppResult<*>.throwIfFailure() {
+    if (this is AppResult.Failure) throw AppErrorException(error)
 }

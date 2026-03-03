@@ -13,7 +13,7 @@ class UpdateChatUseCase(
     ): Result<Unit> = try {
         repository.updateChatInfo(
             chatId = chatId,
-            title = title,
+            name = title,
             description = description,
             avatarUrl = avatarUrl,
         )

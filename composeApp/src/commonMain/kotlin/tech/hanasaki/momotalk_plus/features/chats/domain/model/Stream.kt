@@ -5,20 +5,23 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class StreamEvent {
     @Serializable
-    data class ReflectionChunk(val content: String) : StreamEvent()
+    data class Delta(val text: String) : StreamEvent()
 
     @Serializable
-    data class Token(val content: String) : StreamEvent()
+    data class ToolCallStart(
+        val name: String,
+        val argumentsJson: String,
+    ) : StreamEvent()
 
     @Serializable
-    data class Error(val content: String) : StreamEvent()
+    data class ToolCallResult(
+        val name: String,
+        val result: String,
+    ) : StreamEvent()
 
     @Serializable
-    data object Final : StreamEvent()
+    data class Done(val fullContent: String) : StreamEvent()
+
+    @Serializable
+    data class Error(val message: String) : StreamEvent()
 }
-
-@Serializable
-data class StreamChunk(
-    val type: String,
-    val content: String? = null,
-)

@@ -5,8 +5,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.catch
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.container
-import tech.hanasaki.momotalk_plus.core.domain.usecase.*
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.ObserveSettingsUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveNotificationsUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveSoundUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveThemeUseCase
+import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveVibrationUseCase
 import tech.hanasaki.momotalk_plus.core.theme.AppTheme
+import tech.hanasaki.momotalk_plus.core.theme.PredefinedThemes
 import tech.hanasaki.momotalk_plus.core.theme.ThemeManager
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsIntent
 import tech.hanasaki.momotalk_plus.features.settings.presentation.state.SettingsSideEffect
@@ -14,14 +19,20 @@ import tech.hanasaki.momotalk_plus.features.settings.presentation.state.Settings
 
 class SettingsViewModel(
     private val themeManager: ThemeManager,
-    private val getUserSettingsUseCase: GetUserSettingsUseCase,
+    private val observeSettingsUseCase: ObserveSettingsUseCase,
     private val saveThemeUseCase: SaveThemeUseCase,
-    private val saveNotificationSettingsUseCase: SaveNotificationSettingsUseCase,
-    private val saveSoundSettingsUseCase: SaveSoundSettingsUseCase,
-    private val saveVibrationSettingsUseCase: SaveVibrationSettingsUseCase,
+    private val saveNotificationsUseCase: SaveNotificationsUseCase,
+    private val saveSoundUseCase: SaveSoundUseCase,
+    private val saveVibrationUseCase: SaveVibrationUseCase,
 ) : ViewModel(), ContainerHost<SettingsState, SettingsSideEffect> {
 
     override val container = viewModelScope.container<SettingsState, SettingsSideEffect>(SettingsState())
+
+    private val supportedThemes: List<AppTheme> = listOf(
+        PredefinedThemes.Default.copy(id = "system", name = "跟随系统"),
+        PredefinedThemes.Default.copy(id = "light", name = "浅色"),
+        PredefinedThemes.Dark.copy(id = "dark", name = "深色"),
+    )
 
     init {
         loadSettings()
@@ -40,24 +51,23 @@ class SettingsViewModel(
     }
 
     private fun loadSettings() = intent {
-        getUserSettingsUseCase()
+        observeSettingsUseCase()
             .catch { e ->
                 postSideEffect(SettingsSideEffect.ShowMessage("加载设置失败: ${e.message}"))
             }
             .collect { userSettings ->
-                val availableThemes = themeManager.getAvailableThemes()
-                val savedTheme = availableThemes.find { it.id == userSettings.theme.name.lowercase() }
-                    ?: availableThemes.first()
+                val savedTheme = supportedThemes.find { it.id == userSettings.themeId }
+                    ?: supportedThemes.first()
 
                 themeManager.setTheme(savedTheme)
 
                 reduce {
                     state.copy(
                         currentTheme = savedTheme,
-                        availableThemes = availableThemes,
+                        availableThemes = supportedThemes,
                         notificationsEnabled = userSettings.notificationsEnabled,
                         soundEnabled = userSettings.soundEnabled,
-                        vibrationEnabled = userSettings.vibrationEnabled
+                        vibrationEnabled = userSettings.vibrationEnabled,
                     )
                 }
             }
@@ -65,35 +75,39 @@ class SettingsViewModel(
 
     private fun changeTheme(theme: AppTheme) = intent {
         saveThemeUseCase(theme.id)
-        themeManager.setTheme(theme)
-        reduce { state.copy(currentTheme = theme) }
-        postSideEffect(SettingsSideEffect.ShowMessage("主题已切换"))
+            .onSuccess {
+                themeManager.setTheme(theme)
+                reduce { state.copy(currentTheme = theme) }
+                postSideEffect(SettingsSideEffect.ShowMessage("主题已切换"))
+            }
+            .onFailure {
+                val previous = state.currentTheme ?: supportedThemes.first()
+                themeManager.setTheme(previous)
+                postSideEffect(SettingsSideEffect.ShowMessage("主题切换失败: ${it.message}"))
+            }
     }
 
     private fun toggleNotifications(enabled: Boolean) = intent {
-        saveNotificationSettingsUseCase(enabled)
-        reduce { state.copy(notificationsEnabled = enabled) }
+        saveNotificationsUseCase(enabled)
+            .onSuccess { reduce { state.copy(notificationsEnabled = enabled) } }
+            .onFailure { postSideEffect(SettingsSideEffect.ShowMessage("通知设置保存失败: ${it.message}")) }
     }
 
     private fun toggleSound(enabled: Boolean) = intent {
-        saveSoundSettingsUseCase(enabled)
-        reduce { state.copy(soundEnabled = enabled) }
+        saveSoundUseCase(enabled)
+            .onSuccess { reduce { state.copy(soundEnabled = enabled) } }
+            .onFailure { postSideEffect(SettingsSideEffect.ShowMessage("提示音设置保存失败: ${it.message}")) }
     }
 
     private fun toggleVibration(enabled: Boolean) = intent {
-        saveVibrationSettingsUseCase(enabled)
-        reduce { state.copy(vibrationEnabled = enabled) }
+        saveVibrationUseCase(enabled)
+            .onSuccess { reduce { state.copy(vibrationEnabled = enabled) } }
+            .onFailure { postSideEffect(SettingsSideEffect.ShowMessage("振动设置保存失败: ${it.message}")) }
     }
 
-    private fun navigateToAbout() = intent {
-        postSideEffect(SettingsSideEffect.NavigateToAbout)
-    }
+    private fun navigateToAbout() = intent { postSideEffect(SettingsSideEffect.NavigateToAbout) }
 
-    private fun navigateToPrivacyPolicy() = intent {
-        postSideEffect(SettingsSideEffect.NavigateToPrivacyPolicy)
-    }
+    private fun navigateToPrivacyPolicy() = intent { postSideEffect(SettingsSideEffect.NavigateToPrivacyPolicy) }
 
-    private fun navigateToTermsOfService() = intent {
-        postSideEffect(SettingsSideEffect.NavigateToTermsOfService)
-    }
+    private fun navigateToTermsOfService() = intent { postSideEffect(SettingsSideEffect.NavigateToTermsOfService) }
 }

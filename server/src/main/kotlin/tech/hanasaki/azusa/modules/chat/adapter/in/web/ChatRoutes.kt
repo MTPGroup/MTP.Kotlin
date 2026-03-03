@@ -153,7 +153,7 @@ fun Route.chatRoutes() {
                 val chatId = ChatId(call.uuidParam("chatId"))
                 val request = call.receive<UpdateChatNameRequest>()
                 chatService.updateChatName(userId, chatId, request.name)
-                call.respondOk(Unit, "会话名称更新成功")
+                call.respondOk(SuccessResponse, "会话名称更新成功")
             }.describe {
                 tag("会话管理")
                 operationId = "updateChatName"
@@ -170,6 +170,7 @@ fun Route.chatRoutes() {
                 }
                 responses {
                     HttpStatusCode.OK {
+                        schema = jsonSchema<ApiResponse<SuccessResponse>>()
                         description = "更新成功"
                     }
                     HttpStatusCode.NotFound {

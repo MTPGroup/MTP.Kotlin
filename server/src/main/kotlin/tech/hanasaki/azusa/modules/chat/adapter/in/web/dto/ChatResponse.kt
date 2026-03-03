@@ -11,6 +11,11 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.PagedResponse
 import kotlin.uuid.Uuid
 
 @Serializable
+data class SuccessResponse(
+    val success: Boolean = true,
+)
+
+@Serializable
 data class ChatResponse(
     val id: Uuid,
     val name: String?,

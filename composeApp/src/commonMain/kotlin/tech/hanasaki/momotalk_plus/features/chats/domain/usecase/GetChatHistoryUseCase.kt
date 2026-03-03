@@ -8,5 +8,5 @@ class GetChatHistoryUseCase(
     private val chatRepository: ChatRepository,
 ) {
     operator fun invoke(chatId: String, limits: Int? = null): Flow<List<Message>> =
-        chatRepository.getChatHistory(chatId, limits)
+        chatRepository.getChatHistory(chatId = chatId, page = 1, limit = limits ?: 50)
 }
