@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "tech.hanasaki"
-version = "0.1.5"
+version = "0.1.6"
 
 application {
     mainClass.set("tech.hanasaki.azusa.ApplicationKt")
@@ -58,7 +58,6 @@ dependencies {
     implementation(serverLibs.bundles.logging)
     implementation(serverLibs.bundles.agent)
 
-    // macOS DNS 原生解析（避免 Netty 回退到系统默认实现）
     runtimeOnly(libs.netty.resolver.dns.classes.macos)
     runtimeOnly(libs.netty.resolver.dns.native.macos)
     runtimeOnly(libs.netty.resolver.dns.native.macos)

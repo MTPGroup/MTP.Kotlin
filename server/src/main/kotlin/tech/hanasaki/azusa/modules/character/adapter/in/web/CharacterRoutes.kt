@@ -342,7 +342,7 @@ fun Route.characterRoutes() {
             }
 
             // 上传角色头像
-            put("/{characterId}/avatar") {
+            post("/{characterId}/avatar") {
                 val characterId = CharacterId(call.uuidParam("characterId"))
 
                 val multipart = call.receiveMultipart()

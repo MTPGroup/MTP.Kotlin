@@ -316,7 +316,7 @@ fun Route.authRoutes() {
                 }
             }
 
-            put("/me/avatar") {
+            post("/me/avatar") {
                 val userId = call.requireUserId()
 
                 val multipart = call.receiveMultipart()
