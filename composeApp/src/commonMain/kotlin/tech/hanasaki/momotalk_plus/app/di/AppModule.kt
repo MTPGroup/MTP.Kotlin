@@ -19,7 +19,10 @@ import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.SessionRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.UploadImageRepositoryImpl
-import tech.hanasaki.momotalk_plus.core.domain.repository.*
+import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
+import tech.hanasaki.momotalk_plus.core.domain.repository.ContactProvider
+import tech.hanasaki.momotalk_plus.core.domain.repository.SessionRepository
+import tech.hanasaki.momotalk_plus.core.domain.repository.UploadImageRepository
 import tech.hanasaki.momotalk_plus.core.domain.usecase.*
 import tech.hanasaki.momotalk_plus.core.network.NetworkErrorMapper
 import tech.hanasaki.momotalk_plus.core.network.createHttpClient
@@ -48,20 +51,22 @@ import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.Cont
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactListViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.viewmodel.ContactsManageViewModel
 import tech.hanasaki.momotalk_plus.features.home.presentation.viewmodel.HomeViewModel
+import tech.hanasaki.momotalk_plus.features.profile.data.datasource.remote.ProfileRemoteDataSource
 import tech.hanasaki.momotalk_plus.features.profile.data.repository.ProfileRepositoryImpl
 import tech.hanasaki.momotalk_plus.features.profile.domain.repository.ProfileRepository
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
+import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UploadAvatarUseCase
 import tech.hanasaki.momotalk_plus.features.profile.presentation.viewmodel.ProfileViewModel
 import tech.hanasaki.momotalk_plus.features.settings.data.datasource.remote.SettingsRemoteDataSource
 import tech.hanasaki.momotalk_plus.features.settings.data.repository.SettingsRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
+import kotlin.time.ExperimentalTime
 import tech.hanasaki.momotalk_plus.features.settings.domain.repository.SettingsRepository as FeatureSettingsRepository
 import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.ObserveSettingsUseCase as ObserveFeatureSettingsUseCase
 import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveNotificationsUseCase as SaveFeatureNotificationsUseCase
 import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveSoundUseCase as SaveFeatureSoundUseCase
 import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveThemeUseCase as SaveFeatureThemeUseCase
 import tech.hanasaki.momotalk_plus.features.settings.domain.usecase.SaveVibrationUseCase as SaveFeatureVibrationUseCase
-import tech.hanasaki.momotalk_plus.features.settings.presentation.viewmodel.SettingsViewModel
-import kotlin.time.ExperimentalTime
 
 expect val platformModule: Module
 
@@ -169,9 +174,11 @@ val chatModule = module {
 
 
 val profileModule = module {
-    single<ProfileRepository> { ProfileRepositoryImpl(get()) }
+    single { ProfileRemoteDataSource(get()) }
+    single<ProfileRepository> { ProfileRepositoryImpl(get(), get()) }
 
     factoryOf(::UpdateUserProfileUseCase)
+    factoryOf(::UploadAvatarUseCase)
 }
 
 val settingsModule = module {

@@ -15,6 +15,6 @@ class ObserveCurrentUserUseCase(
     private val repository: SessionRepository,
 ) {
     operator fun invoke(): Flow<User?> =
-        repository.obverseUser()
+        repository.observeUser()
 }
 

@@ -26,7 +26,7 @@ sealed interface ProfileIntent {
     data object SaveProfile : ProfileIntent
     data object ChangePassword : ProfileIntent
     data object Logout : ProfileIntent
-    data class UploadAvatar(val imageData: ImageData, val userId: String?) : ProfileIntent
+    data class UploadAvatar(val imageData: ImageData) : ProfileIntent
 }
 
 /**

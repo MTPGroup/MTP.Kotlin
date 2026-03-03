@@ -10,11 +10,12 @@ import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
-import tech.hanasaki.momotalk_plus.core.domain.model.UploadPath
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
-import tech.hanasaki.momotalk_plus.core.domain.usecase.UploadImageUseCase
+import tech.hanasaki.momotalk_plus.core.network.AppErrorException
+import tech.hanasaki.momotalk_plus.core.network.toDisplayMessage
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
+import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UploadAvatarUseCase
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileIntent
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileSideEffect
 import tech.hanasaki.momotalk_plus.features.profile.presentation.state.ProfileState
@@ -23,7 +24,7 @@ import kotlin.time.ExperimentalTime
 class ProfileViewModel(
     private val obverseCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
-    private val uploadImageUseCase: UploadImageUseCase,
+    private val uploadAvatarUseCase: UploadAvatarUseCase,
     private val logoutUseCase: LogoutUseCase,
 ) : ViewModel(), ContainerHost<ProfileState, ProfileSideEffect> {
 
@@ -42,7 +43,7 @@ class ProfileViewModel(
             is ProfileIntent.SaveProfile -> viewModelScope.launch { saveProfile() }
             is ProfileIntent.ChangePassword -> navigateToChangePassword()
             is ProfileIntent.Logout -> viewModelScope.launch { logout() }
-            is ProfileIntent.UploadAvatar -> viewModelScope.launch { uploadAvatar(intent.imageData, intent.userId) }
+            is ProfileIntent.UploadAvatar -> viewModelScope.launch { uploadAvatar(intent.imageData) }
         }
     }
 
@@ -60,11 +61,14 @@ class ProfileViewModel(
                     }
                 }
             }
-            .catch { error ->
-                error.printStackTrace()
+            .catch { e ->
+                val msg = when (e) {
+                    is AppErrorException -> e.appError.toDisplayMessage()
+                    else -> "加载用户信息失败，请稍后重试"
+                }
                 intent {
                     reduce { state.copy(isLoading = false) }
-                    postSideEffect(ProfileSideEffect.ShowMessage("加载用户信息失败: ${error.message}"))
+                    postSideEffect(ProfileSideEffect.ShowMessage(msg))
                 }
             }
             .launchIn(viewModelScope)
@@ -102,11 +106,12 @@ class ProfileViewModel(
     private suspend fun saveProfile() {
         intent { reduce { state.copy(isSaving = true) } }
         val currentState = container.stateFlow.value
-        updateUserProfileUseCase(
-            id = currentState.user?.id ?: "",
-            name = currentState.editedName,
-            avatar = currentState.user?.avatar
-        ).onSuccess {
+        runCatching {
+            updateUserProfileUseCase(
+                username = currentState.editedName,
+                avatar = currentState.user?.avatar
+            )
+        }.onSuccess {
             intent {
                 reduce {
                     state.copy(
@@ -119,9 +124,14 @@ class ProfileViewModel(
                 postSideEffect(ProfileSideEffect.ShowMessage("个人资料已更新"))
             }
         }.onFailure { e ->
+            val msg = when (e) {
+                is AppErrorException -> e.appError.toDisplayMessage()
+                is IllegalArgumentException -> e.message ?: "输入不合法"
+                else -> "更新个人资料失败，请稍后重试"
+            }
             intent {
                 reduce { state.copy(isSaving = false) }
-                postSideEffect(ProfileSideEffect.ShowMessage("更新个人资料失败: ${e.message}"))
+                postSideEffect(ProfileSideEffect.ShowMessage(msg))
             }
         }
     }
@@ -138,15 +148,14 @@ class ProfileViewModel(
     @OptIn(ExperimentalTime::class)
     private suspend fun uploadAvatar(
         imageData: ImageData,
-        userId: String?,
     ) {
         intent { reduce { state.copy(isUploadingAvatar = true) } }
 
-        uploadImageUseCase(
-            imageData,
-            UploadPath.AVATAR,
-            userId
-        ).onSuccess { response ->
+        runCatching {
+            uploadAvatarUseCase(
+                imageData,
+            )
+        }.onSuccess { response ->
             intent {
                 reduce {
                     state.copy(
@@ -157,10 +166,14 @@ class ProfileViewModel(
             }
 
         }.onFailure { e ->
+            val msg = when (e) {
+                is AppErrorException -> e.appError.toDisplayMessage()
+                else -> "头像上传失败，请稍后重试"
+            }
             intent {
                 reduce { state.copy(isUploadingAvatar = false) }
                 postSideEffect(
-                    ProfileSideEffect.ShowMessage("头像上传失败: ${e.message}")
+                    ProfileSideEffect.ShowMessage(msg)
                 )
             }
         }

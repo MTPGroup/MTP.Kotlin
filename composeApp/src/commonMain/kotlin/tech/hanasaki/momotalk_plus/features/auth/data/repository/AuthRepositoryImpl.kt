@@ -2,10 +2,7 @@ package tech.hanasaki.momotalk_plus.features.auth.data.repository
 
 import tech.hanasaki.momotalk_plus.core.auth.AuthTokens
 import tech.hanasaki.momotalk_plus.core.auth.TokenStore
-import tech.hanasaki.momotalk_plus.core.network.AppErrorException
-import tech.hanasaki.momotalk_plus.core.network.AppResult
-import tech.hanasaki.momotalk_plus.core.network.NetworkErrorMapper
-import tech.hanasaki.momotalk_plus.core.network.callApi
+import tech.hanasaki.momotalk_plus.core.network.*
 import tech.hanasaki.momotalk_plus.features.auth.data.datasource.remote.*
 import tech.hanasaki.momotalk_plus.features.auth.domain.model.OTPType
 import tech.hanasaki.momotalk_plus.features.auth.domain.repository.AuthRepository
@@ -116,8 +113,3 @@ class AuthRepositoryImpl(
     }
 }
 
-private fun AppResult<*>.throwIfFailure() {
-    if (this is AppResult.Failure) throw AppErrorException(error)
-}
-
-private fun AppResult.Failure.throwAsException(): Nothing = throw AppErrorException(error)

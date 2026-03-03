@@ -16,3 +16,9 @@ inline fun <T> AppResult<T>.onFailure(action: (AppError) -> Unit): AppResult<T> 
 }
 
 fun <T> AppResult<T>.getOrNull(): T? = (this as? AppResult.Success)?.data
+
+fun AppResult<*>.throwIfFailure() {
+    if (this is AppResult.Failure) throw AppErrorException(error)
+}
+
+fun AppResult.Failure.throwAsException(): Nothing = throw AppErrorException(error)

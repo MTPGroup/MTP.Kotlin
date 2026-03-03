@@ -34,7 +34,6 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    currentUser: User?,
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
@@ -131,7 +130,7 @@ fun ProfileScreen(
                     isEditing = uiState.isEditing,
                     isUploadingAvatar = uiState.isUploadingAvatar,
                     onUploadAvatar = { imageData ->
-                        onIntent(ProfileIntent.UploadAvatar(imageData, currentUser?.id))
+                        onIntent(ProfileIntent.UploadAvatar(imageData))
                     }
                 )
             }
@@ -385,7 +384,7 @@ private fun AccountInfoSection(
             ProfileInfoItem(
                 icon = Ionicons.Outline.Time,
                 label = "注册时间",
-                value = user?.createdAt?.toString() ?: ""
+                value = user?.createdAt ?: ""
             )
         }
     }

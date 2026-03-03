@@ -12,7 +12,7 @@ class ObserveLoginStateUseCase(
     private val repository: SessionRepository,
 ) {
     operator fun invoke(): Flow<Boolean> {
-        return repository.obverseLoginState()
+        return repository.observeLoginState()
     }
 }
 

@@ -178,7 +178,6 @@ fun AppNavigation(
 
         composable<NavigationRoute.Profile> {
             ProfileScreen(
-                currentUser = appState.currentUser,
                 onNavigateBack = { navController.popBackStack() },
                 onLogout = {
                     appViewModel.logout()
