@@ -11,9 +11,6 @@ import tech.hanasaki.momotalk_plus.core.network.ApiEnvelope
 class ProfileRemoteDataSource(
     private val client: HttpClient,
 ) {
-    suspend fun getProfile(): ApiEnvelope<GetProfileResponse> =
-        client.get("auth/me").body()
-
     suspend fun updateMe(request: UpdateProfileRequest): ApiEnvelope<SuccessResponse> =
         client.put("auth/me") {
             setBody(request)
@@ -28,6 +25,10 @@ class ProfileRemoteDataSource(
                             "file", avatar.byteArray,
                             Headers.build {
                                 append(HttpHeaders.ContentType, avatar.mimeType)
+                                append(
+                                    HttpHeaders.ContentDisposition,
+                                    "form-data; name=\"file\"; filename=\"${avatar.fileName}\"",
+                                )
                             }
                         )
                     }

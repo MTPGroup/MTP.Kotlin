@@ -133,6 +133,7 @@ val sessionModule = module {
 
     factoryOf(::ObserveCurrentUserUseCase)
     factoryOf(::ObserveLoginStateUseCase)
+    factoryOf(::RefreshCurrentUserUseCase)
     factoryOf(::LogoutUseCase)
 }
 

@@ -12,6 +12,7 @@ import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.domain.model.ImageData
 import tech.hanasaki.momotalk_plus.core.domain.usecase.LogoutUseCase
 import tech.hanasaki.momotalk_plus.core.domain.usecase.ObserveCurrentUserUseCase
+import tech.hanasaki.momotalk_plus.core.domain.usecase.RefreshCurrentUserUseCase
 import tech.hanasaki.momotalk_plus.core.network.AppErrorException
 import tech.hanasaki.momotalk_plus.core.network.toDisplayMessage
 import tech.hanasaki.momotalk_plus.features.profile.domain.usecase.UpdateUserProfileUseCase
@@ -25,6 +26,7 @@ class ProfileViewModel(
     private val obverseCurrentUserUseCase: ObserveCurrentUserUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
     private val uploadAvatarUseCase: UploadAvatarUseCase,
+    private val refreshCurrentUserUseCase: RefreshCurrentUserUseCase,
     private val logoutUseCase: LogoutUseCase,
 ) : ViewModel(), ContainerHost<ProfileState, ProfileSideEffect> {
 
@@ -112,6 +114,7 @@ class ProfileViewModel(
                 avatar = currentState.user?.avatar
             )
         }.onSuccess {
+            runCatching { refreshCurrentUserUseCase() }
             intent {
                 reduce {
                     state.copy(
@@ -155,16 +158,15 @@ class ProfileViewModel(
             uploadAvatarUseCase(
                 imageData,
             )
-        }.onSuccess { response ->
+        }.onSuccess { avatar ->
             intent {
                 reduce {
                     state.copy(
-                        user = state.user?.copy(avatar = response),
+                        user = state.user?.copy(avatar = avatar),
                         isUploadingAvatar = false
                     )
                 }
             }
-
         }.onFailure { e ->
             val msg = when (e) {
                 is AppErrorException -> e.appError.toDisplayMessage()

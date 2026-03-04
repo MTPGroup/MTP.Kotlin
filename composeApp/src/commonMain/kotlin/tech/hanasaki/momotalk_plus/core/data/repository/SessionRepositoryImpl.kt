@@ -5,9 +5,9 @@ package tech.hanasaki.momotalk_plus.core.data.repository
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
 import tech.hanasaki.momotalk_plus.core.auth.TokenStore
 import tech.hanasaki.momotalk_plus.core.domain.model.User
@@ -22,33 +22,45 @@ class SessionRepositoryImpl(
     private val tokenStore: TokenStore,
     private val errorMapper: NetworkErrorMapper,
 ) : SessionRepository {
+    private val userRefreshSignal = MutableStateFlow(0L)
 
-    override fun obverseUser(): Flow<User?> {
-        return tokenStore.tokensFlow
-            .map { it?.accessToken }
-            .onEach { token ->
-                if (token == null) return@onEach
-                val me = runCatching { fetchCurrentUser() }.getOrNull()
-                if (me == null) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeUser(): Flow<User?> =
+        combine(
+            tokenStore.tokensFlow
+                .map { it?.accessToken }
+                .distinctUntilChanged(),
+            userRefreshSignal,
+        ) { token, _ -> token }
+            .mapLatest { token ->
+                if (token == null) return@mapLatest null
+                try {
+                    fetchCurrentUser()
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (_: Throwable) {
                     tokenStore.clear()
+                    null
                 }
             }
-            .map { token ->
-                if (token == null) null else runCatching { fetchCurrentUser() }.getOrNull()
-            }
-    }
 
-    override fun obverseLoginState(): Flow<Boolean> {
-        return tokenStore.tokensFlow.map { it != null }
-    }
+    override fun observeLoginState(): Flow<Boolean> =
+        tokenStore.tokensFlow
+            .map { it != null }
+            .distinctUntilChanged()
 
     override suspend fun refreshCurrentSession() {
         try {
             client.refreshAuthTokens(tokenStore)
+            refreshCurrentUser()
         } catch (t: Throwable) {
             errorMapper.map(t)
             tokenStore.clear()
         }
+    }
+
+    override suspend fun refreshCurrentUser() {
+        userRefreshSignal.value += 1
     }
 
     override suspend fun logout() {
