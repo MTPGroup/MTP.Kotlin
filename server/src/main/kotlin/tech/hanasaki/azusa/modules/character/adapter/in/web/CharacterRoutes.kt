@@ -258,6 +258,35 @@ fun Route.characterRoutes() {
         }
 
         authenticate("auth-jwt") {
+            get("/{characterId}/favorite-status") {
+                val userId = call.requireUserId()
+                val characterId = CharacterId(call.uuidParam("characterId"))
+                val result = characterQueryService.getFavoriteStatus(userId, characterId)
+                call.respondOk(result.toResponse())
+            }.describe {
+                tag("角色管理")
+                operationId = "getCharacterFavoriteStatus"
+                summary = "获取角色收藏状态"
+                description = "获取当前登录用户对指定角色的收藏状态"
+                parameters {
+                    path("characterId") {
+                        description = "角色ID（UUID格式）"
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<CharacterFavoriteStatusResponse>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                    HttpStatusCode.NotFound {
+                        description = "角色不存在"
+                    }
+                }
+            }
+
             get("/recommended") {
                 val userId = call.requireUserId()
                 val validator = ValidationCollector()

@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.character.application.port.`in`
 
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterFavoriteStatusView
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
@@ -30,4 +31,5 @@ interface CharacterQueryUseCasePort {
     ): PageResult<CharacterView>
 
     suspend fun getCharacter(authorId: UserId?, characterId: CharacterId): CharacterView
+    suspend fun getFavoriteStatus(userId: UserId, characterId: CharacterId): CharacterFavoriteStatusView
 }

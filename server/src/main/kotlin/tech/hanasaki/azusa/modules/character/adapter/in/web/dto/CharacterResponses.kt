@@ -3,6 +3,7 @@ package tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterAuthorView
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterExampleMessageView
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterFavoriteStatusView
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
@@ -55,9 +56,16 @@ data class CharacterDetailResponse(
     val isPublic: Boolean,
     val favoriteCount: Int,
     val chatCount: Int,
-    val isFavorited: Boolean? = null,
+    val isFavorited: Boolean = false,
     val createdAt: String,
     val updatedAt: String,
+)
+
+@Serializable
+data class CharacterFavoriteStatusResponse(
+    val characterId: Uuid,
+    val isFavorited: Boolean,
+    val favoritedAt: String? = null,
 )
 
 @Serializable
@@ -130,6 +138,12 @@ fun CharacterView.toDetailResponse(): CharacterDetailResponse = CharacterDetailR
     isFavorited = isFavorited,
     createdAt = createdAt,
     updatedAt = updatedAt,
+)
+
+fun CharacterFavoriteStatusView.toResponse(): CharacterFavoriteStatusResponse = CharacterFavoriteStatusResponse(
+    characterId = characterId,
+    isFavorited = isFavorited,
+    favoritedAt = favoritedAt,
 )
 
 fun PageResult<CharacterView>.toResponse(): PagedCharacterResponse = PagedCharacterResponse(

@@ -33,7 +33,7 @@ data class CharacterView(
     val isPublic: Boolean,
     val favoriteCount: Int,
     val chatCount: Int,
-    val isFavorited: Boolean? = null,
+    val isFavorited: Boolean = false,
     val createdAt: String,
     val updatedAt: String,
 )

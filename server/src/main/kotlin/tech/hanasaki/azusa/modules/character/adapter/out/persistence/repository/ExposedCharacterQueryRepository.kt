@@ -294,7 +294,7 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
             isPublic = row[CharacterTable.isPublic],
             favoriteCount = row[CharacterTable.favoriteCount],
             chatCount = row[CharacterTable.chatCount],
-            isFavorited = null,
+            isFavorited = false,
             createdAt = row[CharacterTable.createdAt].toString(),
             updatedAt = row[CharacterTable.updatedAt].toString(),
         )
