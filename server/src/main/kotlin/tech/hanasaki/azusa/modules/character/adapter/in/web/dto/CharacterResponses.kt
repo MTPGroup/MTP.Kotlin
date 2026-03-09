@@ -36,6 +36,24 @@ data class CharacterResponse(
 typealias PagedCharacterResponse = PagedResponse<CharacterResponse>
 
 @Serializable
+data class TrendingCharacterResponse(
+    val id: Uuid,
+    val author: AuthorProfileResponse? = null,
+    val name: String,
+    val avatar: String?,
+    val bio: String?,
+    val favoriteCount: Int,
+    val chatCount: Int,
+    val rank: Int,
+)
+
+@Serializable
+data class TrendingCharactersDataResponse(
+    val items: List<TrendingCharacterResponse>,
+    val period: String,
+)
+
+@Serializable
 data class KnowledgeSubscriptionResponse(
     val knowledgeBaseId: Uuid,
     val priority: Int,
@@ -76,6 +94,23 @@ fun PageResult<CharacterView>.toResponse(): PagedCharacterResponse = PagedCharac
     hasNext = hasNext,
     hasPrevious = hasPrevious,
 )
+
+fun List<CharacterView>.toTrendingResponse(period: String): TrendingCharactersDataResponse =
+    TrendingCharactersDataResponse(
+        items = mapIndexed { index, it ->
+            TrendingCharacterResponse(
+                id = it.id,
+                author = it.author?.toResponse(),
+                name = it.name,
+                avatar = it.avatar,
+                bio = it.bio,
+                favoriteCount = it.favoriteCount,
+                chatCount = it.chatCount,
+                rank = index + 1,
+            )
+        },
+        period = period,
+    )
 
 fun Character.toResponse(author: AuthorProfileResponse? = null): CharacterResponse = CharacterResponse(
     id = id.value,

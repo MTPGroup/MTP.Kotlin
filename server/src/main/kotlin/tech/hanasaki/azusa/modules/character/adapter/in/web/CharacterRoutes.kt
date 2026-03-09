@@ -120,6 +120,40 @@ fun Route.characterRoutes() {
                 }
             }
 
+            get("/trending") {
+                val validator = ValidationCollector()
+                val period = validator.collectPeriod(call.request.queryParameters["period"]) ?: "all"
+                val limit = validator.collectTrendingLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
+                val result = characterQueryService.listTrendingCharacters(period, limit)
+                call.respondOk(result.toTrendingResponse(period))
+            }.describe {
+                tag("角色管理")
+                operationId = "listTrendingCharacters"
+                summary = "获取热门角色"
+                description = "获取最受欢迎的角色榜单，按收藏数和使用量排序"
+                parameters {
+                    query("period") {
+                        description = "时间范围：day/week/month/all（默认 all）"
+                        required = false
+                    }
+                    query("limit") {
+                        description = "返回数量，1-50（默认 10）"
+                        required = false
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<TrendingCharactersDataResponse>>()
+                    }
+                    HttpStatusCode.BadRequest {
+                        description = "查询参数无效"
+                    }
+                }
+            }
+
             get("/search") {
                 val userId = call.optionalUserId()
                 val query = call.request.queryParameters["q"] ?: ""
@@ -223,6 +257,36 @@ fun Route.characterRoutes() {
         }
 
         authenticate("auth-jwt") {
+            get("/recommended") {
+                val userId = call.requireUserId()
+                val validator = ValidationCollector()
+                val limit = validator.collectRecommendedLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
+                val result = characterQueryService.listRecommendedCharacters(userId, limit)
+                call.respondOk(result.map { it.toResponse() })
+            }.describe {
+                tag("角色管理")
+                operationId = "listRecommendedCharacters"
+                summary = "获取推荐角色"
+                description = "基于用户偏好和互动历史获取个性化推荐角色"
+                parameters {
+                    query("limit") {
+                        description = "返回数量，1-20（默认 10）"
+                        required = false
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<Array<CharacterResponse>>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "未登录或令牌无效"
+                    }
+                }
+            }
+
             // 获取我的角色列表
             get {
                 val userId = call.requireUserId()

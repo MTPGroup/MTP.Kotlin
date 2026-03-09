@@ -49,6 +49,14 @@ class CharacterQueryService(
         characterQueryRepository.findPublicCharactersPaged(page, limit)
     }
 
+    override suspend fun listTrendingCharacters(period: String, limit: Int): List<CharacterView> = tx.readOnly {
+        characterQueryRepository.findTrendingCharacters(period, limit)
+    }
+
+    override suspend fun listRecommendedCharacters(userId: UserId, limit: Int): List<CharacterView> = tx.readOnly {
+        characterQueryRepository.findRecommendedCharacters(userId, limit)
+    }
+
     override suspend fun searchCharacters(
         query: String,
         page: Int,

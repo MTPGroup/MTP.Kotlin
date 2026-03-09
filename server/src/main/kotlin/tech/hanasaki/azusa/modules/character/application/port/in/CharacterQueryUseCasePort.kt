@@ -20,6 +20,8 @@ interface CharacterQueryUseCasePort {
 
     suspend fun listMyCharacters(authorId: UserId, page: Int = 1, limit: Int = 10): PageResult<CharacterView>
     suspend fun listPublicCharacters(page: Int = 1, limit: Int = 10): PageResult<CharacterView>
+    suspend fun listTrendingCharacters(period: String = "all", limit: Int = 10): List<CharacterView>
+    suspend fun listRecommendedCharacters(userId: UserId, limit: Int = 10): List<CharacterView>
     suspend fun searchCharacters(
         query: String,
         page: Int = 1,

@@ -20,6 +20,8 @@ interface CharacterQueryRepositoryPort {
 
     suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<CharacterView>
     suspend fun findPublicCharactersPaged(page: Int, limit: Int): PageResult<CharacterView>
+    suspend fun findTrendingCharacters(period: String, limit: Int): List<CharacterView>
+    suspend fun findRecommendedCharacters(userId: UserId, limit: Int): List<CharacterView>
     suspend fun searchCharacters(query: String, page: Int, limit: Int, userId: UserId?): PageResult<CharacterView>
     suspend fun findVisibleById(characterId: CharacterId, userId: UserId?): CharacterView?
 }

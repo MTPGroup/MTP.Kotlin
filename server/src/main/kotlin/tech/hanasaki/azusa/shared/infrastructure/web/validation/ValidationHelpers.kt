@@ -81,3 +81,30 @@ fun ValidationCollector.collectionTags(value: String?, fieldName: String = "tags
     if (value.isBlank()) return emptySet()
     return value.split(",").map { it.trim() }.toSet()
 }
+
+fun ValidationCollector.collectPeriod(value: String?, fieldName: String = "period"): String? {
+    if (value == null) return "all"
+    if (value.isBlank() or !listOf("day", "week", "month", "all").contains(value)) {
+        add(fieldName, "period 仅支持\"day\", \"week\", \"month\", \"all\"")
+        return null
+    }
+    return value
+}
+
+fun ValidationCollector.collectTrendingLimit(value: String?, fieldName: String = "limit"): Int? {
+    val limit = collectLimit(value, fieldName) ?: return null
+    if (limit !in 1..50) {
+        add(fieldName, "热门角色数量必须在1-50之间")
+        return null
+    }
+    return limit
+}
+
+fun ValidationCollector.collectRecommendedLimit(value: String?, fieldName: String = "limit"): Int? {
+    val limit = collectLimit(value, fieldName) ?: return null
+    if (limit !in 1..20) {
+        add(fieldName, "推荐角色数量必须在1-20之间")
+        return null
+    }
+    return limit
+}

@@ -3,6 +3,8 @@ package tech.hanasaki.azusa.modules.character.adapter.out.persistence.repository
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.ProfileTable
+import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.ChatMemberTable
+import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterFavoriteTable
 import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterTable
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterAuthorView
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
@@ -10,6 +12,8 @@ import tech.hanasaki.azusa.modules.character.application.port.out.CharacterQuery
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 
 class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
     override suspend fun findCharactersPaged(
@@ -55,6 +59,90 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
     override suspend fun findPublicCharactersPaged(page: Int, limit: Int): PageResult<CharacterView> {
         val condition = { CharacterTable.isPublic eq true }
         return findPaged(condition, page, limit)
+    }
+
+    override suspend fun findTrendingCharacters(period: String, limit: Int): List<CharacterView> {
+        var condition: Op<Boolean> = CharacterTable.isPublic eq true
+        resolvePeriodStart(period)?.let { startAt ->
+            condition = condition and (CharacterTable.updatedAt greaterEq startAt)
+        }
+
+        return joinedQuery()
+            .where { condition }
+            .orderBy(
+                CharacterTable.favoriteCount to SortOrder.DESC,
+                CharacterTable.chatCount to SortOrder.DESC,
+                CharacterTable.updatedAt to SortOrder.DESC,
+            )
+            .limit(limit)
+            .map(::toView)
+    }
+
+    override suspend fun findRecommendedCharacters(userId: UserId, limit: Int): List<CharacterView> {
+        val chatIds = ChatMemberTable.selectAll()
+            .where {
+                (ChatMemberTable.profileId eq userId.value) and
+                        (ChatMemberTable.memberType.upperCase() eq stringLiteral("USER"))
+            }
+            .map { it[ChatMemberTable.chatId] }
+            .toSet()
+
+        val interactedCharacterIds = if (chatIds.isEmpty()) {
+            emptySet()
+        } else {
+            ChatMemberTable.selectAll()
+                .where {
+                    (ChatMemberTable.chatId inList chatIds.toList()) and
+                            (ChatMemberTable.characterId.isNotNull()) and
+                            (ChatMemberTable.memberType.upperCase() eq stringLiteral("CHARACTER"))
+                }
+                .mapNotNull { it[ChatMemberTable.characterId] }
+                .toSet()
+        }
+
+        val favoritedCharacterIds = CharacterFavoriteTable.selectAll()
+            .where { CharacterFavoriteTable.userId eq userId.value }
+            .map { it[CharacterFavoriteTable.characterId] }
+            .toSet()
+
+        val preferenceIds = (interactedCharacterIds + favoritedCharacterIds).toList()
+        val preferredTags = mutableMapOf<String, Int>()
+        if (preferenceIds.isNotEmpty()) {
+            CharacterTable.selectAll()
+                .where { CharacterTable.id inList preferenceIds }
+                .forEach { row ->
+                    parseTags(row[CharacterTable.tags]).forEach { tag ->
+                        preferredTags[tag] = (preferredTags[tag] ?: 0) + 1
+                    }
+                }
+        }
+
+        var candidateCondition: Op<Boolean> =
+            (CharacterTable.isPublic eq true) and (CharacterTable.authorId neq userId.value)
+        if (preferenceIds.isNotEmpty()) {
+            candidateCondition = candidateCondition and (CharacterTable.id notInList preferenceIds)
+        }
+
+        val candidates = joinedQuery()
+            .where { candidateCondition }
+            .orderBy(
+                CharacterTable.favoriteCount to SortOrder.DESC,
+                CharacterTable.chatCount to SortOrder.DESC,
+                CharacterTable.updatedAt to SortOrder.DESC,
+            )
+            .limit(200)
+            .map(::toView)
+
+        val scored = candidates
+            .map { view ->
+                val overlapScore = view.tags.sumOf { preferredTags[it] ?: 0 } * 100
+                val hotScore = view.favoriteCount * 3 + view.chatCount
+                view to (overlapScore + hotScore)
+            }
+            .sortedByDescending { it.second }
+            .map { it.first }
+
+        return scored.take(limit)
     }
 
     override suspend fun searchCharacters(
@@ -185,4 +273,11 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
         raw.split(",")
             .map { it.trim() }
             .filter { it.isNotEmpty() }
+
+    private fun resolvePeriodStart(period: String) = when (period) {
+        "day" -> Clock.System.now() - 1.days
+        "week" -> Clock.System.now() - 7.days
+        "month" -> Clock.System.now() - 30.days
+        else -> null
+    }
 }
