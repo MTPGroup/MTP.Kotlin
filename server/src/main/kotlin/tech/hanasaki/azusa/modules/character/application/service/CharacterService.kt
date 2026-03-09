@@ -9,7 +9,6 @@ import tech.hanasaki.azusa.modules.character.domain.port.KnowledgeSubscriptionRe
 import tech.hanasaki.azusa.shared.domain.exception.AuthorizationException
 import tech.hanasaki.azusa.shared.domain.exception.NotFoundException
 import tech.hanasaki.azusa.shared.domain.model.base.publishAndClear
-import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.KnowledgeBaseId
@@ -23,35 +22,6 @@ class CharacterService(
     private val domainEventBus: DomainEventBusPort,
     private val tx: TransactionalPort,
 ) : CharacterUseCasePort {
-    override suspend fun listMyCharacters(authorId: UserId, page: Int, limit: Int): PageResult<Character> =
-        tx.readOnly {
-            return@readOnly characterRepository.findByAuthorIdPaged(authorId, page, limit)
-        }
-
-
-    override suspend fun listPublicCharacters(page: Int, limit: Int): PageResult<Character> = tx.readOnly {
-        return@readOnly characterRepository.findPublicCharactersPaged(page, limit)
-    }
-
-    override suspend fun searchCharacters(
-        query: String,
-        page: Int,
-        limit: Int,
-        userId: UserId?,
-    ): PageResult<Character> =
-        tx.readOnly {
-            return@readOnly characterRepository.searchCharacters(query, page, limit, userId)
-        }
-
-    override suspend fun getCharacter(authorId: UserId?, characterId: CharacterId): Character = tx.readOnly {
-        val character = characterRepository.findById(characterId)
-            ?: throw NotFoundException("角色不存在")
-        if (!character.isPublic && character.authorId != authorId) {
-            throw AuthorizationException("权限不足")
-        }
-        return@readOnly character
-    }
-
     override suspend fun createCharacter(
         authorId: UserId,
         name: String,

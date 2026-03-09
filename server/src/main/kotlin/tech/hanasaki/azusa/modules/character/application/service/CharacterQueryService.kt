@@ -16,9 +16,34 @@ class CharacterQueryService(
     private val characterRepository: CharacterRepositoryPort,
     private val tx: TransactionalPort,
 ) : CharacterQueryUseCasePort {
-    override suspend fun listMyCharacters(authorId: UserId, page: Int, limit: Int): PageResult<CharacterView> = tx.readOnly {
-        characterQueryRepository.findByAuthorIdPaged(authorId, page, limit)
+    override suspend fun listCharacters(
+        page: Int,
+        limit: Int,
+        query: String?,
+        visibility: String?,
+        scope: String?,
+        authorId: UserId?,
+        userId: UserId?,
+        sort: String?,
+        tags: Set<String>?,
+    ): PageResult<CharacterView> = tx.readOnly {
+        characterQueryRepository.findCharactersPaged(
+            page,
+            limit,
+            query,
+            visibility,
+            scope,
+            authorId,
+            userId,
+            sort,
+            tags,
+        )
     }
+
+    override suspend fun listMyCharacters(authorId: UserId, page: Int, limit: Int): PageResult<CharacterView> =
+        tx.readOnly {
+            characterQueryRepository.findByAuthorIdPaged(authorId, page, limit)
+        }
 
     override suspend fun listPublicCharacters(page: Int, limit: Int): PageResult<CharacterView> = tx.readOnly {
         characterQueryRepository.findPublicCharactersPaged(page, limit)

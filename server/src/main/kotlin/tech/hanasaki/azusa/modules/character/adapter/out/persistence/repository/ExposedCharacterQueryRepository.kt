@@ -1,14 +1,6 @@
 package tech.hanasaki.azusa.modules.character.adapter.out.persistence.repository
 
-import org.jetbrains.exposed.v1.core.JoinType
-import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.like
-import org.jetbrains.exposed.v1.core.lowerCase
-import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import tech.hanasaki.azusa.modules.auth.adapter.out.persistence.table.ProfileTable
 import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterTable
@@ -20,6 +12,41 @@ import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 
 class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
+    override suspend fun findCharactersPaged(
+        page: Int,
+        limit: Int,
+        query: String?,
+        visibility: String?,
+        scope: String?,
+        authorId: UserId?,
+        userId: UserId?,
+        sort: String?,
+        tags: Set<String>?,
+    ): PageResult<CharacterView> {
+        val condition = buildListCondition(
+            query = query,
+            visibility = visibility,
+            scope = scope,
+            authorId = authorId,
+            userId = userId,
+            tags = tags,
+        )
+        val orderBy = resolveSort(sort)
+
+        val total = CharacterTable.selectAll()
+            .where { condition }
+            .count()
+
+        val items = joinedQuery()
+            .where { condition }
+            .orderBy(orderBy.first, orderBy.second)
+            .limit(limit)
+            .offset(((page - 1) * limit).toLong())
+            .map(::toView)
+
+        return PageResult(items, total, page, limit)
+    }
+
     override suspend fun findByAuthorIdPaged(authorId: UserId, page: Int, limit: Int): PageResult<CharacterView> {
         val condition = { CharacterTable.authorId eq authorId.value }
         return findPaged(condition, page, limit)
@@ -47,7 +74,8 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
     override suspend fun findVisibleById(characterId: CharacterId, userId: UserId?): CharacterView? {
         val condition = {
             (CharacterTable.id eq characterId.value) and
-                    ((CharacterTable.isPublic eq true) or (userId?.let { CharacterTable.authorId eq it.value } ?: Op.FALSE))
+                    ((CharacterTable.isPublic eq true) or (userId?.let { CharacterTable.authorId eq it.value }
+                        ?: Op.FALSE))
         }
         return joinedQuery()
             .where(condition)
@@ -68,6 +96,52 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
             .map(::toView)
 
         return PageResult(items, total, page, limit)
+    }
+
+    private fun buildListCondition(
+        query: String?,
+        visibility: String?,
+        scope: String?,
+        authorId: UserId?,
+        userId: UserId?,
+        tags: Set<String>?,
+    ): Op<Boolean> {
+        var condition: Op<Boolean> = when (visibility) {
+            "public" -> CharacterTable.isPublic eq true
+            "private" -> userId?.let { CharacterTable.authorId eq it.value } ?: Op.FALSE
+            else -> (CharacterTable.isPublic eq true) or (userId?.let { CharacterTable.authorId eq it.value }
+                ?: Op.FALSE)
+        }
+
+        if (scope == "mine") {
+            condition = condition and (userId?.let { CharacterTable.authorId eq it.value } ?: Op.FALSE)
+        }
+
+        if (authorId != null) {
+            condition = condition and (CharacterTable.authorId eq authorId.value)
+        }
+
+        if (!query.isNullOrBlank()) {
+            val searchPattern = "%${query.trim().lowercase()}%"
+            condition = condition and (
+                    (CharacterTable.name.lowerCase() like searchPattern) or
+                            (CharacterTable.bio.lowerCase() like searchPattern)
+                    )
+        }
+
+        // TODO(MTP-37): 角色标签数据模型暂未实现。
+        if (!tags.isNullOrEmpty()) {
+            condition = condition and Op.FALSE
+        }
+
+        return condition
+    }
+
+    private fun resolveSort(sort: String?): Pair<Expression<*>, SortOrder> = when (sort) {
+        "name" -> CharacterTable.name to SortOrder.ASC
+        // TODO(MTP-37): popular 排序依赖 favorite/chat 指标，待补齐统计口径与数据来源。
+        "popular" -> CharacterTable.updatedAt to SortOrder.DESC
+        else -> CharacterTable.updatedAt to SortOrder.DESC
     }
 
     private fun joinedQuery() = CharacterTable

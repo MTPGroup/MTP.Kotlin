@@ -24,9 +24,7 @@ import tech.hanasaki.azusa.shared.infrastructure.web.response.respondOk
 import tech.hanasaki.azusa.shared.infrastructure.web.route.optionalUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.requireUserId
 import tech.hanasaki.azusa.shared.infrastructure.web.route.uuidParam
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.ValidationCollector
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectLimit
-import tech.hanasaki.azusa.shared.infrastructure.web.validation.collectPage
+import tech.hanasaki.azusa.shared.infrastructure.web.validation.*
 import tech.hanasaki.azusa.shared.port.out.FileStoragePort
 import kotlin.uuid.Uuid
 
@@ -37,39 +35,56 @@ fun Route.characterRoutes() {
     val fileStoragePort: FileStoragePort by inject()
 
     route("/characters") {
-        // 获取公开角色列表（分页）
-        get("/public") {
-            val validator = ValidationCollector()
-            val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
-            val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
-            validator.throwIfAny()
-
-            val result = characterQueryService.listPublicCharacters(page, limit)
-            call.respondOk(result.toResponse())
-        }.describe {
-            tag("角色管理")
-            operationId = "listPublicCharacters"
-            summary = "获取公开角色列表"
-            description = "获取所有公开角色（分页）"
-            parameters {
-                query("page") {
-                    description = "页码，从1开始"
-                    required = false
-                }
-                query("limit") {
-                    description = "每页数量，1-100"
-                    required = false
-                }
-            }
-            responses {
-                HttpStatusCode.OK {
-                    description = "获取成功"
-                    schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
-                }
-            }
-        }
-
         authenticate("auth-jwt", optional = true) {
+            get {
+                val userId = call.optionalUserId()
+                val validator = ValidationCollector()
+                val visibility = validator.collectVisibility(call.request.queryParameters["visibility"]) ?: "public"
+                val scope = validator.collectScope(call.request.queryParameters["scope"]) ?: "mine"
+                val authorId = validator.collectAuthorId(call.request.queryParameters["authorId"] ?: "")
+                val sort = validator.collectionSort(call.request.queryParameters["sort"] ?: "newest")
+                val tags = validator.collectionTags(call.request.queryParameters["tags"] ?: "")
+                val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                validator.throwIfAny()
+
+                val query = call.request.queryParameters["q"]
+
+                val result = characterQueryService.listCharacters(
+                    page,
+                    limit,
+                    query,
+                    visibility,
+                    scope,
+                    authorId,
+                    userId,
+                    sort,
+                    tags,
+                )
+                call.respondOk(result.toResponse())
+            }.describe {
+                tag("角色管理")
+                operationId = "listPublicCharacters"
+                summary = "获取角色列表"
+                description = "获取角色列表（分页）"
+                parameters {
+                    query("page") {
+                        description = "页码，从1开始"
+                        required = false
+                    }
+                    query("limit") {
+                        description = "每页数量，1-100"
+                        required = false
+                    }
+                }
+                responses {
+                    HttpStatusCode.OK {
+                        description = "获取成功"
+                        schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
+                    }
+                }
+            }
+
             get("/search") {
                 val userId = call.optionalUserId()
                 val query = call.request.queryParameters["q"] ?: ""
