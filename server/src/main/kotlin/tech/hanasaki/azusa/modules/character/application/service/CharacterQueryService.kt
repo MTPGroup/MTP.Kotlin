@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.character.application.service
 
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterQueryUseCasePort
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterFavoriteStatusView
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
 import tech.hanasaki.azusa.modules.character.application.port.out.CharacterQueryRepositoryPort
 import tech.hanasaki.azusa.modules.character.domain.port.CharacterRepositoryPort
@@ -77,4 +78,11 @@ class CharacterQueryService(
                 throw NotFoundException("角色不存在")
             }
     }
+
+    override suspend fun getFavoriteStatus(userId: UserId, characterId: CharacterId): CharacterFavoriteStatusView =
+        tx.readOnly {
+            characterQueryRepository.findVisibleById(characterId, userId)
+                ?: throw NotFoundException("角色不存在")
+            characterQueryRepository.findFavoriteStatus(characterId, userId)
+        }
 }

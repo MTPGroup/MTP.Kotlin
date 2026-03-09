@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.character.application.port.`in`
 
 import tech.hanasaki.azusa.modules.character.domain.model.Character
+import tech.hanasaki.azusa.modules.character.domain.model.CharacterExampleMessage
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
@@ -13,6 +14,8 @@ interface CharacterUseCasePort {
         name: String,
         avatar: AvatarUrl? = null,
         bio: String? = null,
+        tags: List<String> = emptyList(),
+        exampleMessages: List<CharacterExampleMessage> = emptyList(),
         originPrompt: String? = null,
         isPublic: Boolean = false,
     ): Character
@@ -23,6 +26,8 @@ interface CharacterUseCasePort {
         name: String,
         avatar: AvatarUrl? = null,
         bio: String? = null,
+        tags: List<String> = emptyList(),
+        exampleMessages: List<CharacterExampleMessage> = emptyList(),
         originPrompt: String? = null,
         isPublic: Boolean = false,
     ): Character

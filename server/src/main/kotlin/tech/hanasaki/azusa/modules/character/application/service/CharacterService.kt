@@ -3,6 +3,7 @@ package tech.hanasaki.azusa.modules.character.application.service
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
 import tech.hanasaki.azusa.modules.character.domain.events.CharacterDeleted
 import tech.hanasaki.azusa.modules.character.domain.model.Character
+import tech.hanasaki.azusa.modules.character.domain.model.CharacterExampleMessage
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
 import tech.hanasaki.azusa.modules.character.domain.port.CharacterRepositoryPort
 import tech.hanasaki.azusa.modules.character.domain.port.KnowledgeSubscriptionRepositoryPort
@@ -27,6 +28,8 @@ class CharacterService(
         name: String,
         avatar: AvatarUrl?,
         bio: String?,
+        tags: List<String>,
+        exampleMessages: List<CharacterExampleMessage>,
         originPrompt: String?,
         isPublic: Boolean,
     ): Character = tx.execute {
@@ -35,6 +38,8 @@ class CharacterService(
             name = name,
             avatar = avatar,
             bio = bio,
+            tags = tags,
+            exampleMessages = exampleMessages,
             originPrompt = originPrompt,
             isPublic = isPublic,
         )
@@ -49,6 +54,8 @@ class CharacterService(
         name: String,
         avatar: AvatarUrl?,
         bio: String?,
+        tags: List<String>,
+        exampleMessages: List<CharacterExampleMessage>,
         originPrompt: String?,
         isPublic: Boolean,
     ): Character = tx.execute {
@@ -57,6 +64,8 @@ class CharacterService(
             name = name,
             avatar = avatar,
             bio = bio,
+            tags = tags,
+            exampleMessages = exampleMessages,
             originPrompt = originPrompt,
             isPublic = isPublic,
         )

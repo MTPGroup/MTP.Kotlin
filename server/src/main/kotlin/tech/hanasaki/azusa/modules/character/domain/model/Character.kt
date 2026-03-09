@@ -16,6 +16,8 @@ class Character private constructor(
     var name: String,
     var avatar: AvatarUrl?,
     var bio: String?,
+    var tags: List<String>,
+    var exampleMessages: List<CharacterExampleMessage>,
     var originPrompt: String?,
     var isPublic: Boolean,
     val createdAt: Instant,
@@ -31,6 +33,8 @@ class Character private constructor(
             name: String,
             avatar: AvatarUrl? = null,
             bio: String? = null,
+            tags: List<String> = emptyList(),
+            exampleMessages: List<CharacterExampleMessage> = emptyList(),
             originPrompt: String? = null,
             isPublic: Boolean = false,
         ): Character {
@@ -41,6 +45,8 @@ class Character private constructor(
                 name = name,
                 avatar = avatar,
                 bio = bio,
+                tags = tags,
+                exampleMessages = exampleMessages,
                 originPrompt = originPrompt,
                 isPublic = isPublic,
                 createdAt = now,
@@ -66,6 +72,8 @@ class Character private constructor(
             name: String,
             avatar: AvatarUrl?,
             bio: String?,
+            tags: List<String>,
+            exampleMessages: List<CharacterExampleMessage>,
             originPrompt: String?,
             isPublic: Boolean,
             createdAt: Instant,
@@ -76,6 +84,8 @@ class Character private constructor(
             name = name,
             avatar = avatar,
             bio = bio,
+            tags = tags,
+            exampleMessages = exampleMessages,
             originPrompt = originPrompt,
             isPublic = isPublic,
             createdAt = createdAt,
@@ -90,12 +100,16 @@ class Character private constructor(
         name: String,
         avatar: AvatarUrl?,
         bio: String?,
+        tags: List<String>,
+        exampleMessages: List<CharacterExampleMessage>,
         originPrompt: String?,
         isPublic: Boolean,
     ) {
         this.name = name
         this.avatar = avatar
         this.bio = bio
+        this.tags = tags
+        this.exampleMessages = exampleMessages
         this.originPrompt = originPrompt
         this.isPublic = isPublic
         this.updatedAt = Clock.System.now()

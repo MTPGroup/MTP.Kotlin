@@ -7,6 +7,8 @@ import tech.hanasaki.azusa.modules.chat.adapter.out.persistence.table.ChatMember
 import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterFavoriteTable
 import tech.hanasaki.azusa.modules.character.adapter.out.persistence.table.CharacterTable
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterAuthorView
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterExampleMessageView
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterFavoriteStatusView
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
 import tech.hanasaki.azusa.modules.character.application.port.out.CharacterQueryRepositoryPort
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
@@ -14,6 +16,10 @@ import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
     override suspend fun findCharactersPaged(
@@ -171,6 +177,29 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
             .singleOrNull()
     }
 
+    override suspend fun isFavorited(characterId: CharacterId, userId: UserId): Boolean =
+        CharacterFavoriteTable.selectAll()
+            .where {
+                (CharacterFavoriteTable.characterId eq characterId.value) and
+                        (CharacterFavoriteTable.userId eq userId.value)
+            }
+            .empty().not()
+
+    override suspend fun findFavoriteStatus(characterId: CharacterId, userId: UserId): CharacterFavoriteStatusView {
+        val row = CharacterFavoriteTable.selectAll()
+            .where {
+                (CharacterFavoriteTable.characterId eq characterId.value) and
+                        (CharacterFavoriteTable.userId eq userId.value)
+            }
+            .singleOrNull()
+
+        return CharacterFavoriteStatusView(
+            characterId = characterId.value,
+            isFavorited = row != null,
+            favoritedAt = row?.get(CharacterFavoriteTable.createdAt)?.toString(),
+        )
+    }
+
     private fun findPaged(condition: () -> Op<Boolean>, page: Int, limit: Int): PageResult<CharacterView> {
         val total = CharacterTable.selectAll()
             .where(condition)
@@ -260,10 +289,12 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
             avatar = row[CharacterTable.avatar],
             bio = row[CharacterTable.bio],
             tags = parseTags(row[CharacterTable.tags]),
+            exampleMessages = parseExampleMessages(row[CharacterTable.exampleMessages]),
             originPrompt = row[CharacterTable.originPrompt],
             isPublic = row[CharacterTable.isPublic],
             favoriteCount = row[CharacterTable.favoriteCount],
             chatCount = row[CharacterTable.chatCount],
+            isFavorited = null,
             createdAt = row[CharacterTable.createdAt].toString(),
             updatedAt = row[CharacterTable.updatedAt].toString(),
         )
@@ -273,6 +304,20 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
         raw.split(",")
             .map { it.trim() }
             .filter { it.isNotEmpty() }
+
+    private fun parseExampleMessages(raw: String): List<CharacterExampleMessageView> {
+        if (raw.isBlank()) return emptyList()
+        val element = runCatching { Json.parseToJsonElement(raw) }.getOrNull() ?: return emptyList()
+        return runCatching { element.jsonArray }.getOrNull()
+            ?.mapNotNull { item ->
+                val obj = runCatching { item.jsonObject }.getOrNull() ?: return@mapNotNull null
+                val role = runCatching { obj["role"]?.jsonPrimitive?.content }.getOrNull() ?: return@mapNotNull null
+                val content =
+                    runCatching { obj["content"]?.jsonPrimitive?.content }.getOrNull() ?: return@mapNotNull null
+                CharacterExampleMessageView(role = role, content = content)
+            }
+            ?: emptyList()
+    }
 
     private fun resolvePeriodStart(period: String) = when (period) {
         "day" -> Clock.System.now() - 1.days

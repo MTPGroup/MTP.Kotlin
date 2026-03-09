@@ -12,6 +12,7 @@ object CharacterTable : Table("characters") {
     val avatar = text("avatar").nullable()
     val bio = text("bio").nullable()
     val tags = text("tags").default("")
+    val exampleMessages = text("example_messages").default("[]")
     val originPrompt = text("origin_prompt").nullable()
     val isPublic = bool("is_public")
     val favoriteCount = integer("favorite_count").default(0)

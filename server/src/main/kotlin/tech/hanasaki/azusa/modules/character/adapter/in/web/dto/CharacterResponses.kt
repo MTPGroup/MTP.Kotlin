@@ -2,6 +2,7 @@ package tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto
 
 import kotlinx.serialization.Serializable
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterAuthorView
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterExampleMessageView
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
 import tech.hanasaki.azusa.modules.character.domain.model.Character
 import tech.hanasaki.azusa.modules.character.domain.model.KnowledgeSubscription
@@ -34,6 +35,30 @@ data class CharacterResponse(
 )
 
 typealias PagedCharacterResponse = PagedResponse<CharacterResponse>
+
+@Serializable
+data class ExampleMessageResponse(
+    val role: String,
+    val content: String,
+)
+
+@Serializable
+data class CharacterDetailResponse(
+    val id: Uuid,
+    val author: AuthorProfileResponse? = null,
+    val name: String,
+    val avatar: String?,
+    val bio: String?,
+    val tags: List<String>,
+    val originPrompt: String?,
+    val exampleMessages: List<ExampleMessageResponse>,
+    val isPublic: Boolean,
+    val favoriteCount: Int,
+    val chatCount: Int,
+    val isFavorited: Boolean? = null,
+    val createdAt: String,
+    val updatedAt: String,
+)
 
 @Serializable
 data class TrendingCharacterResponse(
@@ -70,6 +95,11 @@ fun CharacterAuthorView.toResponse(): AuthorProfileResponse = AuthorProfileRespo
     avatar = avatar,
 )
 
+fun CharacterExampleMessageView.toResponse(): ExampleMessageResponse = ExampleMessageResponse(
+    role = role,
+    content = content,
+)
+
 fun CharacterView.toResponse(): CharacterResponse = CharacterResponse(
     id = id,
     author = author?.toResponse(),
@@ -81,6 +111,23 @@ fun CharacterView.toResponse(): CharacterResponse = CharacterResponse(
     isPublic = isPublic,
     favoriteCount = favoriteCount,
     chatCount = chatCount,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun CharacterView.toDetailResponse(): CharacterDetailResponse = CharacterDetailResponse(
+    id = id,
+    author = author?.toResponse(),
+    name = name,
+    avatar = avatar,
+    bio = bio,
+    tags = tags,
+    originPrompt = originPrompt,
+    exampleMessages = exampleMessages.map { it.toResponse() },
+    isPublic = isPublic,
+    favoriteCount = favoriteCount,
+    chatCount = chatCount,
+    isFavorited = isFavorited,
     createdAt = createdAt,
     updatedAt = updatedAt,
 )

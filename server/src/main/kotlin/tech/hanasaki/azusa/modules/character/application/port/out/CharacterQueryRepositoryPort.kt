@@ -1,6 +1,7 @@
 package tech.hanasaki.azusa.modules.character.application.port.out
 
 import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterView
+import tech.hanasaki.azusa.modules.character.application.port.`in`.dto.CharacterFavoriteStatusView
 import tech.hanasaki.azusa.shared.domain.model.page.PageResult
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
 import tech.hanasaki.azusa.shared.domain.model.vo.UserId
@@ -24,4 +25,6 @@ interface CharacterQueryRepositoryPort {
     suspend fun findRecommendedCharacters(userId: UserId, limit: Int): List<CharacterView>
     suspend fun searchCharacters(query: String, page: Int, limit: Int, userId: UserId?): PageResult<CharacterView>
     suspend fun findVisibleById(characterId: CharacterId, userId: UserId?): CharacterView?
+    suspend fun isFavorited(characterId: CharacterId, userId: UserId): Boolean
+    suspend fun findFavoriteStatus(characterId: CharacterId, userId: UserId): CharacterFavoriteStatusView
 }

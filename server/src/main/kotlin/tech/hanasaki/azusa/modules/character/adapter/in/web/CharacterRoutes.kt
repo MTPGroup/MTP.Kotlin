@@ -15,6 +15,7 @@ import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterQueryUseCasePort
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
+import tech.hanasaki.azusa.modules.character.domain.model.CharacterExampleMessage
 import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
@@ -196,7 +197,7 @@ fun Route.characterRoutes() {
                 val userId = call.optionalUserId()
                 val characterId = CharacterId(call.uuidParam("characterId"))
                 val character = characterQueryService.getCharacter(userId, characterId)
-                call.respondOk(character.toResponse())
+                call.respondOk(character.toDetailResponse())
             }.describe {
                 tag("角色管理")
                 operationId = "getCharacter"
@@ -210,7 +211,7 @@ fun Route.characterRoutes() {
                 responses {
                     HttpStatusCode.OK {
                         description = "获取成功"
-                        schema = jsonSchema<ApiResponse<CharacterResponse>>()
+                        schema = jsonSchema<ApiResponse<CharacterDetailResponse>>()
                     }
                     HttpStatusCode.NotFound {
                         description = "角色不存在"
@@ -337,6 +338,13 @@ fun Route.characterRoutes() {
                     name = request.name,
                     avatar = avatar,
                     bio = request.bio,
+                    tags = request.tags.map { it.trim() }.filter { it.isNotEmpty() },
+                    exampleMessages = request.exampleMessages.map {
+                        CharacterExampleMessage(
+                            role = it.role.trim(),
+                            content = it.content.trim(),
+                        )
+                    }.filter { it.role.isNotEmpty() && it.content.isNotEmpty() },
                     originPrompt = request.originPrompt,
                     isPublic = request.isPublic
                 )
@@ -384,6 +392,13 @@ fun Route.characterRoutes() {
                     name = request.name,
                     avatar = avatar,
                     bio = request.bio,
+                    tags = request.tags.map { it.trim() }.filter { it.isNotEmpty() },
+                    exampleMessages = request.exampleMessages.map {
+                        CharacterExampleMessage(
+                            role = it.role.trim(),
+                            content = it.content.trim(),
+                        )
+                    }.filter { it.role.isNotEmpty() && it.content.isNotEmpty() },
                     originPrompt = request.originPrompt,
                     isPublic = request.isPublic
                 )
