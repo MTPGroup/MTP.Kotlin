@@ -39,7 +39,7 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
 
         val items = joinedQuery()
             .where { condition }
-            .orderBy(orderBy.first, orderBy.second)
+            .orderBy(*orderBy.toTypedArray())
             .limit(limit)
             .offset(((page - 1) * limit).toLong())
             .map(::toView)
@@ -129,16 +129,24 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
                     )
         }
 
-        // TODO(MTP-37): 角色标签过滤依赖独立数据模型，当前先忽略 tags 参数。
+        if (!tags.isNullOrEmpty()) {
+            tags.forEach { tag ->
+                val pattern = "%${tag.lowercase()}%"
+                condition = condition and (CharacterTable.tags.lowerCase() like pattern)
+            }
+        }
 
         return condition
     }
 
-    private fun resolveSort(sort: String?): Pair<Expression<*>, SortOrder> = when (sort) {
-        "name" -> CharacterTable.name to SortOrder.ASC
-        // TODO(MTP-37): popular 排序依赖 favorite/chat 指标，待补齐统计口径与数据来源。
-        "popular" -> CharacterTable.updatedAt to SortOrder.DESC
-        else -> CharacterTable.updatedAt to SortOrder.DESC
+    private fun resolveSort(sort: String?): List<Pair<Expression<*>, SortOrder>> = when (sort) {
+        "name" -> listOf(CharacterTable.name to SortOrder.ASC)
+        "popular" -> listOf(
+            CharacterTable.favoriteCount to SortOrder.DESC,
+            CharacterTable.chatCount to SortOrder.DESC,
+            CharacterTable.updatedAt to SortOrder.DESC,
+        )
+        else -> listOf(CharacterTable.updatedAt to SortOrder.DESC)
     }
 
     private fun joinedQuery() = CharacterTable
@@ -163,10 +171,18 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
             name = row[CharacterTable.name],
             avatar = row[CharacterTable.avatar],
             bio = row[CharacterTable.bio],
+            tags = parseTags(row[CharacterTable.tags]),
             originPrompt = row[CharacterTable.originPrompt],
             isPublic = row[CharacterTable.isPublic],
+            favoriteCount = row[CharacterTable.favoriteCount],
+            chatCount = row[CharacterTable.chatCount],
             createdAt = row[CharacterTable.createdAt].toString(),
             updatedAt = row[CharacterTable.updatedAt].toString(),
         )
     }
+
+    private fun parseTags(raw: String): List<String> =
+        raw.split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
 }
