@@ -131,6 +131,7 @@ class ChatsViewModel(
                 }
                 postSideEffect(ChatsSideEffect.ShowToast("创建会话成功"))
             }
+            loadChats()
         }.onFailure { e ->
             intent {
                 reduce { state.copy(isCreatingChat = false) }

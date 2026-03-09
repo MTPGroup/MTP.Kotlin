@@ -7,8 +7,6 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.composeHotReload) apply false
-    alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.ktorfit) apply false
     alias(serverLibs.plugins.ktor) apply false
     alias(serverLibs.plugins.kotlinJvm) apply false
 }

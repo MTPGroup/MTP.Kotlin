@@ -13,8 +13,6 @@ composeHotReload = "1.0.0"
 composeMultiplatform = "1.10.1"
 composeMaterial3 = "1.10.0-alpha02"
 kotlin = "2.3.0"
-ksp = "2.3.4"
-ktorfit = "2.7.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-coroutines = "1.10.2"
 koin-bom = "4.1.1"
@@ -66,7 +64,6 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
-ktorfit = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfit" }
 netty-resolver-dns-classes-macos = { module = "io.netty:netty-resolver-dns-classes-macos", version.ref = "nettyResolverDnsClassesMacos" }
 netty-resolver-dns-native-macos = { module = "io.netty:netty-resolver-dns-native-macos", version.ref = "nettyResolverDnsNativeMacos" }
 orbit-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbit" }
@@ -132,7 +129,5 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

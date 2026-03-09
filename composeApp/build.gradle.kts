@@ -72,8 +72,6 @@ kotlin {
             implementation(libs.bundles.ktor.client.common)
             implementation(libs.bundles.coil)
             implementation(libs.bundles.settings)
-
-            implementation(libs.ktorfit)
         }
         appleMain.dependencies {
             implementation(libs.ktor.client.darwin)
