@@ -40,7 +40,13 @@ fun ValidationCollector.collectLimit(value: String?, fieldName: String = "limit"
 }
 
 fun ValidationCollector.collectAuthorId(value: String?, fieldName: String = "authorId"): UserId? {
-    return runCatching { UserId(Uuid.parse(value.orEmpty())) }.getOrNull()
+    if (value == null) return null
+    if (value.isBlank()) return null
+    return runCatching { UserId(Uuid.parse(value)) }
+        .getOrElse {
+            add(fieldName, "authorId 必须是 UUID 格式")
+            null
+        }
 }
 
 fun ValidationCollector.collectVisibility(value: String?, fieldName: String = "visibility"): String? {

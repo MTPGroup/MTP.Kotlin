@@ -15,6 +15,7 @@ import org.koin.ktor.ext.inject
 import tech.hanasaki.azusa.modules.character.adapter.`in`.web.dto.*
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterQueryUseCasePort
 import tech.hanasaki.azusa.modules.character.application.port.`in`.CharacterUseCasePort
+import tech.hanasaki.azusa.shared.domain.exception.AuthenticationException
 import tech.hanasaki.azusa.shared.domain.exception.ValidationException
 import tech.hanasaki.azusa.shared.domain.model.vo.AvatarUrl
 import tech.hanasaki.azusa.shared.domain.model.vo.CharacterId
@@ -39,14 +40,21 @@ fun Route.characterRoutes() {
             get {
                 val userId = call.optionalUserId()
                 val validator = ValidationCollector()
-                val visibility = validator.collectVisibility(call.request.queryParameters["visibility"]) ?: "public"
-                val scope = validator.collectScope(call.request.queryParameters["scope"]) ?: "mine"
-                val authorId = validator.collectAuthorId(call.request.queryParameters["authorId"] ?: "")
-                val sort = validator.collectionSort(call.request.queryParameters["sort"] ?: "newest")
-                val tags = validator.collectionTags(call.request.queryParameters["tags"] ?: "")
+                val visibility = validator.collectVisibility(call.request.queryParameters["visibility"]) ?: "all"
+                val scope = validator.collectScope(call.request.queryParameters["scope"])
+                val authorId = validator.collectAuthorId(call.request.queryParameters["authorId"])
+                val sort = validator.collectionSort(call.request.queryParameters["sort"]) ?: "newest"
+                val tags = validator.collectionTags(call.request.queryParameters["tags"], "tags")
                 val page = validator.collectPage(call.request.queryParameters["page"]) ?: 1
-                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 10
+                val limit = validator.collectLimit(call.request.queryParameters["limit"]) ?: 20
                 validator.throwIfAny()
+
+                if (visibility == "private" && userId == null) {
+                    throw AuthenticationException("请求私有角色需要登录")
+                }
+                if (scope == "mine" && userId == null) {
+                    throw AuthenticationException("scope=mine 需要登录")
+                }
 
                 val query = call.request.queryParameters["q"]
 
@@ -64,10 +72,34 @@ fun Route.characterRoutes() {
                 call.respondOk(result.toResponse())
             }.describe {
                 tag("角色管理")
-                operationId = "listPublicCharacters"
+                operationId = "listCharacters"
                 summary = "获取角色列表"
-                description = "获取角色列表（分页）"
+                description = "获取角色列表（分页），支持可见性、范围、作者、标签、排序与关键词筛选"
                 parameters {
+                    query("q") {
+                        description = "搜索关键词（匹配角色名称、简介）"
+                        required = false
+                    }
+                    query("visibility") {
+                        description = "可见性筛选：public/private/all（默认 all）"
+                        required = false
+                    }
+                    query("scope") {
+                        description = "范围筛选：mine（仅返回当前用户创建的角色）"
+                        required = false
+                    }
+                    query("authorId") {
+                        description = "指定作者 ID，返回该作者可见角色"
+                        required = false
+                    }
+                    query("sort") {
+                        description = "排序方式：newest/popular/name（默认 newest）"
+                        required = false
+                    }
+                    query("tags") {
+                        description = "按标签筛选，支持逗号分隔，如 anime,game"
+                        required = false
+                    }
                     query("page") {
                         description = "页码，从1开始"
                         required = false
@@ -81,6 +113,9 @@ fun Route.characterRoutes() {
                     HttpStatusCode.OK {
                         description = "获取成功"
                         schema = jsonSchema<ApiResponse<PagedCharacterResponse>>()
+                    }
+                    HttpStatusCode.Unauthorized {
+                        description = "请求私有角色但未登录"
                     }
                 }
             }

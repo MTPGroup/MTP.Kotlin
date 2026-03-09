@@ -129,10 +129,7 @@ class ExposedCharacterQueryRepository : CharacterQueryRepositoryPort {
                     )
         }
 
-        // TODO(MTP-37): 角色标签数据模型暂未实现。
-        if (!tags.isNullOrEmpty()) {
-            condition = condition and Op.FALSE
-        }
+        // TODO(MTP-37): 角色标签过滤依赖独立数据模型，当前先忽略 tags 参数。
 
         return condition
     }
