@@ -1,53 +1,52 @@
 package tech.hanasaki.momotalk_plus.core.data.repository
 
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.functions.functions
-import io.ktor.client.call.body
-import io.ktor.client.request.setBody
-import io.ktor.http.HttpMethod
-import io.ktor.http.path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
-
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterDetailResponse
-import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterListResponse
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.CharacterRemoteDataSource
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CharacterDto
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.CreateCharacterRequest
 import tech.hanasaki.momotalk_plus.core.data.datasource.remote.dto.UpdateCharacterRequest
 import tech.hanasaki.momotalk_plus.core.domain.model.Character
+import tech.hanasaki.momotalk_plus.core.domain.model.Creator
 import tech.hanasaki.momotalk_plus.core.domain.model.Visibility
 import tech.hanasaki.momotalk_plus.core.domain.repository.CharacterRepository
+import tech.hanasaki.momotalk_plus.core.network.AppErrorException
+import tech.hanasaki.momotalk_plus.core.network.AppResult
+import tech.hanasaki.momotalk_plus.core.network.NetworkErrorMapper
+import tech.hanasaki.momotalk_plus.core.network.callApi
+import tech.hanasaki.momotalk_plus.core.network.callRawApi
 
 /**
  * Character Store - 管理角色数据的缓存和网络请求
  * 提供智能的缓存策略和数据流
  */
 class CharacterRepositoryImpl(
-    private val supabase: SupabaseClient,
+    private val remote: CharacterRemoteDataSource,
+    private val errorMapper: NetworkErrorMapper,
     private val localDataSource: CharacterLocalDataSource,
 ) : CharacterRepository {
 
     private suspend fun refreshCharacterList() {
-        runCatching {
-            val response = supabase.functions.invoke("characters") {
-                method = HttpMethod.Get
+        when (val result = callApi(errorMapper) { remote.getMyCharacters(page = 1, limit = 100) }) {
+            is AppResult.Success -> {
+                localDataSource.clearCharacters()
+                localDataSource.saveCharacters(result.data.items.map { it.toDomain() })
             }
-            val characters = response.body<CharacterListResponse>().data.characters
-            localDataSource.clearCharacters()
-            localDataSource.saveCharacters(characters)
-        }.onFailure { it.printStackTrace() }
+
+            is AppResult.Failure -> Unit
+        }
     }
 
     private suspend fun refreshCharacter(id: String) {
-        runCatching {
-            val response = supabase.functions.invoke("characters") {
-                url { path(id) }
-                method = HttpMethod.Get
+        when (val result = callApi(errorMapper) { remote.getCharacter(id) }) {
+            is AppResult.Success -> {
+                localDataSource.saveCharacter(result.data.toDomain())
             }
-            val character = response.body<CharacterDetailResponse>().data
-            localDataSource.saveCharacter(character)
-        }.onFailure { it.printStackTrace() }
+
+            is AppResult.Failure -> Unit
+        }
     }
 
     /**
@@ -83,35 +82,30 @@ class CharacterRepositoryImpl(
     ) {
         val request = CreateCharacterRequest(
             name = name,
-            signature = signature,
-            avatarUrl = avatarUrl,
-            persona = persona,
-            visibility = visibility
+            avatar = avatarUrl.ifBlank { null },
+            bio = signature.ifBlank { null },
+            originPrompt = persona.ifBlank { null },
+            isPublic = visibility == Visibility.PUBLIC,
         )
 
-        try {
-            supabase.functions.invoke("characters") {
-                method = HttpMethod.Post
-                setBody(request)
+        when (val result = callApi(errorMapper) { remote.createCharacter(request) }) {
+            is AppResult.Success -> {
+                localDataSource.saveCharacter(result.data.toDomain())
+                refreshCharacterList()
             }
 
-            refreshCharacterList()
-        } catch (e: Exception) {
-            e.printStackTrace()
+            is AppResult.Failure -> throw AppErrorException(result.error)
         }
     }
 
     override suspend fun deleteCharacter(id: String) {
-        try {
-            supabase.functions.invoke("characters") {
-                url { path(id) }
-                method = HttpMethod.Delete
+        when (val result = callRawApi(errorMapper) { remote.deleteCharacter(id) }) {
+            is AppResult.Success -> {
+                localDataSource.clearCharacter(id)
+                refreshCharacterList()
             }
 
-            localDataSource.clearCharacter(id)
-            refreshCharacterList()
-        } catch (e: Exception) {
-            e.printStackTrace()
+            is AppResult.Failure -> throw AppErrorException(result.error)
         }
     }
 
@@ -140,25 +134,39 @@ class CharacterRepositoryImpl(
         avatarUrl: String,
         visibility: Visibility,
     ) {
-        try {
-            val request = UpdateCharacterRequest(
-                name = name,
-                signature = signature,
-                avatarUrl = avatarUrl,
-                persona = persona,
-                visibility = visibility
-            )
+        val request = UpdateCharacterRequest(
+            name = name,
+            avatar = avatarUrl.ifBlank { null },
+            bio = signature.ifBlank { null },
+            originPrompt = persona.ifBlank { null },
+            isPublic = visibility == Visibility.PUBLIC,
+        )
 
-            supabase.functions.invoke("characters") {
-                url { path(id) }
-                method = HttpMethod.Put
-                setBody(request)
+        when (val result = callApi(errorMapper) { remote.updateCharacter(id, request) }) {
+            is AppResult.Success -> {
+                localDataSource.saveCharacter(result.data.toDomain())
+                refreshCharacterList()
             }
 
-            refreshCharacterList()
-            refreshCharacter(id)
-        } catch (e: Exception) {
-            e.printStackTrace()
+            is AppResult.Failure -> throw AppErrorException(result.error)
         }
     }
 }
+
+private fun CharacterDto.toDomain(): Character = Character(
+    id = id,
+    creatorId = author?.id.orEmpty(),
+    name = name,
+    signature = bio.orEmpty(),
+    persona = originPrompt.orEmpty(),
+    avatarUrl = avatar.orEmpty(),
+    visibility = if (isPublic) Visibility.PUBLIC else Visibility.PRIVATE,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+    creator = Creator(
+        id = author?.id.orEmpty(),
+        name = author?.name.orEmpty(),
+        image = author?.avatar,
+        username = null,
+    ),
+)

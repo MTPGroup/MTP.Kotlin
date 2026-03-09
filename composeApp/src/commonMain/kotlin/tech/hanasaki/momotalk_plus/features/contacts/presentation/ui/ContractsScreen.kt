@@ -56,7 +56,6 @@ fun ContactsScreen(
             val route = backStackEntry.toRoute<ContactsRoute.EditContact>()
             ContactEditPage(
                 contactId = route.id,
-                currentUser = currentUser,
                 onNavigateBack = { contactsNavController.popBackStack() }
             )
         }

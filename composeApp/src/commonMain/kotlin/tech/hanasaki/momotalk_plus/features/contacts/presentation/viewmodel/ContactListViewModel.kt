@@ -50,7 +50,6 @@ class ContactListViewModel(
                 intent { reduce { state.copy(isLoading = false, contacts = contacts) } }
             }
             .catch { e ->
-                e.printStackTrace()
                 intent { reduce { state.copy(isLoading = false) } }
                 intent { postSideEffect(ContactListSideEffect.ShowErrorMessage("加载联系人失败: ${e.message}")) }
             }

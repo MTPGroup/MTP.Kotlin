@@ -13,6 +13,8 @@ import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.container
 import tech.hanasaki.momotalk_plus.core.domain.usecase.CharacterDetailUseCase
+import tech.hanasaki.momotalk_plus.core.network.AppErrorException
+import tech.hanasaki.momotalk_plus.core.network.toDisplayMessage
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.DeleteContactUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.navigation.ContactsRoute
 import tech.hanasaki.momotalk_plus.features.contacts.presentation.state.ContactDetailIntent
@@ -75,15 +77,19 @@ class ContactDetailViewModel(
     }
 
     private suspend fun deleteContact(characterId: String) {
-        deleteContactUseCase(characterId)
-            .onSuccess {
-                intent {
-                    reduce { state.copy(showDialog = false) }
-                    postSideEffect(ContactDetailSideEffect.NavigateToContactsList)
-                }
+        runCatching {
+            deleteContactUseCase(characterId)
+        }.onSuccess {
+            intent {
+                reduce { state.copy(showDialog = false) }
+                postSideEffect(ContactDetailSideEffect.NavigateToContactsList)
             }
-            .onFailure { e ->
-                intent { postSideEffect(ContactDetailSideEffect.ShowErrorMessage("删除联系人失败: ${e.message}")) }
+        }.onFailure { e ->
+            val msg = when (e) {
+                is AppErrorException -> e.appError.toDisplayMessage()
+                else -> "删除联系人失败，请稍后重试"
             }
+            intent { postSideEffect(ContactDetailSideEffect.ShowErrorMessage(msg)) }
+        }
     }
 }

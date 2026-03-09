@@ -1,10 +1,5 @@
 package tech.hanasaki.momotalk_plus.app.di
 
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.functions.Functions
-import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.realtime.Realtime
-import io.github.jan.supabase.storage.Storage
 import io.ktor.client.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
@@ -15,6 +10,7 @@ import tech.hanasaki.momotalk_plus.app.viewmodel.AppViewModel
 import tech.hanasaki.momotalk_plus.core.auth.PersistentTokenStore
 import tech.hanasaki.momotalk_plus.core.auth.TokenStore
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.CharacterLocalDataSource
+import tech.hanasaki.momotalk_plus.core.data.datasource.remote.CharacterRemoteDataSource
 import tech.hanasaki.momotalk_plus.core.data.datasource.local.LocalCookieStorage
 import tech.hanasaki.momotalk_plus.core.data.repository.CharacterRepositoryImpl
 import tech.hanasaki.momotalk_plus.core.data.repository.SessionRepositoryImpl
@@ -42,6 +38,7 @@ import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatDet
 import tech.hanasaki.momotalk_plus.features.chats.presentation.viewmodel.ChatsViewModel
 import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactProviderImpl
 import tech.hanasaki.momotalk_plus.features.contacts.data.repository.ContactRepositoryImpl
+import tech.hanasaki.momotalk_plus.features.contacts.data.datasource.remote.ContactRemoteDatasource
 import tech.hanasaki.momotalk_plus.features.contacts.domain.repository.ContactRepository
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.AddContactUseCase
 import tech.hanasaki.momotalk_plus.features.contacts.domain.usecase.DeleteContactUseCase
@@ -96,20 +93,6 @@ val networkModule = module {
     }
 }
 
-val supabaseModule = module {
-    single {
-        createSupabaseClient(
-            "http://127.0.0.1:8000",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2Mzc4MDcyLCJleHAiOjE5MjQwNTgwNzJ9.cwrBICbBHINhojKuJ0pdoHaQguBR28rlPS41bPCh_pI"
-        ) {
-            install(Postgrest)
-            install(Storage)
-            install(Realtime)
-            install(Functions)
-        }
-    }
-}
-
 val themeModule = module {
     single { ThemeManager() }
 }
@@ -120,7 +103,8 @@ val uploadModule = module {
     factoryOf(::UploadImageUseCase)
 }
 val characterModule = module {
-    single<CharacterRepository> { CharacterRepositoryImpl(get(), get()) }
+    factoryOf(::CharacterRemoteDataSource)
+    single<CharacterRepository> { CharacterRepositoryImpl(get(), get(), get()) }
 
     factoryOf(::CharacterDetailUseCase)
     factoryOf(::ListCharacterUseCase)
@@ -151,6 +135,7 @@ val authModule = module {
 }
 
 val contactModule = module {
+    factoryOf(::ContactRemoteDatasource)
     single<ContactRepository> { ContactRepositoryImpl(get(), get()) }
     single<ContactProvider> { ContactProviderImpl(get()) }
 
@@ -218,7 +203,6 @@ val appModule =
         platformModule,
         storageModule,
         networkModule,
-        supabaseModule,
         themeModule,
         datasourceModule,
         uploadModule,

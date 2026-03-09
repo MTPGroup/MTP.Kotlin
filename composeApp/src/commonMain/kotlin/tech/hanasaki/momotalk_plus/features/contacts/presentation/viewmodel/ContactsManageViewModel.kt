@@ -84,7 +84,7 @@ class ContactsManageViewModel(
                 )
             }
         }
-        addContactUseCase(userId)
+        runCatching { addContactUseCase(userId) }
             .onSuccess {
                 intent {
                     reduce {
@@ -112,7 +112,7 @@ class ContactsManageViewModel(
                 )
             }
         }
-        removeContactUseCase(userId)
+        runCatching { removeContactUseCase(userId) }
             .onSuccess {
                 intent {
                     reduce {
